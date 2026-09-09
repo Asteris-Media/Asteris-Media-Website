@@ -2,6 +2,10 @@
 
 Landing page single‑file. `index.html` — sem build, sem dependências.
 
+**Repo:** https://github.com/Asteris-Media/Asteris-Media-Website (org `Asteris-Media`, público, para GitHub Pages)
+**Live:** `https://asteris-media.github.io/Asteris-Media-Website/` (depois de ativar o Pages) → futuramente `asteris.pt`
+**Deploy:** `git push` para `main` republica sozinho.
+
 Estrutura (a partir do modelo `../Versoes de site anteriores.../projeto_asteris_completo BEM FEITO/`):
 tema dourado/dark, serif Cormorant + Montserrat.
 
