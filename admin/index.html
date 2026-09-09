@@ -160,9 +160,24 @@ label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
 .lib-drop{border:1.5px dashed var(--edge2);border-radius:12px;padding:24px 16px;text-align:center;color:var(--faint);font-size:12px;margin-bottom:18px;transition:border-color .15s,color .15s,background .15s}
 .lib-drop.over{border-color:var(--gold);color:var(--gold);background:var(--gold-lo)}
 .lib-drop b{color:var(--ink);font-size:13px;display:block;margin-bottom:5px}
-.lib-subtabs{display:flex;gap:6px;margin-bottom:14px}
+.lib-subtabs{display:flex;gap:6px;margin-bottom:12px}
 .lib-subtabs button{background:var(--panel2);border:1px solid var(--edge2);color:var(--dim);font-size:11px;font-weight:600;padding:7px 14px;border-radius:20px}
 .lib-subtabs button.on{background:var(--gold);color:#0C0D0E;border-color:var(--gold)}
+.lib-tools{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+.lib-tools select{width:auto;min-width:0;padding:6px 26px 6px 9px;font-size:11px}
+.lib-tools .spacer{flex:1}
+.lib-tools .vm{display:flex;border:1px solid var(--edge2);border-radius:7px;overflow:hidden}
+.lib-tools .vm button{background:var(--panel2);border:0;color:var(--dim);padding:6px 11px;font-size:13px;line-height:1}
+.lib-tools .vm button.on{background:var(--gold);color:#0C0D0E}
+.lib-list{display:flex;flex-direction:column;gap:6px}
+.lib-row{position:relative;display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--edge2);border-radius:9px;padding:9px 12px;cursor:pointer}
+.lib-row:hover{border-color:var(--gold)}
+.lib-row .lr-thumb{width:38px;height:38px;border-radius:6px;background:#0a0a0a center/cover no-repeat;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--faint);font-size:13px}
+.lib-row .lr-name{font-weight:600;font-size:12.5px;min-width:0;flex:1;word-break:break-word}
+.lib-row .lr-meta{font-size:10.5px;color:var(--dim);white-space:nowrap}
+.lib-row .lr-tag{font-size:8px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:20px;border:1px solid var(--edge2);color:var(--dim);flex-shrink:0}
+.lib-row .lr-tag.entrega{color:var(--gold)} .lib-row .lr-tag.selecao{color:var(--pos)} .lib-row .lr-tag.portfolio{color:#B79CE0}
+.lib-row .lf-menu{position:static;width:26px;height:24px;background:none;border:0;flex-shrink:0}
 .lib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
 .lib-folder{position:relative;background:var(--panel);border:1px solid var(--edge2);border-radius:12px;overflow:hidden}
 .lib-folder:hover{border-color:var(--edge2)}
@@ -928,16 +943,71 @@ function libraryView(){
       { key:"cloudinary", label:"Cloudinary · Portfólio + Seleção", data: lib.cloudinary }
     ];
     function show(key){
-      LIB_TAB = key;
+      LIB_TAB = key; saveLibPrefs({ tab: key });
       subtabs.querySelectorAll("button").forEach(function(b){ b.classList.toggle("on", b.dataset.k === key); });
       var cl = clouds.filter(function(c){ return c.key === key; })[0].data;
       body.innerHTML = "";
       if(!cl || (!cl.bound && !cl.configured)){ body.appendChild(el("div","lib-empty","Esta nuvem não está ligada.")); return; }
       if(cl.error) body.appendChild(el("div","lib-empty","aviso: " + esc(cl.error)));
-      var folders = cl.folders || [];
+      var folders = (cl.folders || []).slice();
       if(!folders.length){ body.appendChild(el("div","lib-empty","Ainda sem pastas. Envia ficheiros acima.")); return; }
-      var grid = el("div","lib-grid"); body.appendChild(grid);
-      folders.forEach(function(f){ grid.appendChild(libFolderCard(f)); });
+
+      var P = libPrefs();
+      var tools = el("div","lib-tools");
+      tools.innerHTML =
+        '<select id="lt-sort">'
+        +   '<option value="az">Nome A → Z</option><option value="za">Nome Z → A</option>'
+        +   '<option value="count">Mais ficheiros</option><option value="size">Maior tamanho</option>'
+        + '</select>'
+        + '<select id="lt-tag">'
+        +   '<option value="">Todas as tags</option><option value="entrega">Entrega</option>'
+        +   '<option value="selecao">Seleção</option><option value="portfolio">Portfólio</option>'
+        +   '<option value="outro">Outro</option><option value="none">Sem tag</option>'
+        + '</select>'
+        + '<span class="spacer"></span>'
+        + '<span class="vm"><button data-vm="card" title="Cartões">&#9638;</button><button data-vm="list" title="Lista">&#9776;</button></span>';
+      body.appendChild(tools);
+      var host = el("div"); body.appendChild(host);
+
+      var sortSel = tools.querySelector("#lt-sort"), tagSel = tools.querySelector("#lt-tag");
+      sortSel.value = P.sort; tagSel.value = P.tag || "";
+      tools.querySelectorAll(".vm button").forEach(function(b){ b.classList.toggle("on", b.dataset.vm === P.view); });
+
+      function render(){
+        var pr = libPrefs();
+        var list = folders.filter(function(f){
+          if(!pr.tag) return true;
+          if(pr.tag === "none") return !f.tag;
+          return f.tag === pr.tag;
+        });
+        list.sort(function(a, b){
+          if(pr.sort === "za") return b.name.localeCompare(a.name);
+          if(pr.sort === "count") return (b.count || 0) - (a.count || 0);
+          if(pr.sort === "size") return (b.bytes || 0) - (a.bytes || 0);
+          return a.name.localeCompare(b.name);
+        });
+        host.innerHTML = "";
+        if(!list.length){ host.appendChild(el("div","lib-empty","Nenhuma pasta com este filtro.")); return; }
+        if(pr.view === "list"){
+          var wrap = el("div","lib-list");
+          list.forEach(function(f){ wrap.appendChild(libFolderRow(f)); });
+          host.appendChild(wrap);
+        } else {
+          var grid = el("div","lib-grid");
+          list.forEach(function(f){ grid.appendChild(libFolderCard(f)); });
+          host.appendChild(grid);
+        }
+      }
+      sortSel.onchange = function(){ saveLibPrefs({ sort: this.value }); render(); };
+      tagSel.onchange = function(){ saveLibPrefs({ tag: this.value }); render(); };
+      tools.querySelectorAll(".vm button").forEach(function(b){
+        b.onclick = function(){
+          saveLibPrefs({ view: b.dataset.vm });
+          tools.querySelectorAll(".vm button").forEach(function(x){ x.classList.toggle("on", x === b); });
+          render();
+        };
+      });
+      render();
     }
     clouds.forEach(function(c){
       var b = el("button","", c.label + "  " + (((c.data && c.data.folders) || []).length));
@@ -945,7 +1015,7 @@ function libraryView(){
       b.onclick = function(){ closeMenu(); show(c.key); };
       subtabs.appendChild(b);
     });
-    show(LIB_TAB || "r2");
+    show(LIB_TAB || libPrefs().tab || "r2");
   });
 }
 function guessName(dt){
@@ -973,6 +1043,27 @@ function setFolderTag(f){
     };
   });
 }
+function folderMenuItems(f){
+  var items = [
+    { head: f.name.split("/").pop() },
+    { label: "Abrir pasta", onClick: function(){ folderModal(f); } },
+    { label: "Definir tag…", onClick: function(){ setFolderTag(f); } },
+    { label: "Copiar link de download", onClick: function(){
+        var u = folderLink(f);
+        if(navigator.clipboard) navigator.clipboard.writeText(u).then(function(){ toast("Link da pasta copiado"); });
+        else noticeModal("Link da pasta", u);
+    } },
+    { label: "Usar numa página nova", onClick: function(){ newPageModal(f); } }
+  ];
+  if(f.cloud === "r2"){
+    items.push({ sep: true });
+    items.push({ label: "Apagar pasta", danger: true, onClick: function(){
+      confirmModal({ title:"Apagar pasta?", message:'"'+f.name+'" e os '+f.count+' ficheiros são apagados do R2. Não dá para desfazer.', ok:"Apagar", danger:true })
+        .then(function(yes){ if(yes) api("DELETE","media/r2-folder/"+f.name.split("/").map(encodeURIComponent).join("/")).then(function(){ LIB_CACHE=null; libraryView(); }); });
+    } });
+  }
+  return items;
+}
 function libFolderCard(f){
   var c = el("div","lib-folder");
   var cover = el("div","lf-cover");
@@ -987,35 +1078,36 @@ function libFolderCard(f){
   bodyEl.appendChild(Object.assign(el("div","lf-name"), { textContent: f.name.split("/").pop() }));
   bodyEl.appendChild(Object.assign(el("div","lf-meta"), { textContent: f.count + " ficheiro" + (f.count===1?"":"s") + " · " + fmtBytes(f.bytes) }));
   c.appendChild(bodyEl);
-
   c.title = "Duplo clique para abrir";
   c.addEventListener("dblclick", function(){ folderModal(f); });
-
   var mb = el("button","lf-menu","&#8942;"); mb.setAttribute("aria-label","Ações");
-  mb.onclick = function(e){
-    e.stopPropagation();
-    var items = [
-      { head: f.name.split("/").pop() },
-      { label: "Abrir pasta", onClick: function(){ folderModal(f); } },
-      { label: "Definir tag…", onClick: function(){ setFolderTag(f); } },
-      { label: "Copiar link de download", onClick: function(){
-          var u = folderLink(f);
-          if(navigator.clipboard) navigator.clipboard.writeText(u).then(function(){ toast("Link da pasta copiado"); });
-          else noticeModal("Link da pasta", u);
-      } },
-      { label: "Usar numa página nova", onClick: function(){ newPageModal(f); } }
-    ];
-    if(f.cloud === "r2"){
-      items.push({ sep: true });
-      items.push({ label: "Apagar pasta", danger: true, onClick: function(){
-        confirmModal({ title:"Apagar pasta?", message:'"'+f.name+'" e os '+f.count+' ficheiros são apagados do R2. Não dá para desfazer.', ok:"Apagar", danger:true })
-          .then(function(yes){ if(yes) api("DELETE","media/r2-folder/"+f.name.split("/").map(encodeURIComponent).join("/")).then(function(){ LIB_CACHE=null; libraryView(); }); });
-      } });
-    }
-    openMenu(mb, items);
-  };
+  mb.onclick = function(e){ e.stopPropagation(); openMenu(mb, folderMenuItems(f)); };
   c.appendChild(mb);
   return c;
+}
+function libFolderRow(f){
+  var r = el("div","lib-row"); r.title = "Duplo clique para abrir";
+  var th = el("div","lr-thumb");
+  var first = (f.files || [])[0];
+  if(first && first.tipo !== "video"){ th.style.backgroundImage = "url('" + first.url + "')"; }
+  else { th.textContent = first ? "▶" : "🗀"; }
+  r.appendChild(th);
+  r.appendChild(Object.assign(el("div","lr-name"), { textContent: f.name.split("/").pop() }));
+  if(f.tag) r.appendChild(Object.assign(el("span","lr-tag " + f.tag), { textContent: TAG_LABEL[f.tag] || f.tag }));
+  r.appendChild(Object.assign(el("div","lr-meta"), { textContent: f.count + " · " + fmtBytes(f.bytes) }));
+  var mb = el("button","lf-menu","&#8942;");
+  mb.onclick = function(e){ e.stopPropagation(); openMenu(mb, folderMenuItems(f)); };
+  r.appendChild(mb);
+  r.addEventListener("dblclick", function(){ folderModal(f); });
+  return r;
+}
+var LIB_PREFS_KEY = "asteris_lib_prefs";
+function libPrefs(){
+  try{ return Object.assign({ sort:"az", tag:"", view:"card", tab:"r2" }, JSON.parse(localStorage.getItem(LIB_PREFS_KEY) || "{}")); }
+  catch(e){ return { sort:"az", tag:"", view:"card", tab:"r2" }; }
+}
+function saveLibPrefs(patch){
+  try{ localStorage.setItem(LIB_PREFS_KEY, JSON.stringify(Object.assign(libPrefs(), patch))); }catch(e){}
 }
 
 /* visualizador de pasta — modal com seleção, zip e apagar */
