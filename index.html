@@ -145,9 +145,10 @@ section.block{padding:clamp(64px,9vw,120px) var(--pad)}
 .gallery-bar{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:flex-start;padding:14px var(--pad);background:rgba(11,11,10,.86);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--gold-soft)}
 .gallery-back{flex-shrink:0;background:none;border:1px solid var(--gold-soft);color:var(--white);padding:9px 15px;font-family:var(--sans);font-size:8px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:background .2s,color .2s}
 .gallery-back:hover{background:var(--gold);color:var(--black)}
-.gallery-head{display:flex;flex-direction:column;align-items:center;text-align:center;gap:9px;padding:40px var(--pad) 6px}
+.gallery-head{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:64px var(--pad) 30px;background:linear-gradient(180deg,rgba(11,11,10,.62),rgba(11,11,10,.82) 60%,rgba(11,11,10,.96)),url("assets/hero/estatua.jpg") center 30%/cover no-repeat;border-bottom:1px solid var(--gold-soft)}
+.gallery-head>*{position:relative;z-index:1}
 .gallery-mark{color:var(--gold);font-size:14px}
-.gallery-name{font-family:var(--serif);font-weight:400;font-size:clamp(1.5rem,3.4vw,2.3rem);line-height:1.2;color:var(--white);margin:0;text-wrap:balance}
+.gallery-name{font-family:var(--serif);font-weight:400;font-size:clamp(1.5rem,3.4vw,2.3rem);line-height:1.2;color:var(--white);margin:0;text-wrap:balance;text-shadow:0 2px 20px rgba(0,0,0,.6)}
 .gallery-lead{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--white-faint);margin:0}
 .gallery-lead:empty{display:none}
 .gcollage{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,360px));justify-content:center;align-content:start;gap:2px;margin:14px auto 0;padding:0 2px 60px;max-width:1480px}
