@@ -39,7 +39,7 @@ a{color:inherit}
 /* header comum */
 .phead{position:relative;min-height:clamp(220px,34vw,360px);display:flex;flex-direction:column;justify-content:flex-end;padding:var(--pad);overflow:hidden;border-bottom:1px solid var(--gold-soft)}
 .phead .bg{position:absolute;inset:0;z-index:0}
-.phead .bg img{width:100%;height:100%;object-fit:cover;filter:grayscale(.4) brightness(.4)}
+.phead .bg img,.phead .bg video{width:100%;height:100%;object-fit:cover;filter:grayscale(.4) brightness(.4)}
 .phead .bg.mosaico{display:flex}
 .phead .bg.mosaico img{flex:1 1 0;min-width:0;height:100%;object-fit:cover;filter:grayscale(.55) brightness(.42) contrast(1.02)}
 .phead.mosaic::before{content:"";position:absolute;inset:0;z-index:1;background:rgba(8,8,7,.55)}
@@ -302,15 +302,21 @@ function render(d){
   var anon = d.anon === true || !d.cliente;
   var mosaic = d.type === "triagem" || d.capaColagem === true;
 
+  var isVid = function(u){ return /\.(mp4|webm|mov|m4v)(\?|$)/i.test(u || ""); };
+  var bgOne = function(u){
+    return isVid(u)
+      ? '<video src="'+u+'" muted loop autoplay playsinline preload="auto"></video>'
+      : '<img src="'+u+'" alt="">';
+  };
   var bgHTML = "";
   if(mosaic && d.itens){
     var fotos = d.itens.filter(function(it){ return it.tipo !== "video"; }).slice(0,6);
-    if(fotos.length < 2 && d.capa) bgHTML = '<div class="bg"><img src="'+d.capa+'" alt=""></div>';
+    if(fotos.length < 2 && d.capa) bgHTML = '<div class="bg">'+bgOne(d.capa)+'</div>';
     else bgHTML = '<div class="bg mosaico">' + fotos.map(function(it){
       return '<img src="'+(it.thumb||it.src)+'" alt="">';
     }).join("") + '</div>';
   } else if(d.capa){
-    bgHTML = '<div class="bg"><img src="'+d.capa+'" alt=""></div>';
+    bgHTML = '<div class="bg">'+bgOne(d.capa)+'</div>';
   }
 
   var head = el("div","phead" + (mosaic ? " mosaic" : ""));
