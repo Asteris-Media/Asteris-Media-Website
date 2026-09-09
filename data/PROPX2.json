@@ -23,9 +23,9 @@
         { "titulo": "Hora dourada", "resumo": "Sessão ao fim da tarde na sala.", "img": "https://res.cloudinary.com/demo/image/upload/w_800/lady.jpg" }
       ]},
       { "tipo": "cards", "eyebrow": "Investimento", "modo": "grelha", "colunas": 3, "cards": [
-        { "titulo": "Pontual", "icone": "estrela", "preco": "€480", "resumo": "Para testar.", "linhas": ["1 dia de captação", "1 vídeo + 15 fotos"] },
-        { "titulo": "Ouro", "icone": "coroa", "preco": "€390 / mês", "destaque": true, "resumo": "O ritmo semanal.", "linhas": ["1 captação/mês", "3 vídeos + 20 fotos", "Calendário"], "cor": "#C9A166" },
-        { "titulo": "Diamante", "icone": "diamante", "preco": "€620 / mês", "resumo": "Tratado por nós.", "linhas": ["2 captações/mês", "6 vídeos + 40 fotos", "Gestão incluída"], "cor": "#8FB8D8" }
+        { "titulo": "Pontual", "icone": "estrela", "preco": "€480", "resumo": "Para testar.", "linhas": ["1 dia de captação", "1 vídeo + 15 fotos"], "img": "https://res.cloudinary.com/demo/image/upload/w_900/coffee.jpg" },
+        { "titulo": "Ouro", "icone": "coroa", "preco": "€390 / mês", "destaque": true, "resumo": "O ritmo semanal.", "linhas": ["1 captação/mês", "3 vídeos + 20 fotos", "Calendário"], "cor": "#C9A166", "img": "https://res.cloudinary.com/demo/image/upload/w_900/couple.jpg" },
+        { "titulo": "Diamante", "icone": "diamante", "preco": "€620 / mês", "resumo": "Tratado por nós.", "linhas": ["2 captações/mês", "6 vídeos + 40 fotos", "Gestão incluída"], "cor": "#8FB8D8", "img": "https://res.cloudinary.com/demo/image/upload/w_900/lady.jpg" }
       ]},
       { "tipo": "texto", "classe": "cta-wrap", "eyebrow": "Obrigado", "titulo": "Se a comida já está no ponto, só falta quem a veja.", "paragrafos": ["Obrigado pelo vosso tempo. Se fizer sentido para os dois lados, será um gosto avançar e fazer bons negócios juntos."], "fechoStyle": true }
     ]

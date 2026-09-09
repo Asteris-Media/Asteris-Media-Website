@@ -101,15 +101,16 @@ section.block{padding:clamp(64px,9vw,120px) var(--pad)}
 .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:left;margin-top:48px}
 @media (max-width:1000px){.cards{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:560px){.cards{grid-template-columns:1fr}}
-.card{border:1px solid rgba(30,27,23,.1);background:#FFFFFF;padding:26px 20px;display:flex;flex-direction:column;box-shadow:0 1px 3px rgba(30,27,23,.05),0 10px 30px rgba(30,27,23,.05)}
+.card{border:1px solid rgba(30,27,23,.09);background:#FCFAF5;padding:26px 20px;display:flex;flex-direction:column;box-shadow:0 1px 3px rgba(30,27,23,.04),0 10px 28px rgba(30,27,23,.045)}
 .card-cmp{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:24px}
 .cmp-box{width:44%}
 .cmp-box .tag{font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:#C0574A;display:block;margin-bottom:8px;text-align:center;font-weight:600}
 .cmp-box.is-depois .tag{color:#9A7638}
-.cmp-box .ph{width:100%;aspect-ratio:.74;background:#EDEAE3;overflow:hidden;border:1px solid rgba(30,27,23,.08)}
-.cmp-box .ph img{width:100%;height:100%;object-fit:cover}
+.cmp-box .ph{width:100%;aspect-ratio:.74;background:#EEEAE1;overflow:hidden;cursor:zoom-in}
+.cmp-box .ph img{width:100%;height:100%;object-fit:cover;transition:transform .4s cubic-bezier(.2,.7,.2,1)}
+.cmp-box .ph:hover img{transform:scale(1.03)}
 .cmp-notes{display:flex;flex-direction:column;gap:6px;margin-top:8px}
-.cmp-note{display:flex;gap:7px;font-size:9px;font-weight:400;line-height:1.55;color:#6B655C;background:#FAF8F4;border:1px solid rgba(30,27,23,.08);padding:8px 9px}
+.cmp-note{display:flex;gap:7px;font-size:9px;font-weight:400;line-height:1.55;color:#6B655C;background:#F6F2EA;border:1px solid rgba(30,27,23,.07);padding:8px 9px}
 .cmp-note svg{width:12px;height:12px;flex-shrink:0;margin-top:.5px}
 .cmp-note.bad{color:#B0503F;border-color:rgba(192,87,74,.3);border-left:2px solid #C0574A;background:rgba(217,112,95,.07)}
 .cmp-note.bad svg{color:#C0574A}
@@ -151,6 +152,12 @@ section.block{padding:clamp(64px,9vw,120px) var(--pad)}
 .gcollage figure .vtag{position:absolute;top:10px;left:10px;color:var(--white);font-size:15px;opacity:.85;text-shadow:0 1px 6px rgba(0,0,0,.6);pointer-events:none}
 
 /* ZOOM de peça única */
+.imgview{position:fixed;inset:0;z-index:130;background:rgba(6,6,5,.95);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:clamp(14px,4vw,50px);opacity:0;pointer-events:none;transition:opacity .25s}
+.imgview.open{opacity:1;pointer-events:auto}
+.imgview img{max-width:100%;max-height:82vh;object-fit:contain;border:1px solid var(--gold-soft);background:#000}
+.imgview .iv-x{position:absolute;top:clamp(12px,3vw,24px);right:clamp(12px,3vw,24px);background:none;border:1px solid var(--gold-soft);color:#fff;width:36px;height:36px;font-size:15px;cursor:pointer}
+.imgview .iv-x:hover{background:var(--gold);color:var(--black)}
+.imgview .iv-cap{font-family:var(--sans);font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:var(--white-dim)}
 .zoom{position:fixed;inset:0;z-index:120;background:rgba(5,5,4,.95);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:clamp(12px,4vw,54px);opacity:0;pointer-events:none;transition:opacity .25s}
 .zoom.open{opacity:1;pointer-events:auto}
 .zoom-media{max-width:94vw;max-height:90vh;object-fit:contain;border:1px solid var(--gold-soft);background:#000}
@@ -264,6 +271,13 @@ footer{background:var(--black);border-top:1px solid rgba(255,255,255,.07);paddin
 <div class="zoom" id="zoom" role="dialog" aria-modal="true" aria-label="Peça ampliada">
   <button class="zoom-close" id="zoom-close" aria-label="Fechar">&#10005;</button>
   <div id="zoom-wrap"></div>
+</div>
+
+<!-- visualização grande dos feeds antes/depois -->
+<div class="imgview" id="imgview" role="dialog" aria-modal="true" aria-label="Imagem ampliada">
+  <button class="iv-x" id="iv-x" aria-label="Fechar">&#10005;</button>
+  <img id="iv-img" src="" alt="">
+  <span class="iv-cap" id="iv-cap"></span>
 </div>
 
 <script>
@@ -515,6 +529,21 @@ document.getElementById("cards").innerHTML = RESULTS.map(function(r){
     + '<div class="card-metrics">'+rows+'</div>'
     + '</article>';
 }).join("");
+
+/* visualização grande dos feeds antes/depois */
+(function feedImgView(){
+  var ov = document.getElementById("imgview"), im = document.getElementById("iv-img"), cap = document.getElementById("iv-cap");
+  function open(src, label){ im.src = src; cap.textContent = label || ""; ov.classList.add("open"); document.body.style.overflow = "hidden"; }
+  function close(){ ov.classList.remove("open"); document.body.style.overflow = ""; setTimeout(function(){ im.src = ""; }, 250); }
+  document.getElementById("cards").addEventListener("click", function(e){
+    var ph = e.target.closest(".cmp-box .ph"); if(!ph) return;
+    var box = ph.closest(".cmp-box");
+    open(ph.querySelector("img").src, box.classList.contains("is-depois") ? "Depois" : "Antes");
+  });
+  document.getElementById("iv-x").addEventListener("click", close);
+  ov.addEventListener("click", function(e){ if(e.target === ov) close(); });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape" && ov.classList.contains("open")) close(); });
+})();
 
 (function countersOnView(){
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;

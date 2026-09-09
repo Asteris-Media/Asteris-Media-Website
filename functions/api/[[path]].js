@@ -126,25 +126,34 @@ export async function onRequest(context) {
     return json({ error: "método" }, 405);
   }
 
-  // ---- assinatura de upload Cloudinary ----
-  if (seg[0] === "upload-sign" && method === "POST") {
-    if (!env.CLOUDINARY_CLOUD || !env.CLOUDINARY_KEY || !env.CLOUDINARY_SECRET) {
-      return json({ error: "Cloudinary não configurada" }, 501);
-    }
-    const { folder } = await request.json().catch(() => ({}));
-    const ts = Math.floor(Date.now() / 1000);
-    const params = { timestamp: ts };
-    if (folder) params.folder = folder;
-    const toSign = Object.keys(params).sort().map(k => `${k}=${params[k]}`).join("&");
-    const hashBuf = await crypto.subtle.digest("SHA-1", enc.encode(toSign + env.CLOUDINARY_SECRET));
-    const hex = [...new Uint8Array(hashBuf)].map(b => b.toString(16).padStart(2, "0")).join("");
-    return json({
-      cloud: env.CLOUDINARY_CLOUD,
-      apiKey: env.CLOUDINARY_KEY,
-      timestamp: ts,
-      folder: folder || "",
-      signature: hex
+  // ---- upload de ficheiro para R2 ----
+  if (seg[0] === "upload" && method === "POST") {
+    if (!env.ASTERIS_R2) return json({ error: "R2 não ligado" }, 501);
+    const form = await request.formData().catch(() => null);
+    const file = form && form.get("file");
+    if (!file || typeof file === "string") return json({ error: "sem ficheiro" }, 400);
+    const folder = (form.get("folder") || "media").toString().replace(/[^a-z0-9/_-]/gi, "").replace(/^\/+|\/+$/g, "");
+    const orig = (file.name || "ficheiro").replace(/[^a-z0-9.\-_]/gi, "-");
+    const ext = (orig.match(/\.[a-z0-9]{2,5}$/i) || [""])[0].toLowerCase();
+    const rand = [...crypto.getRandomValues(new Uint8Array(6))].map(b => b.toString(16).padStart(2, "0")).join("");
+    const key = `${folder}/${Date.now().toString(36)}-${rand}${ext}`;
+    await env.ASTERIS_R2.put(key, file.stream(), {
+      httpMetadata: { contentType: file.type || "application/octet-stream" }
     });
+    const base = env.R2_PUBLIC_BASE || "";
+    return json({ ok: true, key, url: base ? `${base.replace(/\/+$/, "")}/${key}` : `/api/r2/${key}` });
+  }
+
+  // ---- servir ficheiro do R2 (fallback se não houver domínio público) ----
+  if (seg[0] === "r2" && method === "GET") {
+    if (!env.ASTERIS_R2) return json({ error: "R2 não ligado" }, 501);
+    const key = seg.slice(1).join("/");
+    const obj = await env.ASTERIS_R2.get(key);
+    if (!obj) return json({ error: "não existe" }, 404);
+    const h = new Headers();
+    obj.writeHttpMetadata(h);
+    h.set("cache-control", "public, max-age=31536000, immutable");
+    return new Response(obj.body, { headers: h });
   }
 
   return json({ error: "rota desconhecida" }, 404);

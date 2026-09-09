@@ -137,7 +137,13 @@ function api(method, path, body){
 function esc(s){ return (s==null?"":String(s)); }
 function randCode(n){ var a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789", s=""; for(var i=0;i<(n||6);i++) s+=a[Math.floor(Math.random()*a.length)]; return s; }
 function isVid(u){ return /\.(mp4|webm|mov|m4v)(\?|$)/i.test(u||""); }
-function linesToArr(v){ return (v||"").split("\n").map(function(x){return x.trim();}).filter(Boolean); }
+function linesToArr(v){ return (v||"").replace(/\r/g,"").split("\n").map(function(x){return x.trim();}).filter(Boolean); }
+// textarea de lista (um item por linha): ignora linhas em branco e, ao sair, encosta os itens
+function bindList(node, setArr){
+  node.addEventListener("input", function(){ setArr(linesToArr(node.value)); });
+  node.addEventListener("blur", function(){ node.value = linesToArr(node.value).join("\n"); });
+  return node;
+}
 function paraToArr(v){ return (v||"").split(/\n\s*\n/).map(function(x){return x.trim();}).filter(Boolean); }
 
 var ICON_KEYS = "diamante brilhante gema coroa medalha trofeu estrela estrela2 raio chama foguete seta_cima seta_baixo tendencia grafico alvo escudo escudo_check selo fita laurel check infinito presente etiqueta pasta camada pacote camera video filme imagem abertura play coracao olho bussola globo megafone enviar relogio calendario cadeado chave utilizadores utilizador aperto_mao polegar folha montanha sol lua hexagono losango circulo quadrado mais bloco".split(" ");
@@ -334,24 +340,22 @@ function imageList(host, arr, refresh){
 }
 
 function uploadMany(files, prog, done){
-  api("POST","upload-sign",{ folder:"asteris" }).then(function(r){
-    if(!r.ok){ alert("Upload indisponível: "+((r.j&&r.j.error)||"")+"\nUsa colar links por agora."); done([]); return; }
-    var s = r.j, out = [], n = 0;
-    function one(k){
-      if(k >= files.length){ done(out); return; }
-      var fd = new FormData();
-      fd.append("file", files[k]);
-      fd.append("api_key", s.apiKey);
-      fd.append("timestamp", s.timestamp);
-      if(s.folder) fd.append("folder", s.folder);
-      fd.append("signature", s.signature);
-      fetch("https://api.cloudinary.com/v1_1/"+s.cloud+"/auto/upload", { method:"POST", body:fd })
-        .then(function(x){ return x.json(); })
-        .then(function(j){ if(j.secure_url) out.push(j.secure_url); n++; prog(n, files.length); one(k+1); })
-        .catch(function(){ n++; prog(n, files.length); one(k+1); });
-    }
-    one(0);
-  });
+  var out = [], n = 0, folder = "media/" + (CUR && CUR.code ? CUR.code : "geral");
+  function one(k){
+    if(k >= files.length){ done(out); return; }
+    var fd = new FormData();
+    fd.append("file", files[k]);
+    fd.append("folder", folder);
+    fetch("/api/upload", { method:"POST", body:fd })
+      .then(function(x){ return x.json(); })
+      .then(function(j){
+        if(j.url) out.push(j.url);
+        else if(k === 0 && !out.length) alert("Upload indisponível: " + (j.error || "") + "\nUsa colar links por agora.");
+        n++; prog(n, files.length); one(k+1);
+      })
+      .catch(function(){ n++; prog(n, files.length); one(k+1); });
+  }
+  one(0);
 }
 
 /* ---------- editor proposta ---------- */
@@ -403,9 +407,9 @@ function secEditor(s, i, arr, draw){
     para.placeholder = "Parágrafos — separa com uma linha em branco";
     sb.appendChild(fieldEl("Parágrafos", bind(para, function(v){ s._para=v; s.paragrafos=paraToArr(v); })));
     s.paragrafos = paraToArr(para.value);
-    var bul = textareaEl("_b", s._bul != null ? s._bul : (s.bullets||[]).join("\n"));
-    bul.placeholder = "Lista — um por linha (opcional)";
-    sb.appendChild(fieldEl("Lista de pontos", bind(bul, function(v){ s._bul=v; s.bullets=linesToArr(v); })));
+    var bul = textareaEl("_b", (s.bullets||[]).join("\n"));
+    bul.placeholder = "Lista, um por linha (linhas em branco são ignoradas)";
+    sb.appendChild(fieldEl("Lista de pontos", bindList(bul, function(a){ s.bullets = a; })));
     s.bullets = linesToArr(bul.value);
   }
 
@@ -454,8 +458,8 @@ function cardEditor(cd, i, arr, draw){
 
   w.appendChild(fieldEl("Imagem (url)", bind(inputEl("_cim", cd.img||""), function(v){ cd.img=v||undefined; })));
   w.appendChild(fieldEl("Resumo (uma linha)", bind(inputEl("_cr", cd.resumo||""), function(v){ cd.resumo=v||undefined; })));
-  var ln = textareaEl("_cl", (cd.linhas||[]).join("\n")); ln.placeholder = "O que inclui — um por linha";
-  w.appendChild(fieldEl("Linhas", bind(ln, function(v){ cd.linhas = linesToArr(v); })));
+  var ln = textareaEl("_cl", (cd.linhas||[]).join("\n")); ln.placeholder = "O que inclui, um por linha (linhas em branco são ignoradas)";
+  w.appendChild(fieldEl("Linhas", bindList(ln, function(a){ cd.linhas = a; })));
   cd.linhas = linesToArr(ln.value);
   var dh = el("label","check"); dh.innerHTML = '<input type="checkbox"'+(cd.destaque?" checked":"")+'> Destaque (com etiqueta)';
   dh.querySelector("input").addEventListener("change", function(){ cd.destaque = this.checked || undefined; });
