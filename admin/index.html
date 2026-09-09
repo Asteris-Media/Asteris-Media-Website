@@ -42,7 +42,7 @@ label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
 /* login */
 #login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
 #login .box{width:100%;max-width:320px;text-align:center}
-#login svg{width:34px;height:34px;margin-bottom:18px}
+#login svg,#login img{width:auto;height:40px;margin-bottom:18px}
 #login h1{font-size:15px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);margin-bottom:22px}
 #login input{text-align:center;letter-spacing:.15em;margin-bottom:10px}
 .err{color:var(--neg);font-size:11px;margin-top:8px;min-height:1em}
@@ -50,7 +50,7 @@ label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
 /* topo */
 .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px}
 .top h1{display:flex;align-items:center;gap:9px;font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--dim)}
-.top h1 svg{width:15px;height:15px}
+.top h1 svg,.top h1 img{width:auto;height:17px}
 
 /* lista */
 .mklist{display:flex;flex-direction:column;gap:8px}
@@ -103,7 +103,7 @@ label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
 
 <div id="login">
   <div class="box">
-    <svg viewBox="0 0 40 40" fill="none"><path d="M20 3L36 37H29.5L20 15.5L10.5 37H4L20 3Z" fill="#C9A166"/><path d="M13.7 27H26.3" stroke="#0C0D0E" stroke-width="2.4"/></svg>
+    <img src="/assets/logos/asteris.png" alt="Asteris">
     <h1>Asteris Admin</h1>
     <form id="loginForm">
       <input type="password" id="pw" placeholder="Password" autocomplete="current-password" required>
@@ -115,7 +115,7 @@ label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
 
 <div id="app" class="wrap" hidden>
   <div class="top">
-    <h1><svg viewBox="0 0 40 40" fill="none"><path d="M20 3L36 37H29.5L20 15.5L10.5 37H4L20 3Z" fill="#C9A166"/><path d="M13.7 27H26.3" stroke="#0C0D0E" stroke-width="2.4"/></svg> Asteris Admin</h1>
+    <h1><img src="/assets/logos/asteris.png" alt=""> Asteris Admin</h1>
     <div style="display:flex;gap:8px">
       <button class="btn sm" id="btnLogout">Sair</button>
     </div>

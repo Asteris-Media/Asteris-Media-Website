@@ -19,12 +19,14 @@
   --pad:clamp(20px,5vw,56px);
 }
 body{background:var(--black);color:var(--white);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--pad)}
+body::before{content:"";position:fixed;inset:0;z-index:-2;background:url("assets/hero/estatua.jpg") 62% center/cover no-repeat}
+body::after{content:"";position:fixed;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(11,11,10,.96) 0%,rgba(11,11,10,.62) 30%,rgba(11,11,10,.62) 58%,rgba(11,11,10,.98) 100%),rgba(11,11,10,.5)}
 ::selection{background:var(--gold);color:var(--black)}
 :focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 [hidden]{display:none!important}
 
 .wrap{width:100%;max-width:440px;text-align:center}
-.mark{width:30px;height:30px;margin:0 auto 26px}
+.mark{width:auto;height:36px;display:block;margin:0 auto 24px}
 .brand{font-size:10px;font-weight:500;letter-spacing:.42em;text-transform:uppercase;color:var(--white-dim);margin-bottom:10px}
 h1{font-family:var(--serif);font-weight:300;font-size:clamp(1.7rem,4vw,2.3rem);line-height:1.15;margin-bottom:8px}
 .sub{font-size:12px;font-weight:300;color:var(--white-dim);margin-bottom:34px;max-width:34ch;margin-left:auto;margin-right:auto}
@@ -33,7 +35,8 @@ h1{font-family:var(--serif);font-weight:300;font-size:clamp(1.7rem,4vw,2.3rem);l
 .choices{display:flex;flex-direction:column;gap:10px}
 .choice{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--panel);border:1px solid var(--gold-soft);color:var(--white);padding:18px 18px;cursor:pointer;transition:border-color .2s,transform .12s,background .2s;font-family:var(--sans)}
 .choice:hover{border-color:var(--gold);transform:translateX(3px)}
-.choice .ic{font-size:17px;color:var(--gold);width:22px;text-align:center;flex-shrink:0}
+.choice .ic{color:var(--gold);width:24px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.choice .ic svg{width:19px;height:19px}
 .choice .tx{display:flex;flex-direction:column;gap:2px}
 .choice .tx b{font-weight:500;font-size:13px;letter-spacing:.02em}
 .choice .tx span{font-size:10.5px;font-weight:300;color:var(--white-dim)}
@@ -55,7 +58,7 @@ h1{font-family:var(--serif);font-weight:300;font-size:clamp(1.7rem,4vw,2.3rem);l
 .foot a{color:var(--white-dim);text-decoration:none;border-bottom:1px solid var(--gold-soft)}
 .site-footer{position:fixed;left:0;right:0;bottom:0;padding:18px clamp(20px,5vw,56px);border-top:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;background:var(--black)}
 .site-footer .sf-brand{display:flex;align-items:center;gap:9px;text-decoration:none;font-family:var(--sans);font-size:10px;font-weight:500;letter-spacing:.32em;text-transform:uppercase;color:rgba(240,234,224,.4)}
-.site-footer .sf-brand svg{width:13px;height:13px;opacity:.7;flex-shrink:0}
+.site-footer .sf-brand svg,.site-footer .sf-brand img{width:auto;height:15px;opacity:.7;flex-shrink:0}
 .site-footer .sf-copy{font-size:8.5px;color:rgba(240,234,224,.28);letter-spacing:.06em}
 .site-footer .sf-cross{color:var(--gold);font-size:15px;opacity:.55}
 @media(max-height:620px){.site-footer{position:static;margin-top:30px}}
@@ -66,7 +69,7 @@ h1{font-family:var(--serif);font-weight:300;font-size:clamp(1.7rem,4vw,2.3rem);l
 <body>
 <a class="home-link" href="/">&#8592; Voltar ao site</a>
 <div class="wrap">
-  <svg class="mark" viewBox="0 0 40 40" fill="none"><path d="M20 3L36 37H29.5L20 15.5L10.5 37H4L20 3Z" fill="#C9A166"/><path d="M13.7 27H26.3" stroke="#0B0B0A" stroke-width="2.4"/></svg>
+  <img class="mark" src="assets/logos/asteris.png" alt="Asteris">
   <div class="brand">Asteris</div>
 
   <div id="menu">
@@ -74,19 +77,19 @@ h1{font-family:var(--serif);font-weight:300;font-size:clamp(1.7rem,4vw,2.3rem);l
     <p class="sub">Escolhe o que vieste fazer e insere o teu código.</p>
     <div class="choices">
       <button class="choice" data-k="selecao">
-        <span class="ic">&#9635;</span>
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
         <span class="tx"><b>Seleção de material</b><span>Escolher as fotos e vídeos da versão final</span></span>
       </button>
       <button class="choice" data-k="entrega">
-        <span class="ic">&#8595;</span>
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg></span>
         <span class="tx"><b>Entrega de trabalho</b><span>Descarregar o material concluído</span></span>
       </button>
       <button class="choice" data-k="portfolio">
-        <span class="ic">&#9673;</span>
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg></span>
         <span class="tx"><b>Portfólio</b><span>Galeria privada partilhada contigo</span></span>
       </button>
       <button class="choice" data-k="proposta">
-        <span class="ic">&#9671;</span>
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v5h5"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg></span>
         <span class="tx"><b>Proposta</b><span>Ver a proposta que preparámos para ti</span></span>
       </button>
     </div>
@@ -107,7 +110,7 @@ h1{font-family:var(--serif);font-weight:300;font-size:clamp(1.7rem,4vw,2.3rem);l
 </div>
 
 <footer class="site-footer">
-  <a class="sf-brand" href="/"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M20 3L36 37H29.5L20 15.5L10.5 37H4L20 3Z" fill="#C9A166"/><path d="M13.7 27H26.3" stroke="#0B0B0A" stroke-width="2.4"/></svg>Asteris</a>
+  <a class="sf-brand" href="/"><img src="assets/logos/asteris.png" alt="" aria-hidden="true">Asteris</a>
   <span class="sf-copy">&copy; 2026 Asteris. Todos os direitos reservados.</span>
   <span class="sf-cross">&#10022;</span>
 </footer>
