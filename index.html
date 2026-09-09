@@ -436,8 +436,8 @@ document.getElementById("cards").innerHTML = RESULTS.map(function(r){
       +   '<span class="m-depois" data-from="'+m.antes+'" data-to="'+m.depois+'" data-euro="'+(m.euro?1:0)+'">'+fmtNum(m.antes, m.euro)+'</span>'
       + '</span></div>';
   }).join("");
-  var ICO_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>';
-  var ICO_V = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16 9"/></svg>';
+  var ICO_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" aria-hidden="true"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77a4 4 0 0 1 6.74 0a4 4 0 0 1 4.78 4.78a4 4 0 0 1 0 6.74a4 4 0 0 1-4.77 4.78a4 4 0 0 1-6.75 0a4 4 0 0 1-4.78-4.77a4 4 0 0 1 0-6.76M15 9l-6 6m0-6l6 6"/></svg>';
+  var ICO_V = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m8.6 22.5l-1.9-3.2l-3.6-.8l.35-3.7L1 12l2.45-2.8l-.35-3.7l3.6-.8l1.9-3.2L12 2.95l3.4-1.45l1.9 3.2l3.6.8l-.35 3.7L23 12l-2.45 2.8l.35 3.7l-3.6.8l-1.9 3.2l-3.4-1.45zm2.35-6.95L16.6 9.9l-1.4-1.45l-4.25 4.25l-2.15-2.1L7.4 12z"/></svg>';
   var notesHTML = function(list, good){
     return '<div class="cmp-notes">' + (list||[]).map(function(n){
       return '<div class="cmp-note '+(good?"good":"bad")+'">'+(good?ICO_V:ICO_X)+'<span>'+n+'</span></div>';
