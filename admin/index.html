@@ -247,6 +247,25 @@ label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
 .savebar .msg{margin-right:auto;font-size:11.5px;color:var(--faint)}
 .savebar .msg.ok{color:var(--pos)} .savebar .msg.bad{color:var(--neg)}
 [hidden]{display:none!important}
+
+/* rodapé (igual ao do site) */
+.adm-foot{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:44px;padding-top:18px;border-top:1px solid var(--edge)}
+.adm-foot .af-brand{display:flex;align-items:center;gap:9px;font-size:10px;font-weight:500;letter-spacing:.32em;text-transform:uppercase;color:var(--faint)}
+.adm-foot .af-brand img{height:14px;width:auto;opacity:.7}
+.adm-foot .af-copy{font-size:8.5px;color:var(--faint);letter-spacing:.06em}
+.adm-foot .af-logs{font-size:11px;color:var(--dim);text-decoration:underline;text-underline-offset:3px;background:none;border:0;cursor:pointer}
+.adm-foot .af-logs:hover{color:var(--gold)}
+.adm-foot .af-cross{color:var(--gold);opacity:.55}
+
+/* registo de atividade */
+.logtbl{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:6px}
+.logtbl th{text-align:left;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);padding:8px 10px;border-bottom:1px solid var(--edge)}
+.logtbl td{padding:9px 10px;border-bottom:1px solid var(--edge);vertical-align:top}
+.logtbl tr:hover td{background:var(--panel)}
+.logtbl .lg-when{color:var(--dim);white-space:nowrap;font-family:var(--mono);font-size:10.5px}
+.logtbl .lg-who{font-weight:700}
+.logtbl .lg-who.Brener{color:var(--gold)} .logtbl .lg-who.Gustavo{color:var(--pos)}
+.logtbl .lg-detail{color:var(--faint);font-size:10.5px}
 </style>
 </head>
 <body>
@@ -271,11 +290,18 @@ label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
 <div id="app" class="wrap" hidden>
   <div class="top">
     <h1><img src="/assets/logos/asteris.png" alt=""> Asteris Admin</h1>
-    <div style="display:flex;gap:8px">
+    <div style="display:flex;gap:10px;align-items:center">
+      <span id="whoami" style="font-size:11px;color:var(--dim)"></span>
       <button class="btn sm" id="btnLogout">Sair</button>
     </div>
   </div>
   <div id="view"></div>
+  <footer class="adm-foot">
+    <span class="af-brand"><img src="/assets/logos/asteris.png" alt="">Asteris</span>
+    <button class="af-logs" id="btnLogs">Logs</button>
+    <span class="af-copy">&copy; <span id="year">2026</span> Asteris. Todos os direitos reservados.</span>
+    <span class="af-cross">&#10022;</span>
+  </footer>
 </div>
 
 <script>
@@ -433,11 +459,12 @@ function paraToArr(v){ return (v||"").split(/\n\s*\n/).map(function(x){return x.
 var ICON_KEYS = "diamante brilhante gema coroa medalha trofeu estrela estrela2 raio chama foguete seta_cima seta_baixo tendencia grafico alvo escudo escudo_check selo fita laurel check infinito presente etiqueta pasta camada pacote camera video filme imagem abertura play coracao olho bussola globo megafone enviar relogio calendario cadeado chave utilizadores utilizador aperto_mao polegar folha montanha sol lua hexagono losango circulo quadrado mais bloco".split(" ");
 
 /* ============================ auth ============================ */
+var ME = null;
 $("#loginForm").addEventListener("submit", function(e){
   e.preventDefault();
   $("#loginErr").textContent = "";
   api("POST","login",{ pw: $("#pw").value }).then(function(r){
-    if(r.ok){ boot(); } else { $("#loginErr").textContent = (r.j && r.j.error) || "Erro"; }
+    if(r.ok){ ME = (r.j && r.j.user) || null; boot(); } else { $("#loginErr").textContent = (r.j && r.j.error) || "Erro"; }
   });
 });
 $("#pwEye").addEventListener("click", function(){
@@ -450,12 +477,40 @@ $("#pwEye").addEventListener("click", function(){
 $("#btnLogout").addEventListener("click", function(){
   api("POST","logout").then(function(){ location.reload(); });
 });
-api("GET","me").then(function(r){ if(r.j && r.j.ok) boot(); });
+api("GET","me").then(function(r){ if(r.j && r.j.ok){ ME = r.j.user || null; boot(); } });
 
 function boot(){
   $("#login").hidden = true;
   $("#app").hidden = false;
+  $("#year").textContent = new Date().getFullYear();
+  $("#whoami").textContent = ME ? ME : "";
+  $("#btnLogs").onclick = logView;
   listView();
+}
+
+function logView(){
+  closeMenu();
+  var v = $("#view"); v.innerHTML = "";
+  var back = el("button","btn ghost","← voltar"); back.onclick = listView; v.appendChild(back);
+  v.appendChild(Object.assign(el("div","dash-h"), { textContent: "Registo de atividade" }));
+  var wrap = el("div"); v.appendChild(wrap);
+  wrap.innerHTML = '<div class="lib-empty">a carregar…</div>';
+  api("GET","log").then(function(r){
+    var log = (r.j && r.j.log) || [];
+    if(!log.length){ wrap.innerHTML = '<div class="lib-empty">Ainda sem registos.</div>'; return; }
+    var rows = log.map(function(e){
+      var d = new Date(e.t);
+      var when = d.toLocaleDateString("pt-PT") + " " + d.toLocaleTimeString("pt-PT", { hour:"2-digit", minute:"2-digit" });
+      return '<tr><td class="lg-when">' + when + '</td>'
+        + '<td class="lg-who ' + esc(e.u || "") + '">' + esc(e.u || "?") + '</td>'
+        + '<td>' + esc(e.a || "") + (e.detail ? ' <span class="lg-detail">' + esc(e.detail) + '</span>' : '') + '</td></tr>';
+    }).join("");
+    wrap.innerHTML = '<table class="logtbl"><thead><tr><th>Quando</th><th>Quem</th><th>Ação</th></tr></thead><tbody>' + rows + '</tbody></table>'
+      + '<div class="lib-empty">Guarda as últimas 400 ações.</div>';
+  });
+}
+function logNote(action, detail){
+  api("POST","log",{ action: action, detail: detail || "" });
 }
 
 /* nav de abas — persistente entre Links e Biblioteca */
@@ -1128,6 +1183,7 @@ function startFolderUpload(files, nameHint){
           prog.textContent = "";
           close();
           toast(res.ok + " enviados" + (res.fail ? " · " + res.fail + " falharam" : ""));
+          logNote("enviou " + res.ok + " ficheiro(s) para \"" + folder + "\" (" + (dest === "r2" ? "R2" : "Cloudinary") + ")");
           LIB_CACHE = null; libraryView();
         });
     };

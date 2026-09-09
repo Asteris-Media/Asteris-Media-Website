@@ -1,7 +1,8 @@
 // API do admin do portal Asteris.
 // Env necessárias (Pages > Settings > Environment variables / bindings):
 //   ASTERIS_KV        -> KV namespace binding
-//   ADMIN_PW          -> password de entrada (secret)
+//   ADMIN_PW          -> password de entrada (Text/Secret). O utilizador desta password chama-se "Admin".
+//   ADMIN_USERS       -> (opcional) várias contas: "Brener:senha1,Gustavo:senha2"  (nome:senha, separados por vírgula)
 //   SESSION_SECRET    -> string aleatória p/ assinar a sessão (secret)
 //   CLOUDINARY_CLOUD  -> ex. bv9q81il            (opcional, p/ upload)
 //   CLOUDINARY_KEY    -> api key da Cloudinary   (opcional)
@@ -21,18 +22,41 @@ async function hmac(secret, msg) {
   const key = await crypto.subtle.importKey("raw", enc.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   return b64u(await crypto.subtle.sign("HMAC", key, enc.encode(msg)));
 }
-async function makeToken(secret) {
-  const payload = b64u(enc.encode(JSON.stringify({ exp: Date.now() + 1000 * 60 * 60 * 24 * 14 })));
+async function makeToken(secret, user) {
+  const payload = b64u(enc.encode(JSON.stringify({ exp: Date.now() + 1000 * 60 * 60 * 24 * 14, u: user || "Admin" })));
   return payload + "." + (await hmac(secret, payload));
 }
 async function checkToken(secret, token) {
-  if (!token || token.indexOf(".") < 0) return false;
+  if (!token || token.indexOf(".") < 0) return { ok: false };
   const [payload, sig] = token.split(".");
-  if ((await hmac(secret, payload)) !== sig) return false;
+  if ((await hmac(secret, payload)) !== sig) return { ok: false };
   try {
     const p = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
-    return p.exp > Date.now();
-  } catch { return false; }
+    if (p.exp > Date.now()) return { ok: true, user: p.u || "Admin" };
+  } catch {}
+  return { ok: false };
+}
+// devolve o nome do utilizador se a password bater, senão null
+function userForPw(env, pw) {
+  if (!pw) return null;
+  if (env.ADMIN_PW && pw === env.ADMIN_PW) return "Admin";
+  for (const pair of String(env.ADMIN_USERS || "").split(",")) {
+    const i = pair.lastIndexOf(":");
+    if (i < 1) continue;
+    const name = pair.slice(0, i).trim();
+    const p = pair.slice(i + 1).trim();
+    if (p && pw === p) return name || "Admin";
+  }
+  return null;
+}
+// registo de atividade (KV "activitylog", array topo=mais recente, máx 400)
+async function logAction(env, user, action, extra) {
+  try {
+    const raw = await env.ASTERIS_KV.get("activitylog");
+    const arr = raw ? JSON.parse(raw) : [];
+    arr.unshift({ t: new Date().toISOString(), u: user || "?", a: action, ...(extra || {}) });
+    await env.ASTERIS_KV.put("activitylog", JSON.stringify(arr.slice(0, 400)));
+  } catch {}
 }
 function getCookie(req, name) {
   const c = req.headers.get("cookie") || "";
@@ -76,11 +100,15 @@ export async function onRequest(context) {
   // ---- auth ----
   if (seg[0] === "login" && method === "POST") {
     const { pw } = await request.json().catch(() => ({}));
-    if (!env.ADMIN_PW || pw !== env.ADMIN_PW) return json({ error: "Password errada" }, 401);
-    const token = await makeToken(SECRET);
-    return json({ ok: true }, 200, { "set-cookie": setCookie(token) });
+    const user = userForPw(env, pw);
+    if (!user) return json({ error: "Password errada" }, 401);
+    const token = await makeToken(SECRET, user);
+    await logAction(env, user, "entrou");
+    return json({ ok: true, user }, 200, { "set-cookie": setCookie(token) });
   }
   if (seg[0] === "logout") {
+    const t = await checkToken(SECRET, getCookie(request, COOKIE));
+    if (t.ok) await logAction(env, t.user, "saiu");
     return json({ ok: true }, 200, { "set-cookie": clearCookie() });
   }
 
@@ -197,9 +225,22 @@ if(b) b.onclick=function(){
     return new Response(html, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
   }
 
-  const authed = await checkToken(SECRET, getCookie(request, COOKIE));
-  if (seg[0] === "me") return json({ ok: authed });
+  const session = await checkToken(SECRET, getCookie(request, COOKIE));
+  const authed = session.ok;
+  const ME = session.user || "?";
+  if (seg[0] === "me") return json({ ok: authed, user: session.user || null });
   if (!authed) return json({ error: "Sessão inválida" }, 401);
+
+  // ---- registo de atividade ----
+  if (seg[0] === "log" && method === "GET") {
+    const raw = await env.ASTERIS_KV.get("activitylog");
+    return json({ log: raw ? JSON.parse(raw) : [] });
+  }
+  if (seg[0] === "log" && method === "POST") {
+    const b = await request.json().catch(() => ({}));
+    if (b.action) await logAction(env, ME, String(b.action).slice(0, 200), b.detail ? { detail: String(b.detail).slice(0, 200) } : null);
+    return json({ ok: true });
+  }
 
   // ---- painel de estado / quotas ----
   if (seg[0] === "stats" && method === "GET") {
@@ -283,6 +324,7 @@ if(b) b.onclick=function(){
     const tags = raw ? JSON.parse(raw) : {};
     if (b.tag) tags[b.folder] = b.tag; else delete tags[b.folder];
     await env.ASTERIS_KV.put("mediatags", JSON.stringify(tags));
+    await logAction(env, ME, b.tag ? "marcou pasta como " + b.tag : "tirou a tag da pasta", { detail: b.folder });
     return json({ ok: true });
   }
 
@@ -354,6 +396,7 @@ if(b) b.onclick=function(){
     } else {
       return json({ error: "nuvem não ligada" }, 501);
     }
+    await logAction(env, ME, "apagou " + n + " ficheiro(s) da biblioteca (" + (b.cloud || "?") + ")");
     return json({ ok: true, apagados: n, erros });
   }
 
@@ -368,6 +411,7 @@ if(b) b.onclick=function(){
       for (const o of r.objects) { await env.ASTERIS_R2.delete(o.key); n++; }
       cursor = r.truncated ? r.cursor : null;
     } while (cursor);
+    await logAction(env, ME, "apagou a pasta \"" + prefix + "\" do R2 (" + n + " ficheiros)");
     return json({ ok: true, apagados: n });
   }
 
@@ -400,11 +444,13 @@ if(b) b.onclick=function(){
         atualizado: new Date().toISOString()
       });
       await saveIndex(env, list);
+      await logAction(env, ME, "guardou a página " + code + (body.cliente ? " · " + body.cliente : ""), { code });
       return json({ ok: true, code });
     }
     if (method === "DELETE") {
       await env.ASTERIS_KV.delete(key);
       await saveIndex(env, (await loadIndex(env)).filter(x => x.code !== code));
+      await logAction(env, ME, "apagou a página " + code, { code });
       return json({ ok: true });
     }
     return json({ error: "método" }, 405);
