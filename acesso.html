@@ -53,6 +53,12 @@ h1{font-family:var(--serif);font-weight:300;font-size:clamp(1.7rem,4vw,2.3rem);l
 
 .foot{margin-top:40px;font-size:8.5px;letter-spacing:.06em;color:var(--white-faint)}
 .foot a{color:var(--white-dim);text-decoration:none;border-bottom:1px solid var(--gold-soft)}
+.site-footer{position:fixed;left:0;right:0;bottom:0;padding:18px clamp(20px,5vw,56px);border-top:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;background:var(--black)}
+.site-footer .sf-brand{display:flex;align-items:center;gap:9px;text-decoration:none;font-family:var(--sans);font-size:10px;font-weight:500;letter-spacing:.32em;text-transform:uppercase;color:rgba(240,234,224,.4)}
+.site-footer .sf-brand svg{width:13px;height:13px;opacity:.7;flex-shrink:0}
+.site-footer .sf-copy{font-size:8.5px;color:rgba(240,234,224,.28);letter-spacing:.06em}
+.site-footer .sf-cross{color:var(--gold);font-size:15px;opacity:.55}
+@media(max-height:620px){.site-footer{position:static;margin-top:30px}}
 .home-link{position:fixed;top:20px;left:20px;display:inline-flex;align-items:center;gap:7px;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--white-dim);text-decoration:none;padding:8px 12px;border:1px solid var(--gold-soft);transition:color .2s,border-color .2s}
 .home-link:hover{color:var(--gold);border-color:var(--gold)}
 </style>
@@ -99,6 +105,12 @@ h1{font-family:var(--serif);font-weight:300;font-size:clamp(1.7rem,4vw,2.3rem);l
 
   <div class="foot">Problemas com o código? <a href="https://wa.me/351933829767" target="_blank" rel="noopener">Fala connosco</a></div>
 </div>
+
+<footer class="site-footer">
+  <a class="sf-brand" href="/"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M20 3L36 37H29.5L20 15.5L10.5 37H4L20 3Z" fill="#C9A166"/><path d="M13.7 27H26.3" stroke="#0B0B0A" stroke-width="2.4"/></svg>Asteris</a>
+  <span class="sf-copy">&copy; 2026 Asteris. Todos os direitos reservados.</span>
+  <span class="sf-cross">&#10022;</span>
+</footer>
 
 <script>
 var LABELS = {
