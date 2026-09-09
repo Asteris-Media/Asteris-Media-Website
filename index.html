@@ -36,7 +36,7 @@ a{color:inherit}
 
 /* HEADER */
 header{position:absolute;top:0;left:0;width:100%;z-index:20;padding:26px var(--pad);display:flex;align-items:center;gap:13px}
-.logo-mark{width:30px;height:30px;flex-shrink:0}
+.logo-mark{height:28px;width:auto;flex-shrink:0}
 .logo-word{font-family:var(--sans);font-size:12px;font-weight:400;letter-spacing:.4em;text-transform:uppercase;color:var(--white)}
 
 /* HERO */
@@ -46,9 +46,9 @@ header{position:absolute;top:0;left:0;width:100%;z-index:20;padding:26px var(--p
 @media (max-width:820px){.hero-left{padding-top:130px;padding-bottom:44px}}
 .hero-title{font-family:var(--serif);font-weight:300;font-size:clamp(1.85rem,3vw,2.85rem);line-height:1.24;color:var(--white);margin-bottom:24px;max-width:440px;text-wrap:balance}
 .hero-sub{font-size:11px;font-weight:300;line-height:2;color:var(--white-dim);letter-spacing:.02em;margin-bottom:42px}
-.hero-right{position:relative;overflow:hidden;min-height:340px;background:linear-gradient(150deg,#1a1712,#0c0b0a)}
-@media (max-width:820px){.hero-right{min-height:44vw;order:-1}}
-.hero-right img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;filter:grayscale(.55) contrast(1.12) brightness(.66)}
+.hero-right{position:relative;overflow:hidden;min-height:400px;background:linear-gradient(rgba(11,11,10,.3),rgba(11,11,10,.72)),url("assets/hero/bg-textura.jpg") center/cover,#0c0b0a}
+@media (max-width:820px){.hero-right{min-height:62vw;order:-1}}
+.hero-right img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center bottom;filter:grayscale(.15) contrast(1.05)}
 .hero-right::after{content:"";position:absolute;inset:0;background:linear-gradient(to right,var(--black) 0%,transparent 26%);pointer-events:none}
 @media (max-width:820px){.hero-right::after{background:linear-gradient(to bottom,transparent 40%,var(--black) 100%)}}
 
@@ -70,10 +70,10 @@ header{position:absolute;top:0;left:0;width:100%;z-index:20;padding:26px var(--p
 .car-item{width:clamp(160px,20vw,252px);aspect-ratio:9/16;position:relative;flex-shrink:0;background:#000;margin-right:-1px;transform:skewX(-14deg) scale(1.02);border-right:2px solid var(--gold);cursor:pointer;overflow:hidden}
 .car-item .bg-video{width:150%;height:104%;object-fit:cover;position:absolute;top:-2%;left:-25%;transform:skewX(14deg);filter:grayscale(.35) brightness(.62)}
 .car-item .overlay{position:absolute;top:-2%;left:-25%;width:150%;height:104%;background:rgba(5,5,6,.62);z-index:2;transform:skewX(14deg);transition:background .4s ease}
-.car-item .c-name{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) skewX(14deg);z-index:3;font-family:var(--sans);font-size:10px;font-weight:500;letter-spacing:.34em;text-transform:uppercase;color:var(--white);opacity:.82;white-space:nowrap;transition:opacity .4s ease,text-shadow .4s ease}
+.car-item .c-logo{position:absolute;top:50%;left:50%;width:64%;max-width:150px;transform:translate(-50%,-50%) skewX(14deg);z-index:3;opacity:.82;transition:opacity .4s ease,filter .4s ease}
 .car-item .c-cta{position:absolute;left:50%;bottom:26px;transform:translateX(-50%) skewX(14deg);z-index:3;font-size:7px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);opacity:0;transition:opacity .35s ease}
 .car-item:hover .overlay,.car-item:focus-visible .overlay{background:rgba(5,5,6,.32)}
-.car-item:hover .c-name,.car-item:focus-visible .c-name{opacity:1;text-shadow:0 0 16px rgba(255,255,255,.35)}
+.car-item:hover .c-logo,.car-item:focus-visible .c-logo{opacity:1;filter:drop-shadow(0 0 14px rgba(255,255,255,.28))}
 .car-item:hover .c-cta,.car-item:focus-visible .c-cta{opacity:1}
 
 /* ========= POSICIONAMENTO + RESULTADOS (uma secção) ========= */
@@ -150,10 +150,7 @@ footer{background:var(--black);border-top:1px solid rgba(255,255,255,.07);paddin
 <body>
 
 <header>
-  <svg class="logo-mark" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-    <path d="M20 3L36 37H29.5L20 15.5L10.5 37H4L20 3Z" fill="var(--gold)"/>
-    <path d="M13.7 27H26.3" stroke="var(--black)" stroke-width="2.4"/>
-  </svg>
+  <img class="logo-mark" src="assets/logos/asteris.png" alt="" aria-hidden="true">
   <span class="logo-word">Asteris</span>
 </header>
 
@@ -171,8 +168,8 @@ footer{background:var(--black);border-top:1px solid rgba(255,255,255,.07);paddin
     </a>
   </div>
   <div class="hero-right">
-    <!-- TROCAR: imagem final do hero (cavalo ou outra). Cloudinary: asteris/hero/main -->
-    <img src="https://res.cloudinary.com/demo/image/upload/f_auto,q_auto,w_1400/couple.jpg" alt="" loading="eager">
+    <!-- imagem do hero (cavalo) — dos assets reais. Trocar aqui se mudarem a imagem. -->
+    <img src="assets/hero/cavalo-fg.png" alt="" loading="eager">
   </div>
 </section>
 
@@ -189,7 +186,7 @@ footer{background:var(--black);border-top:1px solid rgba(255,255,255,.07);paddin
   <p class="desc">Transformamos marcas, produtos e profissionais em referências percebidas, através de posicionamento, estratégia e produção audiovisual.</p>
   <p class="desc sub">Criamos imagens, narrativas e posicionamento para transformar valor em percepção — e percepção em procura.</p>
 
-  <p class="results-note">Secção ilustrativa. Os números e as imagens serão substituídos por casos reais à medida que os primeiros projetos fecharem.</p>
+  <p class="results-note">Os números são ilustrativos — serão substituídos por dados reais à medida que os primeiros projetos fecharem.</p>
   <div class="cards" id="cards"><!-- injetado por JS a partir de RESULTS --></div>
 </section>
 
@@ -265,19 +262,19 @@ function VID(id, w){ return "https://res.cloudinary.com/"+CONFIG.cloudName+"/vid
    RESULTADOS — 1 objeto por card (metricas contam ao aparecer).
    ============================================================ */
 const RESULTS = [
-  { name:"Cliente — Restaurante", antes:IMG("sample",{w:320}), depois:IMG("couple",{w:320}),
+  { name:"Cliente — Restaurante", antes:"assets/cards/antes-1.jpg", depois:"assets/cards/depois-1.jpg",
     metrics:[ {label:"Faturação / mês", target:4200, prefix:"+€", suffix:"", euro:true},
               {label:"Crescimento", target:140, prefix:"+", suffix:"%"},
               {label:"Ticket médio", target:22, prefix:"+", suffix:"%"} ] },
-  { name:"Cliente — Clínica", antes:IMG("kitten",{w:320}), depois:IMG("lady",{w:320}),
+  { name:"Cliente — Clínica", antes:"assets/cards/antes-2.jpg", depois:"assets/cards/depois-2.jpg",
     metrics:[ {label:"Faturação / mês", target:6800, prefix:"+€", suffix:"", euro:true},
               {label:"Crescimento", target:95, prefix:"+", suffix:"%"},
               {label:"Marcações", target:60, prefix:"+", suffix:"%"} ] },
-  { name:"Cliente — Stand auto", antes:IMG("balloons",{w:320}), depois:IMG("sample",{w:320}),
+  { name:"Cliente — Stand auto", antes:"assets/cards/antes-1.jpg", depois:"assets/cards/depois-1.jpg",
     metrics:[ {label:"Faturação / mês", target:11000, prefix:"+€", suffix:"", euro:true},
               {label:"Leads online", target:180, prefix:"+", suffix:"%"},
               {label:"Visitas ao stand", target:70, prefix:"+", suffix:"%"} ] },
-  { name:"Cliente — Marca / loja", antes:IMG("couple",{w:320}), depois:IMG("balloons",{w:320}),
+  { name:"Cliente — Marca / loja", antes:"assets/cards/antes-2.jpg", depois:"assets/cards/depois-2.jpg",
     metrics:[ {label:"Faturação / mês", target:3500, prefix:"+€", suffix:"", euro:true},
               {label:"Conversão", target:45, prefix:"+", suffix:"%"},
               {label:"Ticket médio", target:18, prefix:"+", suffix:"%"} ] }
@@ -285,37 +282,45 @@ const RESULTS = [
 
 /* ============================================================
    PORTFÓLIO — 1 objeto por cliente.
-   bg  = vídeo de fundo do painel do carrossel
+   logo  = logótipo mostrado no painel do carrossel
+   bg    = vídeo de fundo do painel (agora de exemplo — ver nota abaixo)
    items[] = galeria da página do cliente ({type, src})
-   Trocar os IMG()/VID() de exemplo pelos teus public IDs da Cloudinary.
+
+   NOTA: os vídeos reais dos clientes (pasta Clientes/) são masters de
+   60 MB a 767 MB — não dá para pôr no site assim. É preciso comprimi-los
+   para clips web (~3-6 MB, ex. com HandBrake) e então trocar aqui os
+   VID()/IMG() de exemplo pelos ficheiros reais (locais em assets/ ou na
+   Cloudinary "bv9q81il"). Os logótipos em assets/logos/ são MOCKS.
    ============================================================ */
 function shots(id, list){ return list.map(function(o){ return {type:"image", src:IMG(id,o)}; }); }
 
-const PORTFOLIO = [
-  { client:"Órfeu", slug:"orfeu", bg:VID("sea_turtle"), items:
-    shots("couple",[{ar:"3:4"},{ar:"1:1",e:"grayscale"},{ar:"4:5"},{ar:"16:9"},{ar:"2:3"},{ar:"1:1"}])
-    .concat([{type:"video",src:VID("sea_turtle",1200)},{type:"video",src:VID("dog",1200)}]) },
+var CROPS = [{ar:"3:4"},{ar:"1:1"},{ar:"4:5"},{ar:"16:9"},{ar:"2:3"},{ar:"1:1",e:"grayscale"},{ar:"4:3"},{ar:"3:4",e:"grayscale"}];
+var DEMO_VIDS = [VID("sea_turtle",1200), VID("dog",1200)];
 
-  { client:"Villas", slug:"villas", bg:VID("dog"), items:
-    shots("balloons",[{ar:"4:5"},{ar:"1:1"},{ar:"3:4",e:"grayscale"},{ar:"16:9"},{ar:"2:3"},{ar:"1:1"}])
-    .concat([{type:"video",src:VID("dog",1200)}]) },
-
-  { client:"Patrimar", slug:"patrimar", bg:VID("sea_turtle"), items:
-    shots("sample",[{ar:"1:1"},{ar:"3:4"},{ar:"4:5",e:"grayscale"},{ar:"16:9"},{ar:"1:1"},{ar:"2:3"},{ar:"4:3"}])
-    .concat([{type:"video",src:VID("sea_turtle",1200)}]) },
-
-  { client:"Fasano", slug:"fasano", bg:VID("dog"), items:
-    shots("lady",[{ar:"3:4"},{ar:"1:1",e:"grayscale"},{ar:"4:5"},{ar:"2:3"},{ar:"16:9"},{ar:"1:1"}])
-    .concat([{type:"video",src:VID("dog",1200)},{type:"video",src:VID("sea_turtle",1200)}]) },
-
-  { client:"Brimavera", slug:"brimavera", bg:VID("sea_turtle"), items:
-    shots("kitten",[{ar:"1:1"},{ar:"4:5",e:"grayscale"},{ar:"3:4"},{ar:"16:9"},{ar:"2:3"},{ar:"1:1"}])
-    .concat([{type:"video",src:VID("dog",1200)}]) },
-
-  { client:"Bopp", slug:"bopp", bg:VID("dog"), items:
-    shots("balloons",[{ar:"3:4",e:"grayscale"},{ar:"1:1"},{ar:"4:5"},{ar:"2:3"},{ar:"16:9"},{ar:"1:1"},{ar:"4:3"}])
-    .concat([{type:"video",src:VID("sea_turtle",1200)}]) }
+/* cada ficheiro da pasta Clientes/ tratado como um cliente diferente */
+var CLIENTS = [
+  ["Órfeu",           "orfeu",          "couple"],
+  ["Villas",          "villas",         "balloons"],
+  ["Patrimar",        "patrimar",       "sample"],
+  ["Fasano",          "fasano",         "lady"],
+  ["Brimavera",       "brimavera",      "kitten"],
+  ["Bopp",            "bopp",           "couple"],
+  ["Brendha & Pedro", "brendha-pedro",  "lady"],
+  ["Anya",            "anya",           "balloons"],
+  ["Aline & Wando",   "aline-wando",    "couple"]
 ];
+
+var PORTFOLIO = CLIENTS.map(function(c, i){
+  return {
+    client: c[0], slug: c[1],
+    logo: "assets/logos/" + c[1] + ".svg",
+    bg:   DEMO_VIDS[i % 2],
+    items: shots(c[2], CROPS).concat([
+      { type:"video", src: DEMO_VIDS[i % 2] },
+      { type:"video", src: DEMO_VIDS[(i + 1) % 2] }
+    ])
+  };
+});
 
 /* ---------- WhatsApp + ano ---------- */
 document.querySelectorAll("[data-wa]").forEach(function(a){
@@ -330,7 +335,7 @@ function itemHTML(p, i){
   return '<div class="car-item" role="button" tabindex="0" data-i="'+i+'" aria-label="Ver galeria — '+p.client+'">'
     + '<video class="bg-video" src="'+p.bg+'" autoplay loop muted playsinline preload="metadata"></video>'
     + '<span class="overlay"></span>'
-    + '<span class="c-name">'+p.client+'</span>'
+    + '<img class="c-logo" src="'+p.logo+'" alt="'+p.client+'">'
     + '<span class="c-cta">Ver galeria</span>'
     + '</div>';
 }
