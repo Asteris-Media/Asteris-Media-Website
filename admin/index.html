@@ -1072,10 +1072,10 @@ function folderModal(f){
         });
       });
     }
-    bDel.onclick = function(){ askDeleteFiles([].slice.call(sel)); };
+    bDel.onclick = function(){ askDeleteFiles(Array.from(sel)); };
 
     bZip.onclick = function(){
-      var list = [].slice.call(sel).filter(function(i){ return files[i] && !files[i]._gone; }).map(function(i){ return files[i]; });
+      var list = Array.from(sel).filter(function(i){ return files[i] && !files[i]._gone; }).map(function(i){ return files[i]; });
       if(!list.length) return;
       bZip.disabled = true; prog.textContent = "a preparar…";
       loadJSZip().then(function(JSZip){
