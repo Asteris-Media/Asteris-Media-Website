@@ -500,7 +500,7 @@ function renderProposta(d, app){
       '</section>';
   }
   var wa = "https://wa.me/" + CONTACT_WA + "?text=" + encodeURIComponent("Olá! Vi a proposta ("+(d.cliente||"")+") e quero avançar.");
-  html += '<section class="cta-wrap"><p class="eyebrow">Próximo passo</p><h2>'+(pr.cta||"Se existe valor, existe potencial.")+'</h2>' +
+  html += '<section class="cta-wrap"><p class="eyebrow">Próximo passo</p><h2>'+(pr.cta||"Se existe potencial, existe valor.")+'</h2>' +
     '<a class="btn-cta" href="'+wa+'" target="_blank" rel="noopener">Falar connosco</a></section>';
 
   box.innerHTML = html;
