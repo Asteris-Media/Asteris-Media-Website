@@ -56,10 +56,12 @@ header{position:absolute;top:0;left:0;width:100%;z-index:20;padding:26px var(--p
   .hero-bg video{object-position:60% center}
   .hero-bg::after{background:linear-gradient(to bottom,rgba(11,11,10,.5) 0%,rgba(11,11,10,.35) 30%,rgba(11,11,10,.72) 72%,var(--black) 100%)}
 }
-.hero-left{position:relative;z-index:2;display:flex;flex-direction:column;justify-content:flex-end;min-height:inherit;padding:200px var(--pad) 72px;max-width:620px}
+.hero-left{position:relative;z-index:2;display:flex;flex-direction:column;justify-content:flex-end;min-height:inherit;padding:200px var(--pad) 72px;max-width:760px}
 @media (max-width:820px){.hero-left{padding:150px var(--pad) 52px;min-height:74vw}}
-.hero-title{font-family:var(--serif);font-weight:400;font-size:clamp(1.95rem,3vw,2.85rem);line-height:1.28;color:var(--white);margin-bottom:22px;max-width:none}
+.hero-title{font-family:var(--serif);font-weight:400;font-size:clamp(1.55rem,2.4vw,2.2rem);line-height:1.32;color:var(--white);margin-bottom:22px;max-width:none}
+.hero-title br{display:block}
 .hero-sub{font-size:13.5px;font-weight:400;line-height:1.6;color:rgba(240,234,224,.82);letter-spacing:.01em;margin-bottom:42px;white-space:nowrap}
+@media (max-width:820px){.hero-left{max-width:none}}
 @media (max-width:760px){.hero-sub{white-space:normal;font-size:12.5px}.hero-title br{display:none}}
 
 /* BOTÃO */
