@@ -64,7 +64,9 @@ h1{font-family:var(--serif);font-weight:300;font-size:clamp(1.7rem,4vw,2.3rem);l
 @media(max-height:620px){.site-footer{position:static;margin-top:30px}}
 .home-link{position:fixed;top:20px;left:20px;display:inline-flex;align-items:center;gap:7px;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--white-dim);text-decoration:none;padding:8px 12px;border:1px solid var(--gold-soft);transition:color .2s,border-color .2s}
 @media(max-width:560px){
-  body{padding-top:56px;padding-bottom:12px}
+  html,body{overflow:hidden}
+  body{justify-content:flex-start;padding-top:58px;padding-bottom:14px}
+  .wrap{margin:auto 0}
   .mark{height:28px;margin-bottom:14px}
   h1{font-size:1.55rem}
   .sub{margin-bottom:18px}
@@ -72,7 +74,7 @@ h1{font-family:var(--serif);font-weight:300;font-size:clamp(1.7rem,4vw,2.3rem);l
   .choice{padding:13px 15px}
   .choice .tx span{font-size:10px}
   .foot{margin-top:18px}
-  .site-footer{position:static;margin-top:18px;padding:14px 0 0;border:none;justify-content:center;text-align:center}
+  .site-footer{position:static;margin-top:0;padding:14px 0 2px;border:none;justify-content:center;text-align:center}
   .home-link{top:14px;left:14px}
 }
 .home-link:hover{color:var(--gold);border-color:var(--gold)}
