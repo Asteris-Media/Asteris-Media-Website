@@ -435,7 +435,7 @@ var PORTFOLIO = CLIENTS.map(function(c){
     client: c[0], slug: c[1],
     logo: c[3] || "",   /* PNG/SVG do cliente -> zoom lento; sem logo -> titulo em texto com tracking */
     bg:   vid,
-    items: [{ type:"video", src: vid }].concat(shots(c[2], CROPS))
+    items: [{ type:"video", src: vid }]   /* só o nosso clip; sem imagens mock */
   };
 });
 
