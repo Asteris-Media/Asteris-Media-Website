@@ -571,6 +571,23 @@ document.getElementById("cards").innerHTML = RESULTS.map(function(r){
     + '</article>';
 }).join("");
 
+/* todas as notas antes/depois com a mesma altura -> colunas e cards alinhados */
+(function equalizeNotes(){
+  var wrap = document.getElementById("cards");
+  function eq(){
+    var notes = wrap.querySelectorAll(".cmp-note");
+    if(!notes.length) return;
+    for(var i = 0; i < notes.length; i++) notes[i].style.minHeight = "";
+    var max = 0;
+    for(var j = 0; j < notes.length; j++) max = Math.max(max, notes[j].offsetHeight);
+    for(var k = 0; k < notes.length; k++) notes[k].style.minHeight = max + "px";
+  }
+  eq();
+  window.addEventListener("load", eq);
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(eq);
+  var t; window.addEventListener("resize", function(){ clearTimeout(t); t = setTimeout(eq, 150); });
+})();
+
 /* visualização grande dos feeds antes/depois */
 (function feedImgView(){
   var ov = document.getElementById("imgview"), im = document.getElementById("iv-img"), cap = document.getElementById("iv-cap");
