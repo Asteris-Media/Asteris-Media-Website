@@ -52,33 +52,40 @@ label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
 .top h1{display:flex;align-items:center;gap:9px;font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--dim)}
 .top h1 svg,.top h1 img{width:auto;height:17px}
 
-/* painel de estado */
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(172px,1fr));gap:10px;margin-bottom:22px}
-.stat{background:var(--panel);border:1px solid var(--edge);border-radius:8px;padding:12px 14px}
-.stat .lbl{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
-.stat .val{font-size:18px;font-weight:700;line-height:1.1}
-.stat .sub{font-size:10.5px;color:var(--dim);margin-top:4px;word-break:break-word}
-.stat.warn{border-color:var(--gold)}
-.stat.bad{border-color:var(--neg)}
-.stat .bar{height:4px;background:var(--edge2);border-radius:2px;margin-top:8px;overflow:hidden}
-.stat .bar > i{display:block;height:100%;background:var(--gold)}
+/* painel de estado — linha de cima */
+.dash{display:grid;grid-template-columns:repeat(auto-fit,minmax(146px,1fr));gap:10px;margin-bottom:24px}
+@media(max-width:720px){.dash{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;margin:0 -4px;padding:0 4px 4px}.dash::-webkit-scrollbar{display:none}.dcard{flex:0 0 44%;scroll-snap-align:center}}
+.dcard{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:14px 12px;display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;min-width:0}
+.dcard.warn{border-color:var(--gold)} .dcard.bad{border-color:var(--neg)}
+.dcard .lbl{font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+.dcard .big{font-size:22px;font-weight:800;line-height:1}
+.dcard .sub{font-size:9.5px;color:var(--dim);word-break:break-word;line-height:1.45}
+.ring{position:relative;width:78px;height:78px;flex-shrink:0}
+.ring svg{width:100%;height:100%}
+.ring .rc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+.ring .rc b{font-size:15px;font-weight:800;line-height:1}
+.ring .rc span{font-size:7.5px;letter-spacing:.06em;color:var(--faint);text-transform:uppercase}
 .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:middle}
 .dot.ok{background:var(--pos)} .dot.off{background:var(--faint)} .dot.bad{background:var(--neg)}
 
-/* lista por categoria */
-.mkcols{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;align-items:start}
-@media(max-width:1200px){.mkcols{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:680px){.mkcols{grid-template-columns:1fr}}
-.mkcol{background:var(--panel2);border:1px solid var(--edge);border-radius:8px;padding:12px;min-width:0}
-.mkcol > h2{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;display:flex;align-items:center;gap:6px}
-.mkcol > h2 .n{margin-left:auto;font-family:var(--mono);color:var(--faint);letter-spacing:0}
-.mkcol .empty{color:var(--faint);font-size:11px;padding:8px 2px}
-.mkitem{background:var(--panel);border:1px solid var(--edge);border-radius:6px;padding:11px 12px;margin-bottom:8px}
+/* colunas por categoria */
+.mkcols{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;align-items:start}
+@media(max-width:1080px){
+  .mkcols{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;gap:10px;margin:0 -4px;padding:0 4px 8px}
+  .mkcols::-webkit-scrollbar{display:none}
+  .mkcol{flex:0 0 84%;scroll-snap-align:center}
+}
+.mkcol{background:var(--panel2);border:1px solid var(--edge);border-radius:10px;padding:12px;min-width:0}
+.mkcol > h2{display:flex;align-items:center;gap:8px;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;padding-bottom:9px;border-bottom:1px solid var(--edge)}
+.mkcol > h2 .cnt{margin-left:auto;background:var(--edge2);color:var(--ink);border-radius:20px;padding:1px 8px;font-family:var(--mono);font-size:10px;letter-spacing:0;font-weight:700}
+.mkcol .stack{display:flex;flex-direction:column;gap:8px}
+.mkcol .empty{color:var(--faint);font-size:11px;padding:14px 2px;text-align:center}
+.mkitem{background:var(--panel);border:1px solid var(--edge);border-radius:7px;padding:11px 12px}
 .mkitem:hover{border-color:var(--edge2)}
 .mkitem .code{font-family:var(--mono);font-weight:700;color:var(--gold);font-size:12px}
 .mkitem .nm{font-weight:600;font-size:12.5px;margin-top:3px;word-break:break-word}
 .mkitem .ti{color:var(--faint);font-size:11px;margin-top:1px;word-break:break-word}
-.mkitem .exprow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:7px;font-size:10.5px;color:var(--dim)}
+.mkitem .exprow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:7px;font-size:10px;color:var(--dim)}
 .mkitem .exprow .perm{color:var(--pos)}
 .mkitem .exprow .gone{color:var(--neg)}
 .mkitem .acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
@@ -214,13 +221,13 @@ function setExpira(code, novaData){
 function listView(){
   var v = $("#view"); v.innerHTML = "";
   var head = el("div"); head.style.cssText = "display:flex;justify-content:space-between;align-items:center;margin-bottom:16px";
-  head.innerHTML = '<div style="color:var(--dim);font-size:12px">Links por categoria</div>';
+  head.innerHTML = '<div style="color:var(--dim);font-size:12px">Painel</div>';
   var nb = el("button","btn gold","+ Nova página"); nb.onclick = function(){ editView(null); };
   head.appendChild(nb);
   v.appendChild(head);
 
-  var panel = el("div","stats"); v.appendChild(panel);
-  loadStats(panel);
+  var dash = el("div","dash"); v.appendChild(dash);
+  loadStats(dash);
 
   var cols = el("div","mkcols"); v.appendChild(cols);
   cols.innerHTML = '<div style="color:var(--faint);padding:20px">a carregar…</div>';
@@ -231,9 +238,11 @@ function listView(){
     CATS.forEach(function(cat){
       var lista = pages.filter(cat.match);
       var col = el("div","mkcol");
-      col.innerHTML = '<h2>'+cat.titulo+'<span class="n">'+lista.length+'</span></h2>';
-      if(!lista.length){ col.appendChild(el("div","empty","—")); }
-      lista.forEach(function(p){ col.appendChild(pageCard(p)); });
+      col.innerHTML = '<h2>'+cat.titulo+'<span class="cnt">'+lista.length+'</span></h2>';
+      var stack = el("div","stack");
+      if(!lista.length){ stack.appendChild(el("div","empty","sem links")); }
+      lista.forEach(function(p){ stack.appendChild(pageCard(p)); });
+      col.appendChild(stack);
       cols.appendChild(col);
     });
   });
@@ -246,58 +255,87 @@ function fmtBytes(b){
   if(b < 1073741824) return (b/1048576).toFixed(1) + " MB";
   return (b/1073741824).toFixed(2) + " GB";
 }
-function statCard(lbl, val, sub, cls){
-  var s = el("div","stat" + (cls ? " " + cls : ""));
-  s.appendChild(Object.assign(el("div","lbl"), { textContent: lbl }));
-  s.appendChild(Object.assign(el("div","val"), { innerHTML: val }));
-  if(sub) s.appendChild(Object.assign(el("div","sub"), { innerHTML: sub }));
-  return s;
+/* cartão com anel circular SVG (sem libs). pct 0..100 */
+function ringCard(pct, big, small, lbl, cls){
+  pct = Math.max(0, Math.min(100, pct || 0));
+  var R = 15.5, C = 2 * Math.PI * R, off = C * (1 - pct / 100);
+  var color = cls === "bad" ? "var(--neg)" : (cls === "warn" ? "var(--gold)" : "var(--pos)");
+  return '<div class="dcard'+(cls?' '+cls:'')+'">'
+    + '<div class="ring"><svg viewBox="0 0 40 40">'
+    +   '<circle cx="20" cy="20" r="'+R+'" fill="none" stroke="var(--edge2)" stroke-width="4"/>'
+    +   '<circle cx="20" cy="20" r="'+R+'" fill="none" stroke="'+color+'" stroke-width="4" stroke-linecap="round"'
+    +     ' stroke-dasharray="'+C.toFixed(2)+'" stroke-dashoffset="'+off.toFixed(2)+'" transform="rotate(-90 20 20)"/>'
+    + '</svg><div class="rc"><b>'+big+'</b><span>'+small+'</span></div></div>'
+    + '<div class="lbl">'+lbl+'</div></div>';
 }
-function loadStats(panel){
-  panel.innerHTML = '<div class="stat"><div class="sub">a carregar estado…</div></div>';
+function dcard(lbl, big, sub, cls){
+  return '<div class="dcard'+(cls?' '+cls:'')+'">'
+    + '<div class="lbl">'+lbl+'</div>'
+    + (big != null ? '<div class="big">'+big+'</div>' : '')
+    + (sub ? '<div class="sub">'+sub+'</div>' : '')
+    + '</div>';
+}
+function loadStats(dash){
+  dash.innerHTML = '<div class="dcard"><div class="sub">a carregar estado…</div></div>';
   api("GET","stats").then(function(r){
-    panel.innerHTML = "";
-    if(!r.ok){ panel.appendChild(statCard("Estado","indisponível","o painel precisa do último deploy","bad")); return; }
+    if(!r.ok){ dash.innerHTML = dcard("Estado","—","precisa do último deploy","bad"); return; }
     var s = r.j, pg = s.pages;
     var TL = { proposta:"Propostas", portfolio:"Portfólio", galeria:"Entregas", triagem:"Seleções" };
     var bt = Object.keys(pg.byType||{}).map(function(k){ return (TL[k]||k)+" "+pg.byType[k]; }).join(" · ");
+    var expN = (pg.expired||[]).length, soonN = (pg.soon||[]).length;
+    var saud = pg.total ? Math.round((pg.total - expN - soonN) / pg.total * 100) : 100;
+    var r2 = s.r2, r2max = s.limits.r2.storageGB * 1073741824;
+    var r2pct = (r2.bound && r2.bytes != null) ? r2.bytes / r2max * 100 : 0;
+    var html = "";
 
-    panel.appendChild(statCard("Links ativos", String(pg.total), bt || "—"));
+    // anel: saúde dos links
+    html += ringCard(saud, saud + "%", "saudável",
+      "Links " + pg.total,
+      expN ? "bad" : (soonN ? "warn" : ""));
 
-    var soonN = (pg.soon||[]).length;
-    panel.appendChild(statCard("Expiram ≤ 14 dias", String(soonN),
-      soonN ? (pg.soon.map(function(x){ return x.code+" ("+x.dias+"d)"; }).join(", ")) : "nada a expirar",
-      soonN ? "warn" : ""));
-
-    var expN = (pg.expired||[]).length;
-    panel.appendChild(statCard("Expirados", String(expN),
-      expN ? pg.expired.map(function(x){ return x.code; }).join(", ") + " — renova ou exclui" : "nenhum",
-      expN ? "bad" : ""));
-
-    var r2 = s.r2, r2max = (s.limits.r2.storageGB) * 1073741824;
-    if(r2.bound){
-      var pct = r2.bytes != null ? Math.min(100, r2.bytes / r2max * 100) : 0;
-      panel.appendChild(statCard("Armazenamento R2",
-        fmtBytes(r2.bytes) + ' <span style="font-size:11px;color:var(--faint)">/ '+s.limits.r2.storageGB+' GB</span>',
-        (r2.objects != null ? r2.objects + " ficheiros" : "") + (r2.truncated ? " (+)" : "") +
-          '<div class="bar"><i style="width:'+pct.toFixed(1)+'%"></i></div>',
-        pct > 80 ? "bad" : (pct > 50 ? "warn" : "")));
+    // anel: R2
+    if(r2.bound && r2.bytes != null){
+      html += ringCard(r2pct, fmtBytes(r2.bytes), "de "+s.limits.r2.storageGB+"GB",
+        "R2 · " + r2.objects + " fich." + (r2.truncated ? "+" : ""),
+        r2pct > 80 ? "bad" : (r2pct > 50 ? "warn" : ""));
     } else {
-      panel.appendChild(statCard("Armazenamento R2", '<span class="dot off"></span>não ligado',
-        "upload por arrastar precisa de R2 ou Cloudinary"));
+      html += dcard("Armazenamento R2", '<span class="dot off"></span>', "não ligado — só links");
     }
 
-    panel.appendChild(statCard("Cloudinary",
-      s.cloudinary.configured ? '<span class="dot ok"></span>ligado' : '<span class="dot off"></span>não ligado',
-      "vídeo/imagem · 25 créditos/mês grátis"));
+    // cartão: distribuição
+    html += dcard("Distribuição", null, bt || "sem links");
 
+    // cartão: atenção
+    html += dcard("Atenção",
+      String(expN + soonN),
+      (expN ? expN+" expirado(s)" : "") + (expN && soonN ? "<br>" : "") + (soonN ? soonN+" a expirar ≤14d" : (expN ? "" : "tudo em dia")),
+      expN ? "bad" : (soonN ? "warn" : ""));
+
+    // cartão: cloudinary
+    html += dcard("Cloudinary",
+      s.cloudinary.configured ? '<span class="dot ok"></span>' : '<span class="dot off"></span>',
+      s.cloudinary.configured ? "ligado · 25 créditos/mês" : "não ligado");
+
+    // cartão: sistema
     var t = new Date(s.generated);
-    panel.appendChild(statCard("Sistema",
-      '<span class="dot ok"></span>KV · API ok',
-      "KV: "+pg.kvKeys+" chaves · limite 1000 escritas/dia<br>atualizado "+t.toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"})));
+    html += dcard("Sistema",
+      '<span class="dot ok"></span>',
+      "KV + API ok · "+pg.kvKeys+" chaves<br>máx. 1000 escritas/dia<br>"+t.toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"}));
+
+    dash.innerHTML = html;
+
+    // linha de detalhe dos que pedem atenção
+    var next = dash.nextElementSibling;
+    if(next && next.classList.contains("dash-detail")) next.remove();
+    if(expN || soonN){
+      var det = [];
+      pg.expired.forEach(function(x){ det.push('<span style="color:var(--neg)">'+x.code+' expirou ('+x.expira+')</span>'); });
+      pg.soon.forEach(function(x){ det.push('<span style="color:var(--gold)">'+x.code+' — '+x.dias+'d</span>'); });
+      dash.insertAdjacentHTML("afterend",
+        '<div class="dash-detail" style="font-size:10.5px;color:var(--dim);margin:-14px 0 20px">'+det.join(' &nbsp;·&nbsp; ')+'</div>');
+    }
   }).catch(function(){
-    panel.innerHTML = "";
-    panel.appendChild(statCard("Estado","erro","não foi possível ler o painel","bad"));
+    dash.innerHTML = dcard("Estado","erro","não foi possível ler o painel","bad");
   });
 }
 
