@@ -542,36 +542,41 @@ function baixarSelecionadas(d){
   if(lista.length === 1){
     var it0 = lista[0], url0 = it0.download || it0.src;
     btn.textContent = "A descarregar…";
-    fetch(url0).then(function(r){ return r.blob(); })
+    fetch(url0, { mode: "cors" }).then(function(r){ if(!r.ok) throw new Error(r.status); return r.blob(); })
       .then(function(b){ saveBlob(b, (it0.nome || base) + extOf(url0, it0.tipo)); doneDl(btn); })
-      .catch(function(){ window.open(url0, "_blank"); doneDl(btn); });
+      .catch(function(){ doneDl(btn); alert("Não foi possível descarregar esta peça agora. Tenta outra vez daqui a pouco; se continuar, avisa a Asteris."); });
     return;
   }
 
-  // várias: junta tudo num .zip
-  var done = 0;
+  // várias: junta tudo num .zip (resiliente — uma peça que falhe não quebra o resto)
+  var done = 0, falhas = 0;
   btn.textContent = "A preparar… 0/" + lista.length;
   loadJSZip().then(function(JSZip){
     var zip = new JSZip();
     return Promise.all(lista.map(function(it, k){
       var url = it.download || it.src;
-      return fetch(url).then(function(r){
-        if(!r.ok) throw 0; return r.blob();
+      return fetch(url, { mode: "cors" }).then(function(r){
+        if(!r.ok) throw new Error(r.status);
+        return r.blob();
       }).then(function(blob){
         zip.file((String(k+1).padStart(2,"0")) + "-" + (it.nome || "peca") + extOf(url, it.tipo), blob);
+      }).catch(function(){
+        falhas++;
+      }).then(function(){
         done++; btn.textContent = "A preparar… " + done + "/" + lista.length;
       });
     })).then(function(){
+      if(done - falhas <= 0) throw new Error("nada");
       btn.textContent = "A comprimir…";
       return zip.generateAsync({ type: "blob" });
     }).then(function(zipBlob){
       saveBlob(zipBlob, base + ".zip");
       doneDl(btn);
+      if(falhas) alert(falhas + " ficheiro(s) não puderam ser descarregados e ficaram de fora do .zip. Avisa a Asteris.");
     });
   }).catch(function(){
-    // fallback: abre cada uma em separador novo
-    lista.forEach(function(it, k){ setTimeout(function(){ window.open(it.download || it.src, "_blank"); }, k * 400); });
     doneDl(btn);
+    alert("Não foi possível preparar o download agora. Tenta outra vez daqui a pouco ou descarrega peça a peça; se continuar, avisa a Asteris.");
   });
 }
 function doneDl(btn){ btn.disabled = false; refreshBar(); }
