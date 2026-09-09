@@ -6,7 +6,7 @@
   "capa": "/assets/clientes/brendha-pedro.mp4",
   "expira": "2026-11-15",
   "minimo": 5,
-  "instrucoes": "Toca no círculo de cada foto para a escolher.",
+  "instrucoes": "Clica em Selecionar em cada foto que queres na versão final.",
   "formspree": "maeylznr",
   "itens": [
     { "tipo": "video", "nome": "teaser", "src": "/assets/clientes/brendha-pedro.mp4" },

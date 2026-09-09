@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Exemplos — Asteris</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#C9A166; --gold-soft:rgba(201,161,102,.22);
+  --black:#0B0B0A; --panel:#151412;
+  --white:#F0EAE0; --white-dim:rgba(240,234,224,.5); --white-faint:rgba(240,234,224,.34);
+  --serif:"Cormorant Garamond",Georgia,serif; --sans:"Montserrat",system-ui,sans-serif;
+  --pad:clamp(20px,5vw,56px);
+}
+body{background:var(--black);color:var(--white);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh;padding:var(--pad)}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--gold);color:var(--black)}
+.wrap{max-width:640px;margin:0 auto}
+.brand{font-size:10px;font-weight:500;letter-spacing:.42em;text-transform:uppercase;color:var(--white-dim);margin-bottom:8px}
+h1{font-family:var(--serif);font-weight:300;font-size:clamp(1.7rem,4vw,2.3rem);margin-bottom:6px}
+.note{font-size:11px;font-weight:300;color:var(--white-faint);margin-bottom:30px;max-width:46ch}
+.note b{color:var(--gold);font-family:var(--sans);font-size:9px;letter-spacing:.14em;text-transform:uppercase}
+.list{display:flex;flex-direction:column;gap:10px}
+.row{display:flex;align-items:center;gap:16px;background:var(--panel);border:1px solid var(--gold-soft);padding:16px 18px;transition:border-color .2s,transform .12s}
+.row:hover{border-color:var(--gold);transform:translateX(3px)}
+.row .k{font-family:var(--sans);font-size:10px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);width:82px;flex-shrink:0}
+.row .tx b{font-weight:500;font-size:13px;display:block}
+.row .tx span{font-size:10.5px;font-weight:300;color:var(--white-dim)}
+.row .code{margin-left:auto;font-family:var(--serif);font-size:1.1rem;letter-spacing:.12em;color:var(--white-faint)}
+.extra{margin-top:26px;font-size:10.5px;color:var(--white-faint)}
+.extra a{border-bottom:1px solid var(--gold-soft);color:var(--white-dim)}
+.foot{margin-top:34px;font-size:8.5px;color:var(--white-faint);letter-spacing:.05em}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">Asteris</div>
+  <h1>Exemplos do portal</h1>
+  <p class="note"><b>Código mestre</b> — atalho para veres qualquer sub-página sem trocar de código. Página temporária, a apagar quando o portal estiver fechado.</p>
+
+  <div class="list">
+    <a class="row" href="/SEL8M2">
+      <span class="k">Seleção</span>
+      <span class="tx"><b>Seleção de material</b><span>Cliente escolhe as peças da versão final</span></span>
+      <span class="code">SEL8M2</span>
+    </a>
+    <a class="row" href="/ENT4K7">
+      <span class="k">Entrega</span>
+      <span class="tx"><b>Entrega de trabalho</b><span>Descarregar o material, com seleção e prazo</span></span>
+      <span class="code">ENT4K7</span>
+    </a>
+    <a class="row" href="/PTF9C3">
+      <span class="k">Portfólio</span>
+      <span class="tx"><b>Portfólio privado</b><span>Galeria anónima, só de ver</span></span>
+      <span class="code">PTF9C3</span>
+    </a>
+    <a class="row" href="/PRP6H1">
+      <span class="k">Proposta</span>
+      <span class="tx"><b>Proposta</b><span>Diagnóstico, moodboard, planos com selo</span></span>
+      <span class="code">PRP6H1</span>
+    </a>
+  </div>
+
+  <p class="extra">Também: <a href="/PRP6H1?icons=1">galeria de selos das propostas</a> · <a href="/acesso">página de acesso normal</a></p>
+  <p class="foot">Se abrires localmente (sem servidor com reescrita), usa <code>404.html?c=SEL8M2</code>.</p>
+</div>
+</body>
+</html>

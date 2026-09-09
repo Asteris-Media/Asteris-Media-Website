@@ -12,6 +12,7 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --gold:#C9A166; --gold-soft:rgba(201,161,102,.22);
+  --neg:#D9705F;
   --black:#0B0B0A; --black2:#111110; --panel:#151412;
   --white:#F0EAE0; --white-dim:rgba(240,234,224,.5); --white-faint:rgba(240,234,224,.32);
   --serif:"Cormorant Garamond",Georgia,serif; --sans:"Montserrat",system-ui,sans-serif;
@@ -56,20 +57,24 @@ a{color:inherit}
 
 .wrap{padding:clamp(30px,5vw,56px) var(--pad) 100px}
 
-/* galeria / triagem — colagem sem separadores */
-.collage{column-count:2;column-gap:0}
-@media(min-width:640px){.collage{column-count:3}}
-@media(min-width:1024px){.collage{column-count:4}}
-@media(min-width:1500px){.collage{column-count:5}}
-.tile{position:relative;display:block;line-height:0;break-inside:avoid;overflow:hidden;cursor:pointer;border:1px solid rgba(0,0,0,0)}
-.tile img,.tile video{width:100%;height:auto;transition:transform .5s cubic-bezier(.2,.7,.2,1),filter .4s;filter:grayscale(.15)}
-.tile:hover img,.tile:hover video{transform:scale(1.04);filter:grayscale(0)}
-@media (prefers-reduced-motion:reduce){.tile:hover img,.tile:hover video{transform:none}}
-.tile .vtag{position:absolute;top:10px;left:10px;color:#fff;font-size:15px;opacity:.9;text-shadow:0 1px 6px rgba(0,0,0,.6);pointer-events:none;z-index:2}
-/* triagem: selecção */
-.tile .pick{position:absolute;top:9px;right:9px;width:26px;height:26px;border:1.5px solid rgba(255,255,255,.7);border-radius:50%;background:rgba(8,8,7,.4);z-index:3;display:flex;align-items:center;justify-content:center;font-size:14px;color:transparent;transition:background .2s,color .2s,border-color .2s}
-.tile.on .pick{background:var(--gold);border-color:var(--gold);color:var(--black)}
-.tile.on::after{content:"";position:absolute;inset:0;border:3px solid var(--gold);z-index:1;pointer-events:none}
+/* galeria / triagem — grelha uniforme (tipo ícones de pasta) */
+.collage{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+@media(max-width:520px){.collage{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}}
+.tile{position:relative;display:flex;flex-direction:column;padding:0;background:#141311;border:1px solid var(--gold-soft);overflow:hidden;cursor:pointer;text-align:left}
+.tile .thumb{position:relative;width:100%;aspect-ratio:4/5;overflow:hidden;background:#0c0c0b}
+.tile .thumb img,.tile .thumb video{width:100%;height:100%;object-fit:cover;filter:grayscale(.12);transition:transform .4s cubic-bezier(.2,.7,.2,1),filter .3s}
+.tile:hover .thumb img,.tile:hover .thumb video{transform:scale(1.05);filter:grayscale(0)}
+@media (prefers-reduced-motion:reduce){.tile:hover .thumb img,.tile:hover .thumb video{transform:none}}
+.tile .vtag{position:absolute;top:8px;left:8px;color:#fff;font-size:13px;opacity:.9;text-shadow:0 1px 6px rgba(0,0,0,.6);pointer-events:none;z-index:2}
+.tile .cap{padding:6px 8px;font-family:var(--sans);font-size:8.5px;letter-spacing:.04em;color:var(--white-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* botão selecionar */
+.tile .selbtn{border:0;border-top:1px solid var(--gold-soft);background:transparent;color:var(--white-dim);font-family:var(--sans);font-size:8px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;padding:9px 6px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .18s,color .18s}
+.tile .selbtn svg{width:11px;height:11px}
+.tile .selbtn:hover{color:var(--white)}
+.tile.on{border-color:var(--neg)}
+.tile.on .thumb::after{content:"";position:absolute;inset:0;background:rgba(217,112,95,.22);z-index:1}
+.tile.on .thumb img,.tile.on .thumb video{filter:grayscale(.2) brightness(.85)}
+.tile.on .selbtn{background:var(--neg);color:#fff;border-top-color:var(--neg)}
 
 /* barra de triagem */
 .selbar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(11,11,10,.92);backdrop-filter:blur(10px);border-top:1px solid var(--gold-soft);padding:12px var(--pad);display:flex;align-items:center;justify-content:space-between;gap:14px}
@@ -267,7 +272,7 @@ var parts = location.pathname.split("/").filter(Boolean);
 var repoBase = location.pathname.indexOf("/Asteris-Media-Website/") === 0 ? "/Asteris-Media-Website/" : "/";
 var qc = new URLSearchParams(location.search).get("c");   // fallback: 404.html?c=CODIGO
 var code = qc || (parts.length ? parts[parts.length-1].replace(/\.html?$/,"") : "");
-var RESERVED = ["index","404","g","p","t","c","data","assets"];
+var RESERVED = ["index","404","g","p","t","c","data","assets","acesso","exemplos","favicon"];
 
 function fail(msg){
   $("#loading").classList.add("hidden");
@@ -343,6 +348,15 @@ function render(d){
 
 /* ---------------- GALERIA + TRIAGEM ---------------- */
 var ITEMS = [], SEL = new Set(), MODO = "";  // MODO: "triagem" | "entrega" | ""
+var IC_ADD = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
+var IC_X   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+function selBtn(on){
+  return '<button class="selbtn" type="button">' + (on ? IC_X + "Remover" : IC_ADD + "Selecionar") + '</button>';
+}
+function setTileBtn(tile, on){
+  var b = tile.querySelector(".selbtn");
+  if(b) b.innerHTML = on ? IC_X + "Remover" : IC_ADD + "Selecionar";
+}
 
 function renderGaleria(d, app, triagem){
   ITEMS = d.itens || [];
@@ -358,16 +372,18 @@ function renderGaleria(d, app, triagem){
     wrap.appendChild(a);
   }
   var msg = triagem ? (d.instrucoes || "") + (d.minimo ? "  ·  mínimo "+d.minimo : "")
-          : (entrega ? "Toca no círculo para escolher, ou usa Selecionar tudo em baixo." : "");
+          : (entrega ? "Clica na foto para ver inteira, ou em Selecionar para a marcar." : "");
   if(msg){ wrap.appendChild(el("p","selmsg", msg)); }
 
   var grid = el("div","collage");
   ITEMS.forEach(function(it, i){
-    var t = el("button","tile"); t.dataset.i = i;
+    var t = el("div","tile"); t.dataset.i = i;
     var media = it.tipo === "video"
       ? '<span class="vtag">&#9654;</span><video src="'+(it.src)+'" muted loop playsinline preload="metadata"></video>'
       : '<img src="'+(it.thumb||it.src)+'" alt="'+(it.nome||"")+'" loading="lazy">';
-    t.innerHTML = media + (picking ? '<span class="pick">&#10003;</span>' : '');
+    t.innerHTML = '<div class="thumb">'+media+'</div>'
+      + '<div class="cap">'+(it.nome || ("peça "+(i+1)))+'</div>'
+      + (picking ? selBtn(false) : '');
     grid.appendChild(t);
   });
   wrap.appendChild(grid);
@@ -399,7 +415,7 @@ function renderGaleria(d, app, triagem){
   grid.addEventListener("click", function(e){
     var t = e.target.closest(".tile"); if(!t) return;
     var i = +t.dataset.i;
-    if(picking && e.target.closest(".pick")){ toggle(i, t); return; }
+    if(picking && e.target.closest(".selbtn")){ toggle(i, t); return; }
     openLb(i);
   });
   playInView(grid);
@@ -411,6 +427,7 @@ function renderGaleria(d, app, triagem){
       grid.querySelectorAll(".tile").forEach(function(t){
         var i = +t.dataset.i;
         if(allOn){ SEL.add(i); t.classList.add("on"); } else { SEL.delete(i); t.classList.remove("on"); }
+        setTileBtn(t, allOn);
       });
       allBtn.textContent = allOn ? "Limpar seleção" : "Selecionar tudo";
       refreshBar();
@@ -442,8 +459,10 @@ function refreshBar(){
 }
 
 function toggle(i, tile){
-  if(SEL.has(i)){ SEL.delete(i); tile.classList.remove("on"); }
-  else { SEL.add(i); tile.classList.add("on"); }
+  var on = !SEL.has(i);
+  if(on){ SEL.add(i); tile.classList.add("on"); }
+  else { SEL.delete(i); tile.classList.remove("on"); }
+  setTileBtn(tile, on);
   refreshBar();
 }
 
