@@ -779,6 +779,7 @@ function libraryView(){
   drop.innerHTML = '<b>Arrasta ficheiros para aqui</b><button id="lib-pickfolder" style="color:var(--gold);background:none;border:0;text-decoration:underline">escolher uma pasta</button> · <button id="lib-pickfiles" style="color:var(--gold);background:none;border:0;text-decoration:underline">escolher ficheiros</button>';
   v.appendChild(drop);
 
+  var subtabs = el("div","lib-subtabs"); v.appendChild(subtabs);
   var body = el("div"); v.appendChild(body);
   body.innerHTML = '<div class="lib-empty">a carregar…</div>';
 
@@ -802,8 +803,6 @@ function libraryView(){
     var files = [].slice.call(ev.dataTransfer.files || []);
     if(files.length) startFolderUpload(files, guessName(ev.dataTransfer));
   });
-
-  var subtabs = el("div","lib-subtabs"); v.appendChild(subtabs);
 
   loadLib(true).then(function(lib){
     body.innerHTML = "";
