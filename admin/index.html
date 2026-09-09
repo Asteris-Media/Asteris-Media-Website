@@ -44,7 +44,13 @@ label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
 #login .box{width:100%;max-width:320px;text-align:center}
 #login svg,#login img{width:auto;height:40px;margin-bottom:18px}
 #login h1{font-size:15px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);margin-bottom:22px}
-#login input{text-align:center;letter-spacing:.15em;margin-bottom:10px}
+#login .pw-wrap{position:relative;margin-bottom:10px}
+#login .pw-wrap input{text-align:center;letter-spacing:.15em;padding-right:38px;margin:0}
+#login .pw-eye{position:absolute;top:0;right:0;height:100%;width:36px;display:flex;align-items:center;justify-content:center;background:none;border:0;color:var(--faint);padding:0}
+#login .pw-eye:hover{color:var(--ink)}
+#login .pw-eye.on{color:var(--gold)}
+#login .pw-eye svg{width:16px;height:16px}
+#login .btn.gold{justify-content:center}
 .err{color:var(--neg);font-size:11px;margin-top:8px;min-height:1em}
 
 /* topo */
@@ -167,7 +173,12 @@ label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
     <img src="/assets/logos/asteris.png" alt="Asteris">
     <h1>Asteris Admin</h1>
     <form id="loginForm">
-      <input type="password" id="pw" placeholder="Password" autocomplete="current-password" required>
+      <div class="pw-wrap">
+        <input type="password" id="pw" placeholder="Password" autocomplete="current-password" required>
+        <button type="button" class="pw-eye" id="pwEye" aria-label="Mostrar password">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+      </div>
       <button class="btn gold" style="width:100%" type="submit">Entrar</button>
       <div class="err" id="loginErr"></div>
     </form>
@@ -293,6 +304,13 @@ $("#loginForm").addEventListener("submit", function(e){
   api("POST","login",{ pw: $("#pw").value }).then(function(r){
     if(r.ok){ boot(); } else { $("#loginErr").textContent = (r.j && r.j.error) || "Erro"; }
   });
+});
+$("#pwEye").addEventListener("click", function(){
+  var i = $("#pw"), show = i.type === "password";
+  i.type = show ? "text" : "password";
+  this.setAttribute("aria-label", show ? "Ocultar password" : "Mostrar password");
+  this.classList.toggle("on", show);
+  i.focus();
 });
 $("#btnLogout").addEventListener("click", function(){
   api("POST","logout").then(function(){ location.reload(); });
