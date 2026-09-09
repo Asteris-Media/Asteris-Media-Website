@@ -116,13 +116,27 @@ a{color:inherit}
 @media(max-width:560px){.mood{grid-template-columns:repeat(2,1fr)}}
 .mood img{width:100%;aspect-ratio:1;object-fit:cover;filter:grayscale(.25)}
 .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:26px}
-.plan{border:1px solid var(--gold-soft);background:var(--panel);padding:24px 20px;display:flex;flex-direction:column}
-.plan.hot{border-color:var(--gold);box-shadow:0 0 30px rgba(201,161,102,.12)}
-.plan .p-name{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
-.plan .p-price{font-family:var(--serif);font-weight:300;font-size:2rem;margin:8px 0 14px}
-.plan ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+.plan{position:relative;border:1px solid var(--gold-soft);background:var(--panel);padding:26px 20px;display:flex;flex-direction:column}
+.plan.hot{border-color:var(--gold);box-shadow:0 0 34px rgba(201,161,102,.14)}
+.plan .p-flag{position:absolute;top:-1px;right:-1px;background:var(--gold);color:var(--black);font-size:7.5px;letter-spacing:.18em;text-transform:uppercase;padding:4px 9px;font-weight:600}
+.plan .p-name{display:flex;align-items:center;gap:9px;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.plan .p-ico{width:22px;height:22px;flex-shrink:0}
+.plan .p-price{font-family:var(--serif);font-weight:300;font-size:2rem;margin:10px 0 6px}
+.plan .p-resumo{font-size:10.5px;font-weight:300;line-height:1.7;color:var(--white-faint);margin-bottom:14px}
+.plan ul{list-style:none;display:flex;flex-direction:column;gap:8px;margin-top:auto}
 .plan li{font-size:11px;font-weight:300;color:var(--white-dim);padding-left:16px;position:relative}
 .plan li::before{content:"·";position:absolute;left:4px;color:var(--gold)}
+.ico{width:16px;height:16px;display:inline-block;vertical-align:-3px}
+/* referências */
+.refs{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:26px}
+.ref{border:1px solid var(--gold-soft);background:var(--panel)}
+.ref img{width:100%;aspect-ratio:4/3;object-fit:cover;filter:grayscale(.2)}
+.ref figcaption{padding:11px 13px;font-size:10.5px;font-weight:300;line-height:1.7;color:var(--white-dim)}
+/* galeria de ícones (?icons=1) */
+.icongrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:22px}
+.icocell{border:1px solid var(--gold-soft);background:var(--panel);padding:18px 10px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.icocell span{font-family:var(--sans);font-size:9px;letter-spacing:.06em;color:var(--white-dim)}
+.ico-lg{width:30px;height:30px;color:var(--gold)}
 .prop .cta-wrap{text-align:center;border-bottom:none}
 .prop .cta-wrap h2{margin:0 auto}
 .btn-cta{display:inline-flex;align-items:center;gap:10px;margin-top:24px;border:1px solid var(--gold);background:transparent;color:var(--white);padding:16px 34px;font-size:9px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;text-decoration:none;transition:background .25s,color .25s}
@@ -167,6 +181,83 @@ var TRIAGEM_FORMSPREE = "";                       // ID Formspree p/ receber as 
 var $ = function(s,r){ return (r||document).querySelector(s); };
 var el = function(tag,cls,html){ var e=document.createElement(tag); if(cls)e.className=cls; if(html!=null)e.innerHTML=html; return e; };
 
+/* --- biblioteca de ícones para os planos das propostas ---
+   uso no JSON:  "icone": "diamante"   (ver lista completa em  asteris.pt/PROPOSTA?icons=1  ou COMO-CRIAR.md) */
+var ICONS = {
+  diamante:'<path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20M9 3 7 9l5 12 5-12-2-6M9 9l3 12 3-12"/>',
+  brilhante:'<path d="M12 2l2.4 6.4L21 11l-6.6 2.6L12 20l-2.4-6.4L3 11l6.6-2.6z"/>',
+  gema:'<path d="M6 3h12l3 5-9 13L3 8z"/><path d="M3 8h18M9 3l-3 5 6 13 6-13-3-5"/>',
+  coroa:'<path d="M3 8l4 3 5-6 5 6 4-3-2 11H5z"/><path d="M5 20h14"/>',
+  medalha:'<circle cx="12" cy="15" r="6"/><path d="M9 9 6 2m9 7 3-7M9.5 15l1.7 1.6 3.3-3.6"/>',
+  trofeu:'<path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4v2a3 3 0 0 0 3 3m10-5h3v2a3 3 0 0 1-3 3M9 19h6m-4 0v-3h2v3M8 22h8"/>',
+  estrela:'<path d="M12 2l3 6.5 7 .9-5 4.8 1.3 7L12 18l-6.3 3.2L7 14 2 9.4l7-.9z"/>',
+  estrela2:'<path d="M12 3l2.2 5.6L20 9l-4 4 1 6-5-2.8L7 19l1-6-4-4 5.8-.4z" fill="currentColor" stroke="none"/>',
+  raio:'<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
+  chama:'<path d="M12 22c4 0 6-2.7 6-6 0-4-4-6-3-11-3 1-7 5-7 10 0 1 .3 2 1 3-2 0-3-1.5-3-3-1.5 2-1 7 3 7z"/>',
+  foguete:'<path d="M12 3c4 2 6 6 6 11l-3 3H9l-3-3c0-5 2-9 6-11z"/><path d="M9 17c-2 1-3 3-3 5 2 0 4-1 5-3m1 0c1 2 3 3 5 3 0-2-1-4-3-5M12 9h.01"/>',
+  seta_cima:'<path d="M12 20V5m-7 7 7-7 7 7"/>',
+  seta_baixo:'<path d="M12 4v15m7-7-7 7-7-7"/>',
+  tendencia:'<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>',
+  grafico:'<path d="M4 20V10m6 10V4m6 16v-7m6 7V8"/>',
+  alvo:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/>',
+  escudo:'<path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/>',
+  escudo_check:'<path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/><path d="M9 12l2 2 4-4"/>',
+  selo:'<path d="M12 3l2 2h3l1 3 2 2-2 2-1 3h-3l-2 2-2-2H7l-1-3-2-2 2-2 1-3h3z"/><path d="M9 12l2 2 4-4"/>',
+  fita:'<circle cx="12" cy="9" r="6"/><path d="M9 14l-2 7 5-3 5 3-2-7"/>',
+  laurel:'<path d="M12 21c-4-1-7-5-7-10 3 0 5 1 7 3m0 7c4-1 7-5 7-10-3 0-5 1-7 3m0 7V8"/>',
+  check:'<circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/>',
+  infinito:'<path d="M6 8a4 4 0 0 0 0 8c3 0 4-4 6-4s3 4 6 4a4 4 0 0 0 0-8c-3 0-4 4-6 4S9 8 6 8z"/>',
+  presente:'<path d="M4 11h16v10H4z"/><path d="M2 7h20v4H2zM12 7v14M12 7C9 7 7 6 7 4.5S9 3 12 7c3-4 5-2.5 5-1S15 7 12 7z"/>',
+  etiqueta:'<path d="M3 12l8-8h8v8l-8 8z"/><circle cx="15" cy="9" r="1.5"/>',
+  pasta:'<path d="M3 7l2-3h5l2 3h7v13H3z"/>',
+  camada:'<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5M3 17l9 5 9-5"/>',
+  pacote:'<path d="M12 3l9 5v8l-9 5-9-5V8z"/><path d="M3 8l9 5 9-5M12 13v9"/>',
+  camera:'<path d="M3 8h4l2-3h6l2 3h4v12H3z"/><circle cx="12" cy="13" r="4"/>',
+  video:'<path d="M3 6h13v12H3z"/><path d="M16 10l5-3v10l-5-3"/>',
+  filme:'<path d="M3 4h18v16H3z"/><path d="M7 4v16M17 4v16M3 9h4m10 0h4M3 15h4m10 0h4"/>',
+  imagem:'<path d="M3 4h18v16H3z"/><circle cx="9" cy="9" r="2"/><path d="M21 16l-5-5-8 8"/>',
+  abertura:'<circle cx="12" cy="12" r="9"/><path d="M12 3l4.5 7.8M21 12h-9m8.5 3.9L12 12M14.5 20.5 12 12M3.5 15.9 12 12M3 12h9M3.5 8.1 12 12M9.5 3.5 12 12"/>',
+  play:'<circle cx="12" cy="12" r="9"/><path d="M10 8l6 4-6 4z" fill="currentColor" stroke="none"/>',
+  coracao:'<path d="M12 21C4 15 3 9 6.5 6.5S12 8 12 8s2-4 5.5-1.5S20 15 12 21z"/>',
+  olho:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  bussola:'<circle cx="12" cy="12" r="9"/><path d="M16 8l-2 6-6 2 2-6z" fill="currentColor" stroke="none"/>',
+  globo:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>',
+  megafone:'<path d="M4 10v4l10 5V5z"/><path d="M14 8a4 4 0 0 1 0 8M4 10H3v4h1"/>',
+  enviar:'<path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/>',
+  relogio:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l4 2"/>',
+  calendario:'<path d="M4 5h16v16H4z"/><path d="M4 9h16M8 3v4M16 3v4"/>',
+  cadeado:'<path d="M6 11h12v9H6z"/><path d="M9 11V8a3 3 0 0 1 6 0v3"/>',
+  chave:'<circle cx="8" cy="8" r="4"/><path d="M11 11l9 9m-3 0 2-2m-4-4 2-2"/>',
+  utilizadores:'<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 6a3 3 0 0 1 0 6m5 8c0-2.5-1.5-4.6-3.6-5.5"/>',
+  utilizador:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>',
+  aperto_mao:'<path d="M8 12l3-3 3 3 3-3M3 10l4-4 5 1 5-1 4 4-5 6-2-2-2 2-2-2z"/>',
+  polegar:'<path d="M7 11v9H4v-9zM7 11l4-8c2 0 3 1 3 3v3h5a2 2 0 0 1 2 2l-2 7H7"/>',
+  folha:'<path d="M4 20C4 10 10 4 20 4c0 10-6 16-16 16z"/><path d="M4 20C8 16 12 12 20 4"/>',
+  montanha:'<path d="M3 20l6-11 4 6 2-3 6 8z"/>',
+  sol:'<circle cx="12" cy="12" r="4"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2"/>',
+  lua:'<path d="M20 14A8 8 0 0 1 10 4a8 8 0 1 0 10 10z"/>',
+  hexagono:'<path d="M12 2l9 5v10l-9 5-9-5V7z"/>',
+  losango:'<path d="M12 2l10 10-10 10L2 12z"/>',
+  circulo:'<circle cx="12" cy="12" r="9"/>',
+  quadrado:'<rect x="4" y="4" width="16" height="16" rx="2"/>',
+  mais:'<path d="M12 5v14M5 12h14"/>',
+  bloco:'<rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/>'
+};
+function svgIcon(key, cls){
+  var inner = ICONS[key]; if(!inner) return "";
+  return '<svg class="'+(cls||"ico")+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+inner+'</svg>';
+}
+function showIconGallery(){
+  $("#loading").classList.add("hidden");
+  var app = $("#app"); app.classList.remove("hidden");
+  app.innerHTML = '<div class="wrap"><p class="selmsg" style="color:var(--white-dim)">Ícones para os planos das propostas. Usa a chave no campo <code style="color:var(--gold)">"icone"</code> de cada plano.</p><div class="icongrid"></div></div>';
+  var g = app.querySelector(".icongrid");
+  Object.keys(ICONS).forEach(function(k){
+    var c = el("div","icocell", svgIcon(k,"ico-lg")+'<span>'+k+'</span>');
+    g.appendChild(c);
+  });
+}
+
 /* --- código a partir do caminho --- */
 var parts = location.pathname.split("/").filter(Boolean);
 var repoBase = location.pathname.indexOf("/Asteris-Media-Website/") === 0 ? "/Asteris-Media-Website/" : "/";
@@ -180,7 +271,9 @@ function fail(msg){
   $("#notfound").classList.remove("hidden");
 }
 
-if(!code || RESERVED.indexOf(code) !== -1 || !/^[a-z0-9][a-z0-9_-]{3,}$/i.test(code)){
+if(new URLSearchParams(location.search).get("icons")){
+  showIconGallery();
+} else if(!code || RESERVED.indexOf(code) !== -1 || !/^[a-z0-9][a-z0-9_-]{3,}$/i.test(code)){
   fail();
 } else {
   fetch(repoBase + "data/" + encodeURIComponent(code) + ".json", { cache:"no-store" })
@@ -385,12 +478,21 @@ function renderProposta(d, app){
     html += '<section><p class="eyebrow">Moodboard</p><div class="mood">' +
       pr.moodboard.map(function(u){ return '<img src="'+u+'" alt="">'; }).join("") + '</div></section>';
   }
+  if(pr.referencias && pr.referencias.length){
+    html += '<section><p class="eyebrow">Referências</p><div class="refs">' +
+      pr.referencias.map(function(r){
+        return '<figure class="ref">'+(r.img?'<img src="'+r.img+'" alt="">':'')+
+          (r.nota?'<figcaption>'+r.nota+'</figcaption>':'')+'</figure>';
+      }).join("") + '</div></section>';
+  }
   if(pr.planos && pr.planos.length){
     html += '<section><p class="eyebrow">Investimento</p><div class="plans">' +
       pr.planos.map(function(p){
         return '<div class="plan'+(p.destaque?" hot":"")+'">'+
-          '<span class="p-name">'+(p.nome||"")+'</span>'+
+          (p.destaque?'<span class="p-flag">Recomendado</span>':'')+
+          '<span class="p-name">'+svgIcon(p.icone,"p-ico")+'<span>'+(p.nome||"")+'</span></span>'+
           '<span class="p-price">'+(p.preco||"")+'</span>'+
+          (p.resumo?'<p class="p-resumo">'+p.resumo+'</p>':'')+
           '<ul>'+(p.inclui||[]).map(function(i){ return '<li>'+i+'</li>'; }).join("")+'</ul>'+
         '</div>';
       }).join("") + '</div>' +

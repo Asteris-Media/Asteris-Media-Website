@@ -87,9 +87,14 @@ Ver exemplo completo em `PROPOSTA9.json`. Campos dentro de `"proposta"`:
 | `ondePodemChegar` | parágrafo — visão |
 | `conceitos` | cartões `{titulo, desc, img}` |
 | `moodboard` | lista de URLs de imagem |
-| `planos` | `{nome, preco, inclui:[...], destaque:true}` |
+| `referencias` | figuras `{img, nota}` — exemplos com legenda |
+| `planos` | `{nome, icone, preco, resumo, inclui:[...], destaque:true}` |
 | `validade` | ex.: `"15 dias"` |
 | `cta` | frase final acima do botão de WhatsApp |
+
+**Ícone do plano** (`"icone"`): dá para pôr um símbolo ao lado do nome (Ouro, Diamante, etc.).
+Vê todos com as chaves em **`asteris.pt/PROPOSTA?icons=1`** (ou `portal.html?c=PROPOSTA9&icons=1` local).
+Chaves: `diamante brilhante gema coroa medalha trofeu estrela estrela2 raio chama foguete seta_cima seta_baixo tendencia grafico alvo escudo escudo_check selo fita laurel check infinito presente etiqueta pasta camada pacote camera video filme imagem abertura play coracao olho bussola globo megafone enviar relogio calendario cadeado chave utilizadores utilizador aperto_mao polegar folha montanha sol lua hexagono losango circulo quadrado mais bloco`
 
 O botão de WhatsApp usa o número em `CONTACT_WA` no topo do `404.html`.
 

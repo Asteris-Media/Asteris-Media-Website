@@ -26,10 +26,15 @@
       "https://res.cloudinary.com/demo/image/upload/w_600/balloons.jpg",
       "https://res.cloudinary.com/demo/image/upload/w_600/bike.jpg"
     ],
+    "referencias": [
+      { "img": "https://res.cloudinary.com/demo/image/upload/w_700/sheep.jpg", "nota": "Ritmo de montagem e cor que queremos nos reels de prato." },
+      { "img": "https://res.cloudinary.com/demo/image/upload/w_700/dog.jpg", "nota": "Tom da fotografia de equipa: natural, sem pose." },
+      { "img": "https://res.cloudinary.com/demo/image/upload/w_700/bike.jpg", "nota": "Enquadramento de ambiente ao fim da tarde." }
+    ],
     "planos": [
-      { "nome": "Pontual", "preco": "€480", "inclui": ["1 dia de captação", "1 vídeo curto + 15 fotos editadas", "Entrega em 7 dias"] },
-      { "nome": "Trimestral", "preco": "€390 / mês", "destaque": true, "inclui": ["1 captação por mês", "3 vídeos curtos + 20 fotos / mês", "Calendário de publicação", "Prioridade de agenda"] },
-      { "nome": "Trimestral +", "preco": "€620 / mês", "inclui": ["2 captações por mês", "6 vídeos + 40 fotos / mês", "Gestão de publicação incluída", "1 campanha paga configurada"] }
+      { "nome": "Pontual", "icone": "estrela", "preco": "€480", "resumo": "Para testar sem compromisso.", "inclui": ["1 dia de captação", "1 vídeo curto + 15 fotos editadas", "Entrega em 7 dias"] },
+      { "nome": "Ouro", "icone": "coroa", "preco": "€390 / mês", "destaque": true, "resumo": "O ritmo que traz reservas todas as semanas.", "inclui": ["1 captação por mês", "3 vídeos curtos + 20 fotos / mês", "Calendário de publicação", "Prioridade de agenda"] },
+      { "nome": "Diamante", "icone": "diamante", "preco": "€620 / mês", "resumo": "Conteúdo e distribuição, tratados por nós.", "inclui": ["2 captações por mês", "6 vídeos + 40 fotos / mês", "Gestão de publicação incluída", "1 campanha paga configurada"] }
     ],
     "validade": "15 dias",
     "cta": "Se a comida já está no ponto, só falta quem a veja."

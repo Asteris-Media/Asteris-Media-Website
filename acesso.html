@@ -76,6 +76,10 @@ h1{font-family:var(--serif);font-weight:300;font-size:clamp(1.7rem,4vw,2.3rem);l
         <span class="ic">&#9673;</span>
         <span class="tx"><b>Portfólio</b><span>Galeria privada partilhada contigo</span></span>
       </button>
+      <button class="choice" data-k="proposta">
+        <span class="ic">&#9671;</span>
+        <span class="tx"><b>Proposta</b><span>Ver a proposta que preparámos para ti</span></span>
+      </button>
     </div>
   </div>
 
@@ -97,7 +101,8 @@ h1{font-family:var(--serif);font-weight:300;font-size:clamp(1.7rem,4vw,2.3rem);l
 var LABELS = {
   selecao:   "Seleção de material",
   entrega:   "Entrega de trabalho",
-  portfolio: "Portfólio privado"
+  portfolio: "Portfólio privado",
+  proposta:  "Proposta"
 };
 var $ = function(s){ return document.querySelector(s); };
 var menu = $("#menu"), gate = $("#gate"), input = $("#code"), err = $("#err");
