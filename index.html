@@ -59,14 +59,7 @@ header{position:absolute;top:0;left:0;width:100%;z-index:20;padding:26px var(--p
 
 /* ========= CARROSSEL INFINITO DE CLIENTES ========= */
 .clientes{width:100vw;position:relative;left:50%;margin-left:-50vw;overflow:hidden;background:#000;border-top:2px solid var(--gold);border-bottom:2px solid var(--gold);line-height:0}
-.car-track{display:flex;width:max-content;will-change:transform;animation:marquee 60s linear infinite}
-.clientes:hover .car-track{animation-play-state:paused}
-@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-@media (prefers-reduced-motion:reduce){
-  .clientes{overflow-x:auto;scrollbar-width:none}
-  .clientes::-webkit-scrollbar{display:none}
-  .car-track{animation:none}
-}
+.car-track{display:flex;width:max-content;will-change:transform;transform:translate3d(0,0,0);backface-visibility:hidden}
 .car-item{width:clamp(208px,26vw,328px);aspect-ratio:9/16;position:relative;flex-shrink:0;background:#000;margin-right:-1px;transform:skewX(-14deg) scale(1.02);border-right:2px solid var(--gold);cursor:pointer;overflow:hidden}
 .car-item .bg-video{width:150%;height:104%;object-fit:cover;position:absolute;top:-2%;left:-25%;transform:skewX(14deg);filter:grayscale(.35) brightness(.62)}
 .car-item .overlay{position:absolute;top:-2%;left:-25%;width:150%;height:104%;background:rgba(5,5,6,.62);z-index:2;transform:skewX(14deg);transition:background .4s ease}
@@ -89,16 +82,19 @@ section.block{padding:clamp(64px,9vw,120px) var(--pad)}
 @media (max-width:1000px){.cards{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:560px){.cards{grid-template-columns:1fr}}
 .card{border:1px solid var(--gold-soft);background:var(--panel);padding:26px 20px;display:flex;flex-direction:column}
-.card-cmp{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:26px}
+.card-cmp{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:24px}
 .cmp-box{width:44%}
-.cmp-box .tag{font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--white-faint);display:block;margin-bottom:8px}
+.cmp-box .tag{font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:8px;text-align:center}
 .cmp-box .ph{width:100%;aspect-ratio:.74;border:1px solid rgba(255,255,255,.06);background:#1c1b19;overflow:hidden}
 .cmp-box .ph img{width:100%;height:100%;object-fit:cover}
-.cmp-arrow{color:var(--gold);font-size:13px;opacity:.55}
-.card-metrics{display:flex;flex-direction:column;gap:18px;margin-top:auto}
+.cmp-arrow{color:var(--gold);font-size:13px;opacity:.55;align-self:center;margin-top:14px}
+.card-metrics{display:flex;flex-direction:column;gap:16px;margin-top:auto}
 .metric{display:flex;flex-direction:column}
-.metric .m-lbl{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--white-faint);margin-bottom:5px}
-.metric .m-val{font-family:var(--serif);font-size:19px;font-weight:400;color:var(--gold)}
+.metric .m-lbl{font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--white-faint);margin-bottom:6px}
+.metric .m-cmp{display:flex;align-items:baseline;gap:7px;font-family:var(--sans);font-variant-numeric:tabular-nums}
+.metric .m-antes{font-size:12.5px;font-weight:400;color:var(--white-dim)}
+.metric .m-arrow{color:var(--gold);font-size:10px}
+.metric .m-depois{font-size:16px;font-weight:600;color:var(--gold);letter-spacing:.005em}
 
 /* ========= PÁGINA DO CLIENTE — colagem sem separadores ========= */
 .gallery{position:fixed;inset:0;z-index:100;background:var(--black);overflow-y:auto;overscroll-behavior:contain;opacity:0;pointer-events:none;transition:opacity .3s}
@@ -261,23 +257,24 @@ function VID(id, w){ return "https://res.cloudinary.com/"+CONFIG.cloudName+"/vid
 /* ============================================================
    RESULTADOS — 1 objeto por card (metricas contam ao aparecer).
    ============================================================ */
+/* cada métrica: {label, antes, depois, euro?}  (o contador anima "depois" a partir de "antes") */
 const RESULTS = [
   { name:"Cliente — Restaurante", antes:"assets/cards/antes-1.jpg", depois:"assets/cards/depois-1.jpg",
-    metrics:[ {label:"Faturação / mês", target:4200, prefix:"+€", suffix:"", euro:true},
-              {label:"Crescimento", target:140, prefix:"+", suffix:"%"},
-              {label:"Ticket médio", target:22, prefix:"+", suffix:"%"} ] },
+    metrics:[ {label:"Faturação / mês", antes:8500,  depois:12900, euro:true},
+              {label:"Reservas / mês",  antes:180,   depois:420},
+              {label:"Alcance mensal",  antes:15000, depois:68000} ] },
   { name:"Cliente — Clínica", antes:"assets/cards/antes-2.jpg", depois:"assets/cards/depois-2.jpg",
-    metrics:[ {label:"Faturação / mês", target:6800, prefix:"+€", suffix:"", euro:true},
-              {label:"Crescimento", target:95, prefix:"+", suffix:"%"},
-              {label:"Marcações", target:60, prefix:"+", suffix:"%"} ] },
+    metrics:[ {label:"Faturação / mês", antes:14000, depois:22500, euro:true},
+              {label:"Marcações / mês", antes:45,    depois:96},
+              {label:"Alcance mensal",  antes:8000,  depois:41000} ] },
   { name:"Cliente — Stand auto", antes:"assets/cards/antes-1.jpg", depois:"assets/cards/depois-1.jpg",
-    metrics:[ {label:"Faturação / mês", target:11000, prefix:"+€", suffix:"", euro:true},
-              {label:"Leads online", target:180, prefix:"+", suffix:"%"},
-              {label:"Visitas ao stand", target:70, prefix:"+", suffix:"%"} ] },
+    metrics:[ {label:"Faturação / mês", antes:95000, depois:148000, euro:true},
+              {label:"Leads / mês",     antes:60,    depois:175},
+              {label:"Visitas ao stand",antes:40,    depois:92} ] },
   { name:"Cliente — Marca / loja", antes:"assets/cards/antes-2.jpg", depois:"assets/cards/depois-2.jpg",
-    metrics:[ {label:"Faturação / mês", target:3500, prefix:"+€", suffix:"", euro:true},
-              {label:"Conversão", target:45, prefix:"+", suffix:"%"},
-              {label:"Ticket médio", target:18, prefix:"+", suffix:"%"} ] }
+    metrics:[ {label:"Faturação / mês", antes:6200,  depois:11800, euro:true},
+              {label:"Encomendas / mês",antes:90,    depois:240},
+              {label:"Alcance mensal",  antes:20000, depois:75000} ] }
 ];
 
 /* ============================================================
@@ -295,9 +292,9 @@ const RESULTS = [
 function shots(id, list){ return list.map(function(o){ return {type:"image", src:IMG(id,o)}; }); }
 
 var CROPS = [{ar:"3:4"},{ar:"1:1"},{ar:"4:5"},{ar:"16:9"},{ar:"2:3"},{ar:"1:1",e:"grayscale"},{ar:"4:3"},{ar:"3:4",e:"grayscale"}];
-var DEMO_VIDS = [VID("sea_turtle",1200), VID("dog",1200)];
 
-/* cada ficheiro da pasta Clientes/ tratado como um cliente diferente */
+/* cada ficheiro da pasta Clientes/ tratado como um cliente diferente.
+   video = clip web (comprimido a partir do master real) em assets/clientes/ */
 var CLIENTS = [
   ["Órfeu",           "orfeu",          "couple"],
   ["Villas",          "villas",         "balloons"],
@@ -310,15 +307,13 @@ var CLIENTS = [
   ["Aline & Wando",   "aline-wando",    "couple"]
 ];
 
-var PORTFOLIO = CLIENTS.map(function(c, i){
+var PORTFOLIO = CLIENTS.map(function(c){
+  var vid = "assets/clientes/" + c[1] + ".mp4";
   return {
     client: c[0], slug: c[1],
     logo: "assets/logos/" + c[1] + ".svg",
-    bg:   DEMO_VIDS[i % 2],
-    items: shots(c[2], CROPS).concat([
-      { type:"video", src: DEMO_VIDS[i % 2] },
-      { type:"video", src: DEMO_VIDS[(i + 1) % 2] }
-    ])
+    bg:   vid,
+    items: [{ type:"video", src: vid }].concat(shots(c[2], CROPS))
   };
 });
 
@@ -329,18 +324,61 @@ document.querySelectorAll("[data-wa]").forEach(function(a){
 });
 document.getElementById("year").textContent = new Date().getFullYear();
 
-/* ---------- Carrossel infinito ---------- */
+/* ---------- Carrossel contínuo (loop modular, sem restart visível) ---------- */
 var track = document.getElementById("car-track");
+var clientes = document.querySelector(".clientes");
 function itemHTML(p, i){
   return '<div class="car-item" role="button" tabindex="0" data-i="'+i+'" aria-label="Ver galeria — '+p.client+'">'
-    + '<video class="bg-video" src="'+p.bg+'" autoplay loop muted playsinline preload="metadata"></video>'
+    + '<video class="bg-video" src="'+p.bg+'" loop muted playsinline preload="metadata"></video>'
     + '<span class="overlay"></span>'
     + '<img class="c-logo" src="'+p.logo+'" alt="'+p.client+'">'
     + '<span class="c-cta">Ver galeria</span>'
     + '</div>';
 }
-/* duplica a lista para o loop parecer contínuo */
-track.innerHTML = PORTFOLIO.map(itemHTML).join("") + PORTFOLIO.map(itemHTML).join("");
+/* 3 cópias: sempre há painéis a preencher a faixa, mesmo em ecrãs largos */
+var oneSet = PORTFOLIO.map(itemHTML).join("");
+track.innerHTML = oneSet + oneSet + oneSet;
+
+var carItems = track.children;
+var SET_COUNT = PORTFOLIO.length;          // itens numa cópia
+var setWidth = 0, offset = 0, hovering = false, lastTs = 0;
+var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+var SPEED = 58;                            // px / segundo
+
+function measure(){
+  var w = 0;
+  for(var k = 0; k < SET_COUNT; k++) w += carItems[k].getBoundingClientRect().width;
+  setWidth = w;
+}
+function frame(ts){
+  if(!lastTs) lastTs = ts;
+  var dt = ts - lastTs; lastTs = ts;
+  if(!hovering && !reduceMotion && setWidth){
+    offset += (dt / 1000) * SPEED;
+    if(offset >= setWidth) offset -= setWidth;   // wrap contínuo
+    track.style.transform = "translate3d(" + (-offset) + "px,0,0)";
+  }
+  requestAnimationFrame(frame);
+}
+if(document.readyState === "complete") measure();
+window.addEventListener("load", measure);
+if("ResizeObserver" in window) new ResizeObserver(measure).observe(track);
+clientes.addEventListener("pointerenter", function(){ hovering = true; });
+clientes.addEventListener("pointerleave", function(){ hovering = false; });
+requestAnimationFrame(frame);
+
+/* só toca os vídeos dos painéis visíveis (evita 27 decodes ao mesmo tempo) */
+(function playVisibleVideos(){
+  var vids = track.querySelectorAll(".bg-video");
+  if(!("IntersectionObserver" in window)){ vids.forEach(function(v){ v.play().catch(function(){}); }); return; }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if(en.isIntersecting) en.target.play().catch(function(){});
+      else en.target.pause();
+    });
+  }, { root: clientes, rootMargin: "200px" });
+  vids.forEach(function(v){ io.observe(v); });
+})();
 
 function openFromItem(el){
   var i = +el.dataset.i;
@@ -355,14 +393,18 @@ track.addEventListener("keydown", function(e){
 });
 
 /* ---------- Resultados + contadores ---------- */
-function fmt(n, m){
-  if(m.euro) return m.prefix + Math.floor(n).toLocaleString("pt-PT");
-  return m.prefix + Math.floor(n) + m.suffix;
+function fmtNum(n, euro){
+  var s = Math.round(n).toLocaleString("pt-PT");
+  return euro ? "€" + s : s;
 }
 document.getElementById("cards").innerHTML = RESULTS.map(function(r){
   var rows = r.metrics.map(function(m){
     return '<div class="metric"><span class="m-lbl">'+m.label+'</span>'
-      + '<span class="m-val" data-target="'+m.target+'">'+ (m.euro ? m.prefix+"0" : m.prefix+"0"+m.suffix) +'</span></div>';
+      + '<span class="m-cmp">'
+      +   '<span class="m-antes">'+fmtNum(m.antes, m.euro)+'</span>'
+      +   '<span class="m-arrow">&rarr;</span>'
+      +   '<span class="m-depois" data-from="'+m.antes+'" data-to="'+m.depois+'" data-euro="'+(m.euro?1:0)+'">'+fmtNum(m.antes, m.euro)+'</span>'
+      + '</span></div>';
   }).join("");
   return '<article class="card">'
     + '<div class="card-cmp">'
@@ -375,30 +417,31 @@ document.getElementById("cards").innerHTML = RESULTS.map(function(r){
 }).join("");
 
 (function countersOnView(){
-  var metricsByCard = RESULTS.map(function(r){ return r.metrics; });
-  var vals = document.querySelectorAll("#cards .m-val");
-  function run(el, m){
-    var target = +el.dataset.target, n = 0, step = target / 34;
-    (function tick(){
-      n += step;
-      if(n < target){ el.textContent = fmt(n, m); requestAnimationFrame(tick); }
-      else { el.textContent = fmt(target, m); }
-    })();
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function run(el){
+    var from = +el.dataset.from, to = +el.dataset.to, euro = el.dataset.euro === "1";
+    if(reduce){ el.textContent = fmtNum(to, euro); return; }
+    var dur = 950, t0 = null;
+    function tick(ts){
+      if(!t0) t0 = ts;
+      var p = Math.min((ts - t0) / dur, 1), e = 1 - Math.pow(1 - p, 3);
+      el.textContent = fmtNum(from + (to - from) * e, euro);
+      if(p < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
   }
+  var cards = document.querySelectorAll("#cards .card");
   if(!("IntersectionObserver" in window)){
-    vals.forEach(function(el,k){ run(el, flatMetrics()[k]); }); return;
+    document.querySelectorAll("#cards .m-depois").forEach(run); return;
   }
-  function flatMetrics(){ var out=[]; metricsByCard.forEach(function(ms){ ms.forEach(function(m){ out.push(m); }); }); return out; }
-  var flat = flatMetrics();
   var io = new IntersectionObserver(function(entries){
     entries.forEach(function(en){
       if(!en.isIntersecting) return;
-      var idx = [].indexOf.call(vals, en.target);
-      run(en.target, flat[idx]);
+      en.target.querySelectorAll(".m-depois").forEach(run);
       io.unobserve(en.target);
     });
-  }, { threshold: .4 });
-  vals.forEach(function(el){ io.observe(el); });
+  }, { threshold: .35 });
+  cards.forEach(function(c){ io.observe(c); });
 })();
 
 /* ---------- Página do cliente (colagem) ---------- */
