@@ -273,7 +273,7 @@ if(b) b.onclick=function(){
             const folder = parts.length > 1 ? parts.slice(0, -1).join("/") : "(raiz)";
             const f = map[folder] || (map[folder] = { name: folder, cloud: "r2", count: 0, bytes: 0, files: [] });
             f.count++; f.bytes += o.size || 0;
-            f.files.push({ url: "/api/r2/" + o.key.split("/").map(encodeURIComponent).join("/"), tipo: isVidExt(o.key) ? "video" : "foto", bytes: o.size || 0 });
+            f.files.push({ url: "/api/r2/" + o.key.split("/").map(encodeURIComponent).join("/"), key: o.key, tipo: isVidExt(o.key) ? "video" : "foto", bytes: o.size || 0 });
           }
           cursor = r.truncated ? r.cursor : null;
         } while (cursor);
@@ -293,13 +293,36 @@ if(b) b.onclick=function(){
             const folder = res.asset_folder || res.folder || "(raiz)";
             const f = map[folder] || (map[folder] = { name: folder, cloud: "cloudinary", count: 0, bytes: 0, files: [] });
             f.count++; f.bytes += res.bytes || 0;
-            f.files.push({ url: res.secure_url, tipo: rt === "video" ? "video" : "foto", bytes: res.bytes || 0 });
+            f.files.push({ url: res.secure_url, publicId: res.public_id, resourceType: rt, tipo: rt === "video" ? "video" : "foto", bytes: res.bytes || 0 });
           }
         }
         out.cloudinary.folders = Object.values(map).sort((a, b) => a.name.localeCompare(b.name));
       } catch (e) { out.cloudinary.error = String(e).slice(0, 120); }
     }
     return json(out);
+  }
+
+  // ---- apagar ficheiro(s) da biblioteca ----  body: { cloud, keys:[...], publicIds:[{publicId,resourceType}] }
+  if (seg[0] === "media" && seg[1] === "files" && method === "DELETE") {
+    const b = await request.json().catch(() => ({}));
+    let n = 0, erros = [];
+    if (b.cloud === "r2" && env.ASTERIS_R2) {
+      for (const k of (b.keys || [])) { try { await env.ASTERIS_R2.delete(k); n++; } catch (e) { erros.push(k); } }
+    } else if (b.cloud === "cloudinary" && env.CLOUDINARY_CLOUD && env.CLOUDINARY_KEY && env.CLOUDINARY_SECRET) {
+      const auth = btoa(`${env.CLOUDINARY_KEY}:${env.CLOUDINARY_SECRET}`);
+      const byRt = {};
+      for (const it of (b.publicIds || [])) { (byRt[it.resourceType || "image"] = byRt[it.resourceType || "image"] || []).push(it.publicId); }
+      for (const rt of Object.keys(byRt)) {
+        const params = new URLSearchParams();
+        byRt[rt].forEach(id => params.append("public_ids[]", id));
+        const r = await fetch(`https://api.cloudinary.com/v1_1/${env.CLOUDINARY_CLOUD}/resources/${rt}/upload?${params.toString()}`, { method: "DELETE", headers: { authorization: `Basic ${auth}` } });
+        if (r.ok) { const j = await r.json(); n += Object.keys(j.deleted || {}).length; }
+        else erros.push(rt + " " + r.status);
+      }
+    } else {
+      return json({ error: "nuvem não ligada" }, 501);
+    }
+    return json({ ok: true, apagados: n, erros });
   }
 
   // ---- apagar uma pasta inteira do R2 ----

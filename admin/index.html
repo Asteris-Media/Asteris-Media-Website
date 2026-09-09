@@ -187,14 +187,21 @@ label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
 .fv-bar button:hover{border-color:var(--gold)}
 .fv-bar button.on{background:var(--gold-lo);border-color:var(--gold);color:var(--gold)}
 .fv-bar button.go{background:var(--gold);border-color:var(--gold);color:#0C0D0E}
-.fv-bar button:disabled{opacity:.45}
-.fv-grid{overflow-y:auto;padding:16px 22px 22px;display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;align-content:start}
+.fv-bar button.del{border-color:rgba(255,91,76,.5);color:var(--neg)}
+.fv-bar button.del:hover{background:var(--neg);color:#fff;border-color:var(--neg)}
+.fv-bar button:disabled{opacity:.4;pointer-events:none}
+.fv-grid{overflow-y:auto;padding:16px 22px 22px;display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:10px;align-content:start;user-select:none;touch-action:pan-y}
 .fv-tile{position:relative;border:1px solid var(--edge2);border-radius:9px;overflow:hidden;background:#0a0a0a;cursor:pointer}
-.fv-tile img,.fv-tile video{width:100%;aspect-ratio:1;object-fit:cover;display:block}
-.fv-tile .fv-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;pointer-events:none;text-shadow:0 1px 6px rgba(0,0,0,.7)}
+.fv-tile img,.fv-tile video{width:100%;aspect-ratio:1;object-fit:cover;display:block;pointer-events:none}
+.fv-tile .fv-play{position:absolute;top:0;left:0;right:0;bottom:26px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;pointer-events:none;text-shadow:0 1px 6px rgba(0,0,0,.7)}
 .fv-tile .fv-cap{font-size:9.5px;color:var(--dim);padding:6px 7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.fv-tile .fv-ck{position:absolute;top:6px;left:6px;width:19px;height:19px;border-radius:5px;border:1.5px solid rgba(255,255,255,.7);background:rgba(11,11,10,.5);display:flex;align-items:center;justify-content:center;color:#0C0D0E;font-size:12px;font-weight:800}
-.fv-tile.sel{border-color:var(--gold)}
+.fv-tile .fv-ck{position:absolute;top:6px;left:6px;width:19px;height:19px;border-radius:5px;border:1.5px solid rgba(255,255,255,.75);background:rgba(11,11,10,.55);display:flex;align-items:center;justify-content:center;color:#0C0D0E;font-size:12px;font-weight:800}
+.fv-tile .fv-fa{position:absolute;top:5px;right:5px;display:flex;gap:4px;opacity:0;transition:opacity .12s}
+.fv-tile:hover .fv-fa{opacity:1}
+.fv-tile .fv-fa a,.fv-tile .fv-fa button{width:24px;height:24px;border:0;border-radius:6px;background:rgba(11,11,10,.72);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(3px);text-decoration:none}
+.fv-tile .fv-fa a:hover{background:var(--gold);color:#0C0D0E}
+.fv-tile .fv-fa button:hover{background:var(--neg)}
+.fv-tile.sel{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
 .fv-tile.sel .fv-ck{background:var(--gold);border-color:var(--gold)}
 .fv-tile:not(.sel) .fv-ck{color:transparent}
 .fv-grid.only .fv-tile:not(.sel){display:none}
@@ -377,6 +384,13 @@ function saveBlob(blob, name){
 function isVidUrl(u){ return /\.(mp4|webm|mov|m4v)(\?|$)/i.test(u || ""); }
 function fileName(url){
   try{ return decodeURIComponent(url.split("?")[0].split("/").pop()) || "ficheiro"; }catch(e){ return "ficheiro"; }
+}
+/* URL que força download directo de um ficheiro */
+function downloadUrl(file){
+  var u = file.url;
+  if(u.indexOf("/api/r2/") !== -1) return u + (u.indexOf("?") < 0 ? "?" : "&") + "dl=" + encodeURIComponent(fileName(u));
+  if(u.indexOf("res.cloudinary.com") !== -1 && u.indexOf("/upload/") !== -1) return u.replace("/upload/", "/upload/fl_attachment/");
+  return u;
 }
 function openMenu(anchor, items){
   closeMenu();
@@ -924,20 +938,23 @@ function libFolderCard(f){
   return c;
 }
 
-/* visualizador de pasta — modal com seleção + zip */
+/* visualizador de pasta — modal com seleção, zip e apagar */
 function folderModal(f){
-  var files = (f.files || []).map(function(x){ return { url: x.url.charAt(0) === "/" ? location.origin + x.url : x.url, tipo: x.tipo }; });
+  var files = (f.files || []).map(function(x){
+    return { url: x.url.charAt(0) === "/" ? location.origin + x.url : x.url, tipo: x.tipo, key: x.key, publicId: x.publicId, resourceType: x.resourceType };
+  });
   var sel = new Set();
   modal(function(box, close){
     box.classList.remove("lg"); box.classList.add("folder");
     box.innerHTML =
       '<div class="fv-head"><div class="fv-t">Pasta · ' + (f.cloud === "r2" ? "R2" : "Cloudinary") + '</div>'
       +   '<h4>' + esc(f.name.split("/").pop()) + '</h4>'
-      +   '<div class="fv-sub">' + f.name + ' · ' + files.length + ' ficheiro' + (files.length===1?"":"s") + ' · ' + fmtBytes(f.bytes) + '</div></div>'
+      +   '<div class="fv-sub">' + f.name + ' · <span id="fv-count">' + files.length + '</span> ficheiros · ' + fmtBytes(f.bytes) + '</div></div>'
       + '<div class="fv-bar">'
       +   '<button id="fv-all">Selecionar tudo</button>'
       +   '<button id="fv-none" disabled>Limpar</button>'
       +   '<button id="fv-only" disabled>Ver só selecionadas</button>'
+      +   '<button class="del" id="fv-del" disabled>Excluir</button>'
       +   '<span class="sp"></span>'
       +   '<span class="fv-prog" id="fv-prog"></span>'
       +   '<button class="go" id="fv-zip" disabled>Descarregar (.zip)</button>'
@@ -946,43 +963,94 @@ function folderModal(f){
 
     var grid = box.querySelector("#fv-grid");
     var bAll = box.querySelector("#fv-all"), bNone = box.querySelector("#fv-none"),
-        bOnly = box.querySelector("#fv-only"), bZip = box.querySelector("#fv-zip"),
-        prog = box.querySelector("#fv-prog");
+        bOnly = box.querySelector("#fv-only"), bDel = box.querySelector("#fv-del"),
+        bZip = box.querySelector("#fv-zip"), prog = box.querySelector("#fv-prog"),
+        elCount = box.querySelector("#fv-count");
+
+    var dragging = false, dragMode = true; // dragMode: true = selecionar, false = desselecionar
 
     files.forEach(function(file, i){
+      if(file._gone) return;
       var t = el("figure","fv-tile"); t.dataset.i = i;
       var v = file.tipo === "video" || isVidUrl(file.url);
+      var nm = fileName(file.url);
       t.innerHTML = '<div class="fv-ck">&#10003;</div>'
+        + '<div class="fv-fa">'
+        +   '<a class="fv-dl1" href="'+esc(downloadUrl(file))+'" download="'+esc(nm)+'" target="_blank" rel="noopener" aria-label="Descarregar">&#8681;</a>'
+        +   '<button class="fv-del1" aria-label="Apagar">&#128465;</button>'
+        + '</div>'
         + (v ? '<video src="'+esc(file.url)+'#t=0.1" muted preload="metadata"></video><div class="fv-play">&#9654;</div>'
              : '<img src="'+esc(file.url)+'" loading="lazy" alt="">')
-        + '<div class="fv-cap">'+esc(fileName(file.url))+'</div>';
-      t.onclick = function(){ toggle(i, t); };
+        + '<div class="fv-cap">'+esc(nm)+'</div>';
+      t.addEventListener("pointerdown", function(e){
+        if(e.target.closest(".fv-fa")) return;
+        e.preventDefault();
+        dragging = true; dragMode = !sel.has(i);
+        apply(i, t, dragMode);
+      });
+      t.addEventListener("pointerenter", function(){ if(dragging) apply(i, t, dragMode); });
+      t.querySelector(".fv-del1").onclick = function(e){ e.stopPropagation(); askDeleteFiles([i]); };
+      t.querySelector(".fv-dl1").addEventListener("click", function(e){ e.stopPropagation(); });
       grid.appendChild(t);
     });
+    window.addEventListener("pointerup", function(){ dragging = false; }, { once: false });
 
-    function refresh(){
-      var n = sel.size;
-      bZip.disabled = !n; bNone.disabled = !n; bOnly.disabled = !n;
-      bZip.textContent = n ? "Descarregar " + n + " (.zip)" : "Descarregar (.zip)";
-      bAll.classList.toggle("on", n === files.length && n > 0);
-    }
-    function toggle(i, t){
-      if(sel.has(i)){ sel.delete(i); t.classList.remove("sel"); }
-      else { sel.add(i); t.classList.add("sel"); }
+    function apply(i, t, on){
+      if(on){ sel.add(i); t.classList.add("sel"); }
+      else { sel.delete(i); t.classList.remove("sel"); }
       refresh();
     }
+    function refresh(){
+      var n = sel.size, alive = files.filter(function(x){ return !x._gone; }).length;
+      bZip.disabled = !n; bNone.disabled = !n; bOnly.disabled = !n; bDel.disabled = !n;
+      bZip.textContent = n ? "Descarregar " + n + " (.zip)" : "Descarregar (.zip)";
+      bDel.textContent = n ? "Excluir " + n : "Excluir";
+      bAll.classList.toggle("on", n === alive && n > 0);
+      elCount.textContent = alive;
+    }
     bAll.onclick = function(){
-      var fill = sel.size !== files.length;
+      var alive = grid.querySelectorAll(".fv-tile").length;
+      var fill = sel.size !== alive;
       sel.clear();
-      grid.querySelectorAll(".fv-tile").forEach(function(t, i){
+      grid.querySelectorAll(".fv-tile").forEach(function(t){
+        var i = +t.dataset.i;
         if(fill){ sel.add(i); t.classList.add("sel"); } else t.classList.remove("sel");
       });
       refresh();
     };
     bNone.onclick = function(){ sel.clear(); grid.querySelectorAll(".fv-tile").forEach(function(t){ t.classList.remove("sel"); }); grid.classList.remove("only"); bOnly.classList.remove("on"); refresh(); };
     bOnly.onclick = function(){ grid.classList.toggle("only"); bOnly.classList.toggle("on", grid.classList.contains("only")); };
+
+    function askDeleteFiles(idxs){
+      var list = idxs.filter(function(i){ return files[i] && !files[i]._gone; });
+      if(!list.length) return;
+      confirmModal({
+        title: list.length === 1 ? "Apagar este ficheiro?" : "Apagar " + list.length + " ficheiros?",
+        message: "Sai da nuvem e das páginas que o usarem. Não dá para desfazer.",
+        ok: "Apagar", danger: true
+      }).then(function(yes){
+        if(!yes) return;
+        var payload = { cloud: f.cloud };
+        if(f.cloud === "r2") payload.keys = list.map(function(i){ return files[i].key; });
+        else payload.publicIds = list.map(function(i){ return { publicId: files[i].publicId, resourceType: files[i].resourceType }; });
+        prog.textContent = "a apagar…";
+        api("DELETE", "media/files", payload).then(function(r){
+          list.forEach(function(i){
+            files[i]._gone = true; sel.delete(i);
+            var t = grid.querySelector('.fv-tile[data-i="'+i+'"]'); if(t) t.remove();
+          });
+          LIB_CACHE = null;
+          prog.textContent = "";
+          toast((r.j && r.j.apagados != null ? r.j.apagados : list.length) + " apagado(s)");
+          refresh();
+          if(!grid.querySelector(".fv-tile")){ close(); libraryView(); }
+        });
+      });
+    }
+    bDel.onclick = function(){ askDeleteFiles([].slice.call(sel)); };
+
     bZip.onclick = function(){
-      var list = files.filter(function(_, i){ return sel.has(i); });
+      var list = [].slice.call(sel).filter(function(i){ return files[i] && !files[i]._gone; }).map(function(i){ return files[i]; });
       if(!list.length) return;
       bZip.disabled = true; prog.textContent = "a preparar…";
       loadJSZip().then(function(JSZip){
