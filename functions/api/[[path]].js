@@ -84,6 +84,22 @@ export async function onRequest(context) {
     return json({ ok: true }, 200, { "set-cookie": clearCookie() });
   }
 
+  // ---- servir ficheiro do R2 (PÚBLICO — o cliente descarrega a entrega sem login;
+  //      segurança = a chave do objeto é longa e aleatória, tal como o código da página) ----
+  if (seg[0] === "r2" && method === "GET") {
+    if (!env.ASTERIS_R2) return json({ error: "R2 não ligado" }, 501);
+    const key = seg.slice(1).map(decodeURIComponent).join("/");
+    const obj = await env.ASTERIS_R2.get(key);
+    if (!obj) return json({ error: "não existe" }, 404);
+    const h = new Headers();
+    obj.writeHttpMetadata(h);
+    h.set("cache-control", "public, max-age=31536000, immutable");
+    h.set("access-control-allow-origin", "*");
+    const dl = url.searchParams.get("dl");
+    if (dl) h.set("content-disposition", `attachment; filename="${dl.replace(/[^a-z0-9.\-_ ]/gi, "_")}"`);
+    return new Response(obj.body, { headers: h });
+  }
+
   const authed = await checkToken(SECRET, getCookie(request, COOKIE));
   if (seg[0] === "me") return json({ ok: authed });
   if (!authed) return json({ error: "Sessão inválida" }, 401);
@@ -160,6 +176,65 @@ export async function onRequest(context) {
         cloudinaryCreditosMes: 25
       }
     });
+  }
+
+  // ---- biblioteca de media: pastas + ficheiros das duas nuvens ----
+  if (seg[0] === "media" && !seg[1] && method === "GET") {
+    const isVidExt = (s) => /\.(mp4|webm|mov|m4v)$/i.test(s || "");
+    const out = { r2: { bound: !!env.ASTERIS_R2, folders: [] }, cloudinary: { configured: !!(env.CLOUDINARY_CLOUD && env.CLOUDINARY_KEY && env.CLOUDINARY_SECRET), folders: [] } };
+
+    if (env.ASTERIS_R2) {
+      try {
+        const map = {};
+        let cursor;
+        do {
+          const r = await env.ASTERIS_R2.list({ cursor, limit: 1000 });
+          for (const o of r.objects) {
+            const parts = o.key.split("/");
+            const folder = parts.length > 1 ? parts.slice(0, -1).join("/") : "(raiz)";
+            const f = map[folder] || (map[folder] = { name: folder, cloud: "r2", count: 0, bytes: 0, files: [] });
+            f.count++; f.bytes += o.size || 0;
+            f.files.push({ url: "/api/r2/" + o.key.split("/").map(encodeURIComponent).join("/"), tipo: isVidExt(o.key) ? "video" : "foto", bytes: o.size || 0 });
+          }
+          cursor = r.truncated ? r.cursor : null;
+        } while (cursor);
+        out.r2.folders = Object.values(map).sort((a, b) => a.name.localeCompare(b.name));
+      } catch (e) { out.r2.error = String(e).slice(0, 120); }
+    }
+
+    if (out.cloudinary.configured) {
+      try {
+        const auth = btoa(`${env.CLOUDINARY_KEY}:${env.CLOUDINARY_SECRET}`);
+        const map = {};
+        for (const rt of ["image", "video"]) {
+          const cr = await fetch(`https://api.cloudinary.com/v1_1/${env.CLOUDINARY_CLOUD}/resources/${rt}?max_results=500`, { headers: { authorization: `Basic ${auth}` } });
+          if (!cr.ok) { out.cloudinary.error = rt + " " + cr.status; continue; }
+          const cj = await cr.json();
+          for (const res of (cj.resources || [])) {
+            const folder = res.asset_folder || res.folder || "(raiz)";
+            const f = map[folder] || (map[folder] = { name: folder, cloud: "cloudinary", count: 0, bytes: 0, files: [] });
+            f.count++; f.bytes += res.bytes || 0;
+            f.files.push({ url: res.secure_url, tipo: rt === "video" ? "video" : "foto", bytes: res.bytes || 0 });
+          }
+        }
+        out.cloudinary.folders = Object.values(map).sort((a, b) => a.name.localeCompare(b.name));
+      } catch (e) { out.cloudinary.error = String(e).slice(0, 120); }
+    }
+    return json(out);
+  }
+
+  // ---- apagar uma pasta inteira do R2 ----
+  if (seg[0] === "media" && seg[1] === "r2-folder" && method === "DELETE") {
+    if (!env.ASTERIS_R2) return json({ error: "R2 não ligado" }, 501);
+    const prefix = decodeURIComponent(seg.slice(2).join("/"));
+    if (!prefix || prefix === "(raiz)") return json({ error: "pasta inválida" }, 400);
+    let cursor, n = 0;
+    do {
+      const r = await env.ASTERIS_R2.list({ cursor, prefix: prefix + "/", limit: 1000 });
+      for (const o of r.objects) { await env.ASTERIS_R2.delete(o.key); n++; }
+      cursor = r.truncated ? r.cursor : null;
+    } while (cursor);
+    return json({ ok: true, apagados: n });
   }
 
   // ---- páginas ----
@@ -245,18 +320,6 @@ export async function onRequest(context) {
     }
 
     return json({ error: "Nenhum armazenamento ligado. Cola o URL de cada ficheiro." }, 501);
-  }
-
-  // ---- servir ficheiro do R2 (fallback se não houver domínio público) ----
-  if (seg[0] === "r2" && method === "GET") {
-    if (!env.ASTERIS_R2) return json({ error: "R2 não ligado" }, 501);
-    const key = seg.slice(1).join("/");
-    const obj = await env.ASTERIS_R2.get(key);
-    if (!obj) return json({ error: "não existe" }, 404);
-    const h = new Headers();
-    obj.writeHttpMetadata(h);
-    h.set("cache-control", "public, max-age=31536000, immutable");
-    return new Response(obj.body, { headers: h });
   }
 
   return json({ error: "rota desconhecida" }, 404);

@@ -121,14 +121,57 @@ label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
 
 /* ===== modal do site ===== */
 .modal-ov{position:fixed;inset:0;z-index:80;background:rgba(6,7,8,.74);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px}
-.modal{width:100%;max-width:370px;background:linear-gradient(160deg,rgba(44,49,53,.96),rgba(17,19,21,.98));border:1px solid var(--edge2);border-radius:15px;padding:22px;box-shadow:0 26px 66px rgba(0,0,0,.6)}
+.modal{width:100%;max-width:370px;max-height:88vh;overflow-y:auto;background:linear-gradient(160deg,rgba(44,49,53,.96),rgba(17,19,21,.98));border:1px solid var(--edge2);border-radius:15px;padding:22px;box-shadow:0 26px 66px rgba(0,0,0,.6)}
 .modal h4{font-size:14.5px;font-weight:700;margin-bottom:9px}
 .modal p{font-size:12px;color:var(--dim);line-height:1.6;margin-bottom:2px}
 .modal .field{margin:14px 0 0}
 .modal .err{min-height:0;margin-top:6px}
 .modal .mrow{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+.modal{position:relative}
+.modal.lg{max-width:460px}
+.modal .close-x{position:absolute;top:11px;right:11px;width:26px;height:26px;border:0;background:none;color:var(--faint);font-size:19px;line-height:1;border-radius:6px}
+.modal .close-x:hover{color:var(--ink);background:var(--panel2)}
+.modal h4{padding-right:24px}
 .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:90;background:var(--panel2);border:1px solid var(--edge2);color:var(--ink);font-size:12px;padding:10px 16px;border-radius:9px;box-shadow:0 10px 30px rgba(0,0,0,.5);opacity:0;transition:opacity .2s}
 .toast.on{opacity:1}
+
+/* nav de abas */
+.navtabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--edge)}
+.navtabs button{background:none;border:0;border-bottom:2px solid transparent;color:var(--dim);font-size:12px;font-weight:600;letter-spacing:.06em;padding:9px 12px;margin-bottom:-1px}
+.navtabs button.on{color:var(--gold);border-bottom-color:var(--gold)}
+
+/* nova página — escolha de tipo */
+.np-types{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 2px}
+.np-type{display:flex;flex-direction:column;gap:2px;text-align:left;background:var(--panel2);border:1px solid var(--edge2);border-radius:9px;padding:10px 11px}
+.np-type:hover{border-color:var(--gold)}
+.np-type.on{border-color:var(--gold);background:var(--gold-lo)}
+.np-type b{font-size:12px}
+.np-type span{font-size:9.5px;color:var(--dim);line-height:1.35}
+.np-code{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;color:var(--gold);background:var(--panel2);border:1px solid var(--edge);border-radius:6px;padding:8px 10px;margin-top:4px}
+.np-code button{margin-left:auto;font-size:10px;color:var(--dim);background:none;border:0;text-decoration:underline}
+.radio-row{display:flex;gap:8px;margin-top:6px}
+.radio-row label{flex:1;text-align:center;background:var(--panel2);border:1px solid var(--edge2);border-radius:7px;padding:9px 8px;font-size:11.5px;color:var(--ink);text-transform:none;letter-spacing:0;margin:0}
+.radio-row label.on{border-color:var(--gold);color:var(--gold);background:var(--gold-lo)}
+.np-fromlib{width:100%;background:var(--panel2);border:1px dashed var(--edge2);border-radius:8px;color:var(--dim);font-size:11.5px;padding:11px;margin-top:8px}
+.np-fromlib:hover{border-color:var(--gold);color:var(--gold)}
+.np-fromlib.picked{border-style:solid;border-color:var(--pos);color:var(--pos)}
+
+/* biblioteca */
+.lib-drop{border:1.5px dashed var(--edge2);border-radius:12px;padding:26px 16px;text-align:center;color:var(--faint);font-size:12px;margin-bottom:20px;transition:border-color .15s,color .15s}
+.lib-drop.over{border-color:var(--gold);color:var(--gold);background:var(--gold-lo)}
+.lib-drop b{color:var(--ink);font-size:13px;display:block;margin-bottom:4px}
+.lib-sec{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin:18px 0 10px}
+.lib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.lib-folder{background:linear-gradient(158deg,rgba(52,58,63,.4),rgba(20,22,24,.6));border:1px solid var(--edge2);border-radius:11px;padding:12px;min-width:0}
+.lib-folder .lf-name{font-family:var(--mono);font-size:11.5px;color:var(--ink);word-break:break-all}
+.lib-folder .lf-meta{font-size:10px;color:var(--dim);margin-top:3px}
+.lib-folder .lf-thumbs{display:flex;gap:3px;margin-top:9px}
+.lib-folder .lf-thumbs .th{width:44px;height:44px;border-radius:5px;background:#0a0a0a center/cover no-repeat;flex-shrink:0;border:1px solid var(--edge)}
+.lib-folder .lf-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.lib-folder .lf-acts button{font-size:10.5px;color:var(--dim);background:none;border:0;text-decoration:underline;text-underline-offset:2px}
+.lib-folder .lf-acts button:hover{color:var(--gold)}
+.lib-folder .lf-acts button.del{color:var(--neg)}
+.lib-empty{color:var(--faint);font-size:11px;padding:10px 2px}
 .tag{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--edge2);border-radius:3px;padding:2px 6px;color:var(--dim)}
 .tag.exp{border-color:var(--neg);color:var(--neg)}
 
@@ -211,15 +254,19 @@ function api(method, path, body){
 function esc(s){ return (s==null?"":String(s)).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
 
 /* ============================ modal + popover do site ============================ */
-function modal(build){
+function modal(build, opts){
+  opts = opts || {};
   return new Promise(function(resolve){
-    var ov = el("div","modal-ov"), box = el("div","modal");
+    var ov = el("div","modal-ov"), box = el("div","modal" + (opts.cls ? " " + opts.cls : ""));
     ov.appendChild(box);
     function close(val){ ov.remove(); document.removeEventListener("keydown", onKey); resolve(val); }
     function onKey(e){ if(e.key === "Escape") close(undefined); }
     document.addEventListener("keydown", onKey);
     ov.addEventListener("mousedown", function(e){ if(e.target === ov) close(undefined); });
     build(box, close);
+    var x = el("button","close-x"); x.innerHTML = "&times;"; x.setAttribute("aria-label","Fechar");
+    x.onclick = function(){ close(undefined); };
+    box.appendChild(x);
     document.body.appendChild(ov);
   });
 }
@@ -348,6 +395,17 @@ function boot(){
   listView();
 }
 
+/* nav de abas — persistente entre Links e Biblioteca */
+function navBar(active){
+  var n = el("div","navtabs");
+  [["links","Links","listView"],["biblioteca","Biblioteca","libraryView"]].forEach(function(t){
+    var b = el("button", t[0] === active ? "on" : "", t[1]);
+    b.onclick = function(){ window[t[2]](); };
+    n.appendChild(b);
+  });
+  return n;
+}
+
 /* ============================ lista ============================ */
 var CATS = [
   { key:"proposta",  titulo:"Proposta",              match:function(p){ return p.type === "proposta"; } },
@@ -369,9 +427,10 @@ function setExpira(code, novaData){
 function listView(){
   closeMenu();
   var v = $("#view"); v.innerHTML = "";
+  v.appendChild(navBar("links"));
   var head = el("div"); head.style.cssText = "display:flex;justify-content:space-between;align-items:center;margin-bottom:16px";
   head.innerHTML = '<div style="color:var(--dim);font-size:12px">Painel</div>';
-  var nb = el("button","btn gold","+ Nova página"); nb.onclick = function(){ editView(null); };
+  var nb = el("button","btn gold","+ Nova página"); nb.onclick = function(){ newPageModal(); };
   head.appendChild(nb);
   v.appendChild(head);
 
@@ -589,6 +648,271 @@ function askDeletePage(p){
   }).then(function(yes){
     if(yes) api("DELETE", "pages/" + p.code).then(function(){ listView(); });
   });
+}
+
+/* ============================ nova página (modal) ============================ */
+var NP_TYPES = [
+  { k:"proposta",  t:"Proposta",  d:"Proposta comercial para um cliente" },
+  { k:"portfolio", t:"Portfólio", d:"Galeria privada de trabalhos" },
+  { k:"galeria",   t:"Entrega",   d:"Ficheiros finais para descarregar" },
+  { k:"triagem",   t:"Seleção",   d:"O cliente escolhe fotos/vídeos" }
+];
+function skeletonFor(type, base){
+  if(type === "proposta") return Object.assign({ type:"proposta", proposta:{ validade:"", secoes:[] } }, base);
+  if(type === "portfolio") return Object.assign({ type:"portfolio", anon:true, itens:[] }, base);
+  if(type === "galeria")  return Object.assign({ type:"galeria", anon:false, intro:"", itens:[] }, base);
+  return Object.assign({ type:"triagem", intro:"", itens:[] }, base);
+}
+function itensFromFolder(folder){
+  return (folder.files || []).map(function(f){ return { tipo: f.tipo === "video" ? "video" : "foto", src: f.url }; });
+}
+function newPageModal(){
+  var st = { type:"proposta", code:randCode(6), perm:false, touchedPrazo:false, folder:null };
+  modal(function(box, close){
+    box.innerHTML =
+      '<h4>Nova página</h4>'
+      + '<label>Tipo</label><div class="np-types"></div>'
+      + '<div class="field"><label>Cliente</label><input id="np-cli" placeholder="Nome do cliente"></div>'
+      + '<div class="field"><label>Título (opcional)</label><input id="np-tit" placeholder="ex. Proposta de conteúdo"></div>'
+      + '<label style="margin-top:12px">Prazo</label><div class="radio-row" id="np-prazo">'
+      +   '<label data-perm="1"><input type="radio" name="npp" hidden>Permanente</label>'
+      +   '<label data-perm="0"><input type="radio" name="npp" hidden>Com prazo</label>'
+      + '</div>'
+      + '<div class="field" id="np-datef"><label>Expira em</label><input type="date" id="np-data"></div>'
+      + '<label class="check" id="np-anon-row" style="margin-top:10px"><input type="checkbox" id="np-anon"> Anónima (esconde o nome do cliente)</label>'
+      + '<button type="button" class="np-fromlib" id="np-lib">+ Usar pasta da biblioteca</button>'
+      + '<label style="margin-top:12px">Código de acesso</label>'
+      + '<div class="np-code"><span id="np-code">'+st.code+'</span><button type="button" id="np-newcode">gerar outro</button></div>'
+      + '<div class="err" id="np-err"></div>'
+      + '<div class="mrow"><button class="btn ghost" id="np-cancel">Cancelar</button><button class="btn gold" id="np-ok">Criar</button></div>';
+
+    var tw = box.querySelector(".np-types");
+    NP_TYPES.forEach(function(x){
+      var b = el("button","np-type", "<b>"+x.t+"</b><span>"+x.d+"</span>");
+      b.dataset.k = x.k;
+      b.onclick = function(){ st.type = x.k; syncType(); };
+      tw.appendChild(b);
+    });
+    function syncType(){
+      box.querySelectorAll(".np-type").forEach(function(b){ b.classList.toggle("on", b.dataset.k === st.type); });
+      box.querySelector("#np-anon-row").hidden = !(st.type === "portfolio" || st.type === "galeria");
+      if(st.type === "portfolio"){ box.querySelector("#np-anon").checked = true; }
+      if(!st.touchedPrazo) setPrazo(st.type === "portfolio");
+    }
+    function setPrazo(perm){
+      st.perm = perm;
+      box.querySelectorAll("#np-prazo label").forEach(function(l){ l.classList.toggle("on", (l.dataset.perm === "1") === perm); });
+      box.querySelector("#np-datef").hidden = perm;
+      var di = box.querySelector("#np-data");
+      if(!perm && !di.value){
+        var days = st.type === "proposta" ? 15 : 30;
+        di.value = new Date(Date.now() + days*86400000).toISOString().slice(0,10);
+      }
+    }
+    box.querySelectorAll("#np-prazo label").forEach(function(l){
+      l.onclick = function(){ st.touchedPrazo = true; setPrazo(l.dataset.perm === "1"); };
+    });
+    box.querySelector("#np-newcode").onclick = function(){ st.code = randCode(6); box.querySelector("#np-code").textContent = st.code; };
+    box.querySelector("#np-lib").onclick = function(){
+      pickFolderModal().then(function(folder){
+        if(!folder) return;
+        st.folder = folder;
+        var b = box.querySelector("#np-lib");
+        b.classList.add("picked");
+        b.textContent = "✓ " + folder.name + " (" + folder.count + " ficheiros)";
+        // afinar o tipo pela pasta
+        if(/entrega/i.test(folder.name)) st.type = "galeria";
+        else if(/selec/i.test(folder.name)) st.type = "triagem";
+        else if(/portf/i.test(folder.name)) st.type = "portfolio";
+        syncType();
+      });
+    };
+    box.querySelector("#np-cancel").onclick = function(){ close(); };
+    box.querySelector("#np-ok").onclick = function(){
+      var cli = box.querySelector("#np-cli").value.trim();
+      var tit = box.querySelector("#np-tit").value.trim();
+      var expira = st.perm ? "" : box.querySelector("#np-data").value;
+      if(!st.perm && !/^\d{4}-\d{2}-\d{2}$/.test(expira)){ box.querySelector("#np-err").textContent = "Escolhe a data de expiração."; return; }
+      var anonEl = box.querySelector("#np-anon");
+      var base = { cliente: cli, titulo: tit, expira: expira };
+      if(!box.querySelector("#np-anon-row").hidden) base.anon = !!anonEl.checked;
+      var data = skeletonFor(st.type, base);
+      if(st.folder && data.itens) data.itens = itensFromFolder(st.folder);
+      var ok = box.querySelector("#np-ok"); ok.disabled = true; ok.textContent = "A criar…";
+      api("PUT", "pages/" + st.code, data).then(function(r){
+        if(r.ok){ close(); editView(st.code); }
+        else { box.querySelector("#np-err").textContent = (r.j && r.j.error) || "erro"; ok.disabled = false; ok.textContent = "Criar"; }
+      });
+    };
+    syncType();
+    box.querySelector("#np-cli").focus();
+  }, { cls: "lg" });
+}
+
+/* ============================ biblioteca ============================ */
+var LIB_CACHE = null;
+function loadLib(force){
+  if(LIB_CACHE && !force) return Promise.resolve(LIB_CACHE);
+  return api("GET","media").then(function(r){ LIB_CACHE = r.ok ? r.j : null; return LIB_CACHE; });
+}
+function allFolders(lib){
+  if(!lib) return [];
+  return [].concat((lib.r2 && lib.r2.folders) || [], (lib.cloudinary && lib.cloudinary.folders) || []);
+}
+function libraryView(){
+  closeMenu();
+  var v = $("#view"); v.innerHTML = "";
+  v.appendChild(navBar("biblioteca"));
+
+  var drop = el("div","lib-drop");
+  drop.innerHTML = '<b>Arrasta ficheiros para aqui</b><button id="lib-pickfolder" style="color:var(--gold);background:none;border:0;text-decoration:underline">escolher uma pasta</button> · <button id="lib-pickfiles" style="color:var(--gold);background:none;border:0;text-decoration:underline">escolher ficheiros</button>';
+  v.appendChild(drop);
+
+  var body = el("div"); v.appendChild(body);
+  body.innerHTML = '<div class="lib-empty">a carregar…</div>';
+
+  var fdir = el("input"); fdir.type = "file"; fdir.multiple = true; fdir.setAttribute("webkitdirectory",""); fdir.style.display = "none"; v.appendChild(fdir);
+  var ffil = el("input"); ffil.type = "file"; ffil.multiple = true; ffil.style.display = "none"; v.appendChild(ffil);
+  drop.querySelector("#lib-pickfolder").onclick = function(){ fdir.click(); };
+  drop.querySelector("#lib-pickfiles").onclick = function(){ ffil.click(); };
+  function fromInput(inp){
+    var files = [].slice.call(inp.files);
+    if(!files.length) return;
+    var hint = files[0].webkitRelativePath ? files[0].webkitRelativePath.split("/")[0] : "";
+    startFolderUpload(files, hint);
+    inp.value = "";
+  }
+  fdir.onchange = function(){ fromInput(fdir); };
+  ffil.onchange = function(){ fromInput(ffil); };
+
+  ["dragenter","dragover"].forEach(function(e){ drop.addEventListener(e, function(ev){ ev.preventDefault(); drop.classList.add("over"); }); });
+  ["dragleave","drop"].forEach(function(e){ drop.addEventListener(e, function(ev){ ev.preventDefault(); drop.classList.remove("over"); }); });
+  drop.addEventListener("drop", function(ev){
+    var files = [].slice.call(ev.dataTransfer.files || []);
+    if(files.length) startFolderUpload(files, guessName(ev.dataTransfer));
+  });
+
+  loadLib(true).then(function(lib){
+    body.innerHTML = "";
+    if(!lib){ body.innerHTML = '<div class="lib-empty">Nenhuma nuvem ligada. Liga o R2 ou o Cloudinary primeiro.</div>'; return; }
+    renderLibCloud(body, "R2 · entregas", lib.r2);
+    renderLibCloud(body, "Cloudinary · portfólio + seleção", lib.cloudinary);
+  });
+}
+function guessName(dt){
+  try{ if(dt.items && dt.items[0]){ var e = dt.items[0].webkitGetAsEntry && dt.items[0].webkitGetAsEntry(); if(e && e.isDirectory) return e.name; } }catch(e){}
+  return "";
+}
+function renderLibCloud(host, titulo, cloud){
+  host.appendChild(Object.assign(el("div","lib-sec"), { textContent: titulo }));
+  if(!cloud || (!cloud.bound && !cloud.configured)){ host.appendChild(el("div","lib-empty","não ligado")); return; }
+  if(cloud.error){ host.appendChild(el("div","lib-empty","erro: " + esc(cloud.error))); }
+  var folders = cloud.folders || [];
+  if(!folders.length){ host.appendChild(el("div","lib-empty","sem pastas ainda")); return; }
+  var grid = el("div","lib-grid"); host.appendChild(grid);
+  folders.forEach(function(f){ grid.appendChild(libFolderCard(f)); });
+}
+function libFolderCard(f){
+  var c = el("div","lib-folder");
+  c.appendChild(Object.assign(el("div","lf-name"), { textContent: f.name }));
+  c.appendChild(Object.assign(el("div","lf-meta"), { textContent: f.count + " ficheiro" + (f.count===1?"":"s") + " · " + fmtBytes(f.bytes) }));
+  var th = el("div","lf-thumbs");
+  (f.files || []).slice(0, 4).forEach(function(file){
+    var d = el("div","th");
+    if(file.tipo !== "video") d.style.backgroundImage = "url('" + file.url + "')";
+    else d.textContent = "▶", d.style.cssText += ";display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:11px";
+    th.appendChild(d);
+  });
+  c.appendChild(th);
+  var acts = el("div","lf-acts");
+  var cp = el("button", "", "copiar URLs");
+  cp.onclick = function(){
+    var txt = (f.files || []).map(function(x){ return x.url.charAt(0) === "/" ? location.origin + x.url : x.url; }).join("\n");
+    if(navigator.clipboard) navigator.clipboard.writeText(txt).then(function(){ toast(f.count + " URLs copiados"); });
+    else noticeModal("URLs", txt);
+  };
+  acts.appendChild(cp);
+  if(f.cloud === "r2"){
+    var dl = el("button","del","apagar pasta");
+    dl.onclick = function(){
+      confirmModal({ title:"Apagar pasta?", message:'"' + f.name + '" e os ' + f.count + ' ficheiros são apagados do R2. Não dá para desfazer.', ok:"Apagar", danger:true })
+        .then(function(yes){ if(yes) api("DELETE","media/r2-folder/" + f.name.split("/").map(encodeURIComponent).join("/")).then(function(){ libraryView(); }); });
+    };
+    acts.appendChild(dl);
+  }
+  c.appendChild(acts);
+  return c;
+}
+function startFolderUpload(files, nameHint){
+  // 1 pergunta: nome + tipo
+  modal(function(box, close){
+    box.innerHTML =
+      '<h4>Enviar ' + files.length + ' ficheiro' + (files.length===1?"":"s") + '</h4>'
+      + '<div class="field"><label>Nome da pasta</label><input id="fu-name" value="' + esc(nameHint || "") + '" placeholder="ex. everton-institucional"></div>'
+      + '<label style="margin-top:12px">Para que é</label><div class="radio-row" id="fu-kind">'
+      +   '<label data-k="entregas">Entrega</label><label data-k="selecao">Seleção</label><label data-k="portfolio">Portfólio</label>'
+      + '</div>'
+      + '<div class="err" id="fu-err"></div>'
+      + '<div id="fu-prog" style="font-size:11px;color:var(--dim);margin-top:10px"></div>'
+      + '<div class="mrow"><button class="btn ghost" id="fu-cancel">Cancelar</button><button class="btn gold" id="fu-ok">Enviar</button></div>';
+    var kind = "entregas";
+    box.querySelectorAll("#fu-kind label").forEach(function(l){
+      l.onclick = function(){ kind = l.dataset.k; box.querySelectorAll("#fu-kind label").forEach(function(x){ x.classList.toggle("on", x === l); }); };
+    });
+    box.querySelector("#fu-kind label").classList.add("on");
+    box.querySelector("#fu-cancel").onclick = function(){ close(); };
+    box.querySelector("#fu-ok").onclick = function(){
+      var name = box.querySelector("#fu-name").value.trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+      if(!name){ box.querySelector("#fu-err").textContent = "Dá um nome à pasta."; return; }
+      var dest = kind === "entregas" ? "r2" : "cloudinary";
+      var folder = kind + "/" + name;
+      var ok = box.querySelector("#fu-ok"); ok.disabled = true;
+      var prog = box.querySelector("#fu-prog");
+      uploadFiles(files, folder, dest, function(n, total){ prog.textContent = "a enviar " + n + " / " + total + "…"; })
+        .then(function(res){
+          prog.textContent = "";
+          close();
+          toast(res.ok + " enviados" + (res.fail ? " · " + res.fail + " falharam" : ""));
+          LIB_CACHE = null; libraryView();
+        });
+    };
+    box.querySelector("#fu-name").focus();
+  }, { cls: "lg" });
+}
+function uploadFiles(files, folder, dest, onProgress){
+  return new Promise(function(resolve){
+    var ok = 0, fail = 0, i = 0;
+    function next(){
+      if(i >= files.length){ resolve({ ok: ok, fail: fail }); return; }
+      var fd = new FormData();
+      fd.append("file", files[i]);
+      fd.append("folder", folder);
+      fd.append("dest", dest);
+      fetch("/api/upload", { method:"POST", body:fd })
+        .then(function(x){ return x.json(); })
+        .then(function(j){ if(j.url) ok++; else fail++; })
+        .catch(function(){ fail++; })
+        .then(function(){ i++; onProgress && onProgress(i, files.length); next(); });
+    }
+    next();
+  });
+}
+function pickFolderModal(){
+  return modal(function(box, close){
+    box.innerHTML = '<h4>Pasta da biblioteca</h4><p>Os itens da página são preenchidos com os ficheiros desta pasta.</p><div id="pf-list" style="margin-top:12px"><div class="lib-empty">a carregar…</div></div>';
+    loadLib().then(function(lib){
+      var wrap = box.querySelector("#pf-list");
+      var fs = allFolders(lib);
+      if(!fs.length){ wrap.innerHTML = '<div class="lib-empty">Sem pastas. Envia ficheiros na aba Biblioteca primeiro.</div>'; return; }
+      wrap.innerHTML = "";
+      fs.forEach(function(f){
+        var b = el("button","np-fromlib", "" + f.name + "  ·  " + f.count + " ficheiros  ·  " + (f.cloud === "r2" ? "R2" : "Cloudinary"));
+        b.style.marginTop = "6px";
+        b.onclick = function(){ close(f); };
+        wrap.appendChild(b);
+      });
+    });
+  }, { cls: "lg" });
 }
 
 /* ============================ editor ============================ */
