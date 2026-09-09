@@ -149,7 +149,10 @@ a{color:inherit}
 .btn-cta{display:inline-flex;align-items:center;gap:10px;margin-top:24px;border:1px solid var(--gold);background:transparent;color:var(--white);padding:16px 34px;font-size:9px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;text-decoration:none;transition:background .25s,color .25s}
 .btn-cta:hover{background:var(--gold);color:var(--black)}
 
-footer{padding:22px var(--pad);border-top:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:8.5px;color:var(--white-faint);letter-spacing:.05em}
+footer.pfoot{padding:22px var(--pad);border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:8.5px;color:var(--white-faint);letter-spacing:.05em}
+footer.pfoot .pf-brand{display:flex;align-items:center;gap:8px;text-decoration:none;color:rgba(240,234,224,.4);font-family:var(--sans);font-size:9px;font-weight:500;letter-spacing:.32em;text-transform:uppercase}
+footer.pfoot .pf-brand svg{width:12px;height:12px;opacity:.5}
+footer.pfoot .pf-cross{color:var(--gold);font-size:14px;opacity:.55}
 </style>
 </head>
 <body>
@@ -406,7 +409,7 @@ function renderGaleria(d, app, triagem){
     app.appendChild(bar);
     document.body.style.paddingBottom = "76px";
   }
-  /* rodapé removido */
+  app.appendChild(footer(d));
 
   /* eventos */
   grid.addEventListener("click", function(e){
@@ -595,12 +598,15 @@ function renderProposta(d, app){
 
   box.innerHTML = html;
   app.appendChild(box);
-  /* rodapé removido */
+  app.appendChild(footer(d));
 }
 
 function footer(d){
-  var f = el("footer");
-  f.innerHTML = '<span>&#128274; Documento privado da Asteris' + (d.cliente ? " — " + d.cliente : "") + '</span><span>&copy; ' + new Date().getFullYear() + ' Asteris</span>';
+  var f = el("footer","pfoot");
+  f.innerHTML =
+    '<a class="pf-brand" href="/"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M20 3L36 37H29.5L20 15.5L10.5 37H4L20 3Z" fill="#C9A166"/><path d="M13.7 27H26.3" stroke="#0B0B0A" stroke-width="2.4"/></svg>Asteris</a>' +
+    '<span class="pf-copy">&copy; ' + new Date().getFullYear() + ' Asteris. Conteúdo privado.</span>' +
+    '<span class="pf-cross">&#10022;</span>';
   return f;
 }
 </script>
