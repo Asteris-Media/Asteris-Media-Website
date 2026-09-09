@@ -107,26 +107,44 @@ export async function onRequest(context) {
     if (!folder) return new Response("pasta em falta", { status: 400 });
     const isVidU = (s) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(s || "");
     let files = [];
+    let diag = "";
     try {
-      if (cloud === "r2" && env.ASTERIS_R2) {
-        let cursor;
-        do {
-          const r = await env.ASTERIS_R2.list({ cursor, prefix: folder + "/", limit: 1000 });
-          for (const o of r.objects) files.push({ url: "/api/r2/" + o.key.split("/").map(encodeURIComponent).join("/"), name: o.key.split("/").pop(), bytes: o.size || 0 });
-          cursor = r.truncated ? r.cursor : null;
-        } while (cursor);
-      } else if (cloud === "cloudinary" && env.CLOUDINARY_CLOUD && env.CLOUDINARY_KEY && env.CLOUDINARY_SECRET) {
-        const auth = btoa(`${env.CLOUDINARY_KEY}:${env.CLOUDINARY_SECRET}`);
-        for (const rt of ["image", "video"]) {
-          const cr = await fetch(`https://api.cloudinary.com/v1_1/${env.CLOUDINARY_CLOUD}/resources/${rt}?max_results=500`, { headers: { authorization: `Basic ${auth}` } });
-          if (!cr.ok) continue;
-          const cj = await cr.json();
-          for (const res of (cj.resources || [])) {
-            if ((res.asset_folder || res.folder || "") === folder) files.push({ url: res.secure_url, name: (res.public_id.split("/").pop()) + "." + res.format, bytes: res.bytes || 0 });
+      if (cloud === "r2") {
+        if (!env.ASTERIS_R2) diag = "R2 não ligado.";
+        else {
+          let cursor;
+          do {
+            const r = await env.ASTERIS_R2.list({ cursor, prefix: folder + "/", limit: 1000 });
+            for (const o of r.objects) files.push({ url: "/api/r2/" + o.key.split("/").map(encodeURIComponent).join("/"), name: o.key.split("/").pop(), bytes: o.size || 0 });
+            cursor = r.truncated ? r.cursor : null;
+          } while (cursor);
+          if (!files.length) diag = `Sem ficheiros com o prefixo "${folder}/" no R2.`;
+        }
+      } else {
+        if (!(env.CLOUDINARY_CLOUD && env.CLOUDINARY_KEY && env.CLOUDINARY_SECRET)) diag = "Cloudinary não ligado.";
+        else {
+          const auth = btoa(`${env.CLOUDINARY_KEY}:${env.CLOUDINARY_SECRET}`);
+          const seen = new Set();
+          const add = (res) => {
+            if (!res || seen.has(res.public_id)) return;
+            seen.add(res.public_id);
+            files.push({ url: res.secure_url, name: (res.public_id.split("/").pop()) + (res.format ? "." + res.format : ""), bytes: res.bytes || 0 });
+          };
+          // 1) pastas dinâmicas
+          const bf = await fetch(`https://api.cloudinary.com/v1_1/${env.CLOUDINARY_CLOUD}/resources/by_asset_folder?asset_folder=${encodeURIComponent(folder)}&max_results=500`, { headers: { authorization: `Basic ${auth}` } });
+          if (bf.ok) { const j = await bf.json(); (j.resources || []).forEach(add); }
+          else diag = "by_asset_folder " + bf.status;
+          // 2) pastas legadas (prefixo do public_id)
+          if (!files.length) {
+            for (const rt of ["image", "video"]) {
+              const cr = await fetch(`https://api.cloudinary.com/v1_1/${env.CLOUDINARY_CLOUD}/resources/${rt}?prefix=${encodeURIComponent(folder)}/&type=upload&max_results=500`, { headers: { authorization: `Basic ${auth}` } });
+              if (cr.ok) { const cj = await cr.json(); (cj.resources || []).forEach(add); }
+            }
           }
+          if (!files.length && !diag) diag = `Nada em "${folder}" no Cloudinary.`;
         }
       }
-    } catch (e) { /* ignore */ }
+    } catch (e) { diag = "erro: " + String(e).slice(0, 140); }
     const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
     const title = folder.split("/").pop();
     const grid = files.map((f, i) => {
@@ -148,7 +166,7 @@ figcaption{font-size:10px;color:#8a857b;padding:7px 8px;white-space:nowrap;overf
 .empty{color:#8a857b;padding:40px;text-align:center}</style></head>
 <body><header><h1>${esc(title)}</h1><span class="n">${files.length} ficheiro${files.length === 1 ? "" : "s"}</span>
 ${files.length ? '<button class="dl" id="dl">Descarregar tudo (.zip)</button>' : ""}</header>
-${files.length ? `<div class="g">${grid}</div>` : '<div class="empty">Pasta vazia ou nuvem não ligada.</div>'}
+${files.length ? `<div class="g">${grid}</div>` : `<div class="empty">${esc(diag || "Pasta vazia.")}</div>`}
 <script>
 var FILES=${JSON.stringify(files.map(f => ({ url: f.url, name: f.name })))};
 var b=document.getElementById("dl");
