@@ -1,3 +1,0 @@
-# Cloudflare Pages — ficheiros reais (index, /assets, /data) são servidos primeiro.
-# Tudo o resto (asteris.pt/<codigo>) cai no portal, com status 200.
-/*    /404.html    200
