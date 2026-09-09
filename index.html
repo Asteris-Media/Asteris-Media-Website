@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asteris — Content &amp; Marketing Studio</title>
+<meta name="description" content="Produzimos e estruturamos o conteúdo que uma empresa precisa para vender melhor. Fotografia, vídeo e estratégia numa só operação. Lisboa.">
+<meta property="og:title" content="Asteris — Content &amp; Marketing Studio">
+<meta property="og:description" content="Transformamos valor em percepção e percepção em procura.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#C9A166;
+  --gold-soft:rgba(201,161,102,.22);
+  --black:#0B0B0A;
+  --black2:#111110;
+  --panel:#151412;
+  --white:#F0EAE0;
+  --white-dim:rgba(240,234,224,.5);
+  --white-faint:rgba(240,234,224,.32);
+  --serif:"Cormorant Garamond",Georgia,serif;
+  --sans:"Montserrat",system-ui,sans-serif;
+  --pad:clamp(22px,5vw,52px);
+}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{background:var(--black);color:var(--white);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden;line-height:1.6}
+img{max-width:100%;display:block}
+a{color:inherit}
+::selection{background:var(--gold);color:var(--black)}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+
+/* HEADER */
+header{position:absolute;top:0;left:0;width:100%;z-index:20;padding:26px var(--pad);display:flex;align-items:center;gap:13px}
+.logo-mark{width:30px;height:30px;flex-shrink:0}
+.logo-word{font-family:var(--sans);font-size:12px;font-weight:400;letter-spacing:.4em;text-transform:uppercase;color:var(--white)}
+
+/* HERO */
+.hero{display:grid;grid-template-columns:1fr 1fr;min-height:640px;background:var(--black);position:relative;overflow:hidden}
+@media (max-width:820px){.hero{grid-template-columns:1fr;min-height:0}}
+.hero-left{display:flex;flex-direction:column;justify-content:flex-end;padding:120px var(--pad) 64px;position:relative;z-index:2}
+@media (max-width:820px){.hero-left{padding-top:130px;padding-bottom:44px}}
+.hero-title{font-family:var(--serif);font-weight:300;font-size:clamp(1.85rem,3vw,2.85rem);line-height:1.24;color:var(--white);margin-bottom:24px;max-width:440px;text-wrap:balance}
+.hero-sub{font-size:11px;font-weight:300;line-height:2;color:var(--white-dim);letter-spacing:.02em;margin-bottom:42px}
+.hero-right{position:relative;overflow:hidden;min-height:340px;background:linear-gradient(150deg,#1a1712,#0c0b0a)}
+@media (max-width:820px){.hero-right{min-height:44vw;order:-1}}
+.hero-right img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;filter:grayscale(.55) contrast(1.12) brightness(.66)}
+.hero-right::after{content:"";position:absolute;inset:0;background:linear-gradient(to right,var(--black) 0%,transparent 26%);pointer-events:none}
+@media (max-width:820px){.hero-right::after{background:linear-gradient(to bottom,transparent 40%,var(--black) 100%)}}
+
+/* BOTÃO */
+.btn-wa{display:inline-flex;align-items:center;gap:11px;padding:14px 26px;border:1px solid var(--gold);background:transparent;color:var(--white);font-family:var(--sans);font-size:9px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;cursor:pointer;text-decoration:none;width:fit-content;transition:background .25s,color .25s}
+.btn-wa:hover{background:var(--gold);color:var(--black)}
+.btn-wa svg{width:15px;height:15px;flex-shrink:0}
+
+/* ========= CARROSSEL INFINITO DE CLIENTES ========= */
+.clientes{width:100vw;position:relative;left:50%;margin-left:-50vw;overflow:hidden;background:#000;border-top:2px solid var(--gold);border-bottom:2px solid var(--gold);line-height:0}
+.car-track{display:flex;width:max-content;will-change:transform;animation:marquee 46s linear infinite}
+.clientes:hover .car-track{animation-play-state:paused}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){
+  .clientes{overflow-x:auto;scrollbar-width:none}
+  .clientes::-webkit-scrollbar{display:none}
+  .car-track{animation:none}
+}
+.car-item{width:clamp(160px,20vw,252px);aspect-ratio:9/16;position:relative;flex-shrink:0;background:#000;margin-right:-1px;transform:skewX(-14deg) scale(1.02);border-right:2px solid var(--gold);cursor:pointer;overflow:hidden}
+.car-item .bg-video{width:150%;height:104%;object-fit:cover;position:absolute;top:-2%;left:-25%;transform:skewX(14deg);filter:grayscale(.35) brightness(.62)}
+.car-item .overlay{position:absolute;top:-2%;left:-25%;width:150%;height:104%;background:rgba(5,5,6,.62);z-index:2;transform:skewX(14deg);transition:background .4s ease}
+.car-item .c-name{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) skewX(14deg);z-index:3;font-family:var(--sans);font-size:10px;font-weight:500;letter-spacing:.34em;text-transform:uppercase;color:var(--white);opacity:.82;white-space:nowrap;transition:opacity .4s ease,text-shadow .4s ease}
+.car-item .c-cta{position:absolute;left:50%;bottom:26px;transform:translateX(-50%) skewX(14deg);z-index:3;font-size:7px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);opacity:0;transition:opacity .35s ease}
+.car-item:hover .overlay,.car-item:focus-visible .overlay{background:rgba(5,5,6,.32)}
+.car-item:hover .c-name,.car-item:focus-visible .c-name{opacity:1;text-shadow:0 0 16px rgba(255,255,255,.35)}
+.car-item:hover .c-cta,.car-item:focus-visible .c-cta{opacity:1}
+
+/* ========= POSICIONAMENTO + RESULTADOS (uma secção) ========= */
+section.block{padding:clamp(64px,9vw,120px) var(--pad)}
+.eyebrow{font-size:8px;font-weight:600;letter-spacing:.28em;text-transform:uppercase;color:var(--gold)}
+.divider{color:var(--gold);font-size:11px;margin:18px 0 28px;text-align:center}
+.sec-work{background:var(--black2);text-align:center}
+.sec-work h2{font-family:var(--serif);font-weight:300;font-size:clamp(1.6rem,2.8vw,2.4rem);line-height:1.24;color:var(--white);max-width:620px;margin:14px auto 0;text-wrap:balance}
+.sec-work .desc{font-size:11px;font-weight:300;line-height:2;color:var(--white-dim);max-width:520px;margin:14px auto 0}
+.sec-work .desc.sub{color:var(--white-faint)}
+.results-note{max-width:520px;margin:38px auto 30px;font-size:10px;line-height:1.9;color:var(--white-faint);letter-spacing:.02em;border:1px solid var(--gold-soft);padding:10px 16px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:left}
+@media (max-width:1000px){.cards{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:560px){.cards{grid-template-columns:1fr}}
+.card{border:1px solid var(--gold-soft);background:var(--panel);padding:26px 20px;display:flex;flex-direction:column}
+.card-cmp{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:26px}
+.cmp-box{width:44%}
+.cmp-box .tag{font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--white-faint);display:block;margin-bottom:8px}
+.cmp-box .ph{width:100%;aspect-ratio:.74;border:1px solid rgba(255,255,255,.06);background:#1c1b19;overflow:hidden}
+.cmp-box .ph img{width:100%;height:100%;object-fit:cover}
+.cmp-arrow{color:var(--gold);font-size:13px;opacity:.55}
+.card-metrics{display:flex;flex-direction:column;gap:18px;margin-top:auto}
+.metric{display:flex;flex-direction:column}
+.metric .m-lbl{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--white-faint);margin-bottom:5px}
+.metric .m-val{font-family:var(--serif);font-size:19px;font-weight:400;color:var(--gold)}
+
+/* ========= PÁGINA DO CLIENTE — colagem sem separadores ========= */
+.gallery{position:fixed;inset:0;z-index:100;background:var(--black);overflow-y:auto;overscroll-behavior:contain;opacity:0;pointer-events:none;transition:opacity .3s}
+.gallery.open{opacity:1;pointer-events:auto}
+.gallery-bar{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:15px var(--pad);background:rgba(11,11,10,.86);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--gold-soft)}
+.gallery-id{display:flex;align-items:baseline;gap:12px;min-width:0}
+.gallery-mark{color:var(--gold);font-size:13px;flex-shrink:0}
+.gallery-name{font-family:var(--serif);font-weight:400;font-size:clamp(1.15rem,2.2vw,1.6rem);color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gallery-back{flex-shrink:0;background:none;border:1px solid var(--gold-soft);color:var(--white);padding:9px 15px;font-family:var(--sans);font-size:8px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:background .2s,color .2s}
+.gallery-back:hover{background:var(--gold);color:var(--black)}
+.gallery-lead{padding:24px var(--pad) 0;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--white-faint)}
+.gcollage{column-count:2;column-gap:0;margin-top:14px;padding-bottom:60px}
+@media (min-width:640px){.gcollage{column-count:3}}
+@media (min-width:1000px){.gcollage{column-count:4}}
+@media (min-width:1500px){.gcollage{column-count:5}}
+.gcollage figure{margin:0;display:block;position:relative;overflow:hidden;line-height:0;cursor:zoom-in;break-inside:avoid}
+.gcollage img,.gcollage video{width:100%;height:auto;display:block;transition:transform .55s cubic-bezier(.2,.7,.2,1),filter .4s;filter:grayscale(.25)}
+.gcollage figure:hover img,.gcollage figure:hover video{transform:scale(1.045);filter:grayscale(0)}
+@media (prefers-reduced-motion:reduce){.gcollage figure:hover img,.gcollage figure:hover video{transform:none}}
+.gcollage figure .vtag{position:absolute;top:10px;left:10px;color:var(--white);font-size:15px;opacity:.85;text-shadow:0 1px 6px rgba(0,0,0,.6);pointer-events:none}
+
+/* ZOOM de peça única */
+.zoom{position:fixed;inset:0;z-index:120;background:rgba(5,5,4,.95);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:clamp(12px,4vw,54px);opacity:0;pointer-events:none;transition:opacity .25s}
+.zoom.open{opacity:1;pointer-events:auto}
+.zoom-media{max-width:94vw;max-height:90vh;object-fit:contain;border:1px solid var(--gold-soft);background:#000}
+.zoom-close{position:absolute;top:16px;right:20px;background:none;border:1px solid var(--gold-soft);color:var(--white);width:34px;height:34px;cursor:pointer;font-size:15px;transition:background .2s,color .2s}
+.zoom-close:hover{background:var(--gold);color:var(--black)}
+
+/* CONTACTO */
+.sec-contact{background:var(--black);display:grid;grid-template-columns:1fr 1fr;gap:clamp(40px,7vw,80px);align-items:start}
+@media (max-width:820px){.sec-contact{grid-template-columns:1fr}}
+.contact-title{font-family:var(--serif);font-weight:300;font-size:clamp(1.8rem,2.8vw,2.6rem);line-height:1.22;color:var(--white);margin:18px 0 38px;text-wrap:balance}
+.field{display:block;width:100%;background:transparent;border:none;border-bottom:1px solid rgba(240,234,224,.18);color:var(--white);font-family:var(--sans);font-size:11px;font-weight:300;letter-spacing:.03em;padding:13px 0;margin-bottom:20px;outline:none;transition:border-color .25s}
+.field::placeholder{color:rgba(240,234,224,.28)}
+.field:focus{border-bottom-color:var(--gold)}
+textarea.field{resize:vertical;min-height:88px}
+.btn-submit{width:100%;padding:16px;background:var(--gold);border:none;color:var(--black);font-family:var(--sans);font-size:9px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;cursor:pointer;margin-top:6px;transition:opacity .2s}
+.btn-submit:hover{opacity:.87}
+.form-msg{margin-top:14px;font-size:10px;letter-spacing:.04em;color:var(--gold);min-height:14px;line-height:1.7}
+
+/* FOOTER */
+footer{background:var(--black);border-top:1px solid rgba(255,255,255,.07);padding:22px var(--pad);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.footer-left{display:flex;align-items:center;gap:8px;font-size:8.5px;color:rgba(240,234,224,.28);letter-spacing:.04em;line-height:1.6}
+.footer-left svg{width:11px;height:11px;opacity:.4;flex-shrink:0}
+.footer-copy{font-size:8.5px;color:rgba(240,234,224,.28);letter-spacing:.06em}
+.footer-cross{color:var(--gold);font-size:15px;opacity:.55}
+</style>
+</head>
+<body>
+
+<header>
+  <svg class="logo-mark" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+    <path d="M20 3L36 37H29.5L20 15.5L10.5 37H4L20 3Z" fill="var(--gold)"/>
+    <path d="M13.7 27H26.3" stroke="var(--black)" stroke-width="2.4"/>
+  </svg>
+  <span class="logo-word">Asteris</span>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <h1 class="hero-title">Quando a apresentação do produto falha, até a excelência é percebida como desperdício.</h1>
+    <p class="hero-sub">
+      Não é sobre o que você entrega.<br>
+      É sobre a forma como o seu cliente o vê.
+    </p>
+    <a class="btn-wa" data-wa="Olá! Vim pelo site e gostava de uma análise da minha presença digital.">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 00-8.6 15l-1.3 4.8 4.9-1.3A10 10 0 1012 2zm5.8 14.2c-.2.7-1.4 1.3-2 1.4-.5.1-1.2.1-1.9-.1-.4-.1-1-.3-1.8-.6-3-1.3-5-4.4-5.2-4.6-.1-.2-1.2-1.6-1.2-3.1s.8-2.2 1-2.5c.3-.3.6-.4.8-.4h.6c.2 0 .4 0 .7.5l.9 2.1c.1.2.1.4 0 .6l-.4.5-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.1.5.1.7-.1l.9-1.1c.2-.2.4-.2.6-.1l2 1c.3.1.5.2.5.4.1.2.1.9-.1 1.6z"/></svg>
+      Solicitar análise
+    </a>
+  </div>
+  <div class="hero-right">
+    <!-- TROCAR: imagem final do hero (cavalo ou outra). Cloudinary: asteris/hero/main -->
+    <img src="https://res.cloudinary.com/demo/image/upload/f_auto,q_auto,w_1400/couple.jpg" alt="" loading="eager">
+  </div>
+</section>
+
+<!-- CARROSSEL INFINITO DE CLIENTES -->
+<section class="clientes" aria-label="Clientes">
+  <div class="car-track" id="car-track"><!-- injetado por JS (duplicado p/ loop) --></div>
+</section>
+
+<!-- POSICIONAMENTO (enunciado) + RESULTADOS — UMA SÓ SECÇÃO -->
+<section class="block sec-work">
+  <p class="eyebrow">Posicionamento</p>
+  <div class="divider">&#10022;</div>
+  <h2>Qualidade sem posicionamento vira potencial descartado.</h2>
+  <p class="desc">Transformamos marcas, produtos e profissionais em referências percebidas, através de posicionamento, estratégia e produção audiovisual.</p>
+  <p class="desc sub">Criamos imagens, narrativas e posicionamento para transformar valor em percepção — e percepção em procura.</p>
+
+  <p class="results-note">Secção ilustrativa. Os números e as imagens serão substituídos por casos reais à medida que os primeiros projetos fecharem.</p>
+  <div class="cards" id="cards"><!-- injetado por JS a partir de RESULTS --></div>
+</section>
+
+<!-- CONTACTO -->
+<section class="block sec-contact" id="contacto">
+  <div>
+    <p class="eyebrow">Vamos conversar?</p>
+    <p class="contact-title">Se existe valor, existe potencial.</p>
+    <a class="btn-wa" data-wa="Olá! Vim pelo site e gostava de falar sobre um projeto.">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 00-8.6 15l-1.3 4.8 4.9-1.3A10 10 0 1012 2zm5.8 14.2c-.2.7-1.4 1.3-2 1.4-.5.1-1.2.1-1.9-.1-.4-.1-1-.3-1.8-.6-3-1.3-5-4.4-5.2-4.6-.1-.2-1.2-1.6-1.2-3.1s.8-2.2 1-2.5c.3-.3.6-.4.8-.4h.6c.2 0 .4 0 .7.5l.9 2.1c.1.2.1.4 0 .6l-.4.5-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.1.5.1.7-.1l.9-1.1c.2-.2.4-.2.6-.1l2 1c.3.1.5.2.5.4.1.2.1.9-.1 1.6z"/></svg>
+      Solicitar análise
+    </a>
+  </div>
+  <form id="contact-form" method="POST" novalidate>
+    <input class="field" type="text" name="nome" placeholder="Nome" required autocomplete="name">
+    <input class="field" type="email" name="email" placeholder="Email" required autocomplete="email">
+    <input class="field" type="text" name="empresa" placeholder="Empresa" autocomplete="organization">
+    <textarea class="field" name="mensagem" placeholder="Mensagem" required></textarea>
+    <input type="hidden" name="_subject" value="Novo contacto — site Asteris">
+    <button class="btn-submit" type="submit">Enviar mensagem</button>
+    <p class="form-msg" id="form-msg" role="status" aria-live="polite"></p>
+  </form>
+</section>
+
+<footer>
+  <div class="footer-left">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 1a5 5 0 00-5 5v3H6a2 2 0 00-2 2v9a2 2 0 002 2h12a2 2 0 002-2v-9a2 2 0 00-2-2h-1V6a5 5 0 00-5-5zm3 8H9V6a3 3 0 016 0v3z"/></svg>
+    Todas as informações são confidenciais.<br>Entramos em contacto em até 24 horas.
+  </div>
+  <span class="footer-copy">&copy; <span id="year">2026</span> Asteris. Todos os direitos reservados.</span>
+  <span class="footer-cross">&#10022;</span>
+</footer>
+
+<!-- PÁGINA DO CLIENTE (colagem) -->
+<div class="gallery" id="gallery" role="dialog" aria-modal="true" aria-label="Galeria do cliente">
+  <div class="gallery-bar">
+    <span class="gallery-id"><span class="gallery-mark">&#10022;</span><span class="gallery-name" id="gallery-name"></span></span>
+    <button class="gallery-back" id="gallery-back">&#8249; Voltar</button>
+  </div>
+  <p class="gallery-lead" id="gallery-lead"></p>
+  <div class="gcollage" id="gcollage"></div>
+</div>
+
+<!-- ZOOM de peça única -->
+<div class="zoom" id="zoom" role="dialog" aria-modal="true" aria-label="Peça ampliada">
+  <button class="zoom-close" id="zoom-close" aria-label="Fechar">&#10005;</button>
+  <div id="zoom-wrap"></div>
+</div>
+
+<script>
+/* ============================================================
+   CONFIG — editar estes 3 valores e o site fica pronto
+   ============================================================ */
+const CONFIG = {
+  cloudName:   "demo",          // <<< cloud name da Cloudinary (Dashboard > Product Environment)
+  whatsapp:    "351900000000",  // <<< número WhatsApp, só dígitos, com indicativo
+  formspreeId: ""               // <<< ID do form Formspree; vazio = form desativado (só WhatsApp)
+};
+
+/* helpers Cloudinary */
+function IMG(id, o){ o = o || {};
+  const t = ["f_auto","q_auto","c_"+(o.c||"fill"),"w_"+(o.w||900)];
+  if(o.ar) t.push("ar_"+o.ar);
+  if(o.e)  t.push("e_"+o.e);
+  return "https://res.cloudinary.com/"+CONFIG.cloudName+"/image/upload/"+t.join(",")+"/"+id;
+}
+function VID(id, w){ return "https://res.cloudinary.com/"+CONFIG.cloudName+"/video/upload/q_auto,w_"+(w||900)+"/"+id; }
+
+/* ============================================================
+   RESULTADOS — 1 objeto por card (metricas contam ao aparecer).
+   ============================================================ */
+const RESULTS = [
+  { name:"Cliente — Restaurante", antes:IMG("sample",{w:320}), depois:IMG("couple",{w:320}),
+    metrics:[ {label:"Faturação / mês", target:4200, prefix:"+€", suffix:"", euro:true},
+              {label:"Crescimento", target:140, prefix:"+", suffix:"%"},
+              {label:"Ticket médio", target:22, prefix:"+", suffix:"%"} ] },
+  { name:"Cliente — Clínica", antes:IMG("kitten",{w:320}), depois:IMG("lady",{w:320}),
+    metrics:[ {label:"Faturação / mês", target:6800, prefix:"+€", suffix:"", euro:true},
+              {label:"Crescimento", target:95, prefix:"+", suffix:"%"},
+              {label:"Marcações", target:60, prefix:"+", suffix:"%"} ] },
+  { name:"Cliente — Stand auto", antes:IMG("balloons",{w:320}), depois:IMG("sample",{w:320}),
+    metrics:[ {label:"Faturação / mês", target:11000, prefix:"+€", suffix:"", euro:true},
+              {label:"Leads online", target:180, prefix:"+", suffix:"%"},
+              {label:"Visitas ao stand", target:70, prefix:"+", suffix:"%"} ] },
+  { name:"Cliente — Marca / loja", antes:IMG("couple",{w:320}), depois:IMG("balloons",{w:320}),
+    metrics:[ {label:"Faturação / mês", target:3500, prefix:"+€", suffix:"", euro:true},
+              {label:"Conversão", target:45, prefix:"+", suffix:"%"},
+              {label:"Ticket médio", target:18, prefix:"+", suffix:"%"} ] }
+];
+
+/* ============================================================
+   PORTFÓLIO — 1 objeto por cliente.
+   bg  = vídeo de fundo do painel do carrossel
+   items[] = galeria da página do cliente ({type, src})
+   Trocar os IMG()/VID() de exemplo pelos teus public IDs da Cloudinary.
+   ============================================================ */
+function shots(id, list){ return list.map(function(o){ return {type:"image", src:IMG(id,o)}; }); }
+
+const PORTFOLIO = [
+  { client:"Órfeu", slug:"orfeu", bg:VID("sea_turtle"), items:
+    shots("couple",[{ar:"3:4"},{ar:"1:1",e:"grayscale"},{ar:"4:5"},{ar:"16:9"},{ar:"2:3"},{ar:"1:1"}])
+    .concat([{type:"video",src:VID("sea_turtle",1200)},{type:"video",src:VID("dog",1200)}]) },
+
+  { client:"Villas", slug:"villas", bg:VID("dog"), items:
+    shots("balloons",[{ar:"4:5"},{ar:"1:1"},{ar:"3:4",e:"grayscale"},{ar:"16:9"},{ar:"2:3"},{ar:"1:1"}])
+    .concat([{type:"video",src:VID("dog",1200)}]) },
+
+  { client:"Patrimar", slug:"patrimar", bg:VID("sea_turtle"), items:
+    shots("sample",[{ar:"1:1"},{ar:"3:4"},{ar:"4:5",e:"grayscale"},{ar:"16:9"},{ar:"1:1"},{ar:"2:3"},{ar:"4:3"}])
+    .concat([{type:"video",src:VID("sea_turtle",1200)}]) },
+
+  { client:"Fasano", slug:"fasano", bg:VID("dog"), items:
+    shots("lady",[{ar:"3:4"},{ar:"1:1",e:"grayscale"},{ar:"4:5"},{ar:"2:3"},{ar:"16:9"},{ar:"1:1"}])
+    .concat([{type:"video",src:VID("dog",1200)},{type:"video",src:VID("sea_turtle",1200)}]) },
+
+  { client:"Brimavera", slug:"brimavera", bg:VID("sea_turtle"), items:
+    shots("kitten",[{ar:"1:1"},{ar:"4:5",e:"grayscale"},{ar:"3:4"},{ar:"16:9"},{ar:"2:3"},{ar:"1:1"}])
+    .concat([{type:"video",src:VID("dog",1200)}]) },
+
+  { client:"Bopp", slug:"bopp", bg:VID("dog"), items:
+    shots("balloons",[{ar:"3:4",e:"grayscale"},{ar:"1:1"},{ar:"4:5"},{ar:"2:3"},{ar:"16:9"},{ar:"1:1"},{ar:"4:3"}])
+    .concat([{type:"video",src:VID("sea_turtle",1200)}]) }
+];
+
+/* ---------- WhatsApp + ano ---------- */
+document.querySelectorAll("[data-wa]").forEach(function(a){
+  a.href = "https://wa.me/"+CONFIG.whatsapp+"?text="+encodeURIComponent(a.dataset.wa);
+  a.target = "_blank"; a.rel = "noopener";
+});
+document.getElementById("year").textContent = new Date().getFullYear();
+
+/* ---------- Carrossel infinito ---------- */
+var track = document.getElementById("car-track");
+function itemHTML(p, i){
+  return '<div class="car-item" role="button" tabindex="0" data-i="'+i+'" aria-label="Ver galeria — '+p.client+'">'
+    + '<video class="bg-video" src="'+p.bg+'" autoplay loop muted playsinline preload="metadata"></video>'
+    + '<span class="overlay"></span>'
+    + '<span class="c-name">'+p.client+'</span>'
+    + '<span class="c-cta">Ver galeria</span>'
+    + '</div>';
+}
+/* duplica a lista para o loop parecer contínuo */
+track.innerHTML = PORTFOLIO.map(itemHTML).join("") + PORTFOLIO.map(itemHTML).join("");
+
+function openFromItem(el){
+  var i = +el.dataset.i;
+  if(!Number.isNaN(i)) openGallery(i);
+}
+track.addEventListener("click", function(e){
+  var it = e.target.closest(".car-item"); if(it) openFromItem(it);
+});
+track.addEventListener("keydown", function(e){
+  if(e.key !== "Enter" && e.key !== " ") return;
+  var it = e.target.closest(".car-item"); if(it){ e.preventDefault(); openFromItem(it); }
+});
+
+/* ---------- Resultados + contadores ---------- */
+function fmt(n, m){
+  if(m.euro) return m.prefix + Math.floor(n).toLocaleString("pt-PT");
+  return m.prefix + Math.floor(n) + m.suffix;
+}
+document.getElementById("cards").innerHTML = RESULTS.map(function(r){
+  var rows = r.metrics.map(function(m){
+    return '<div class="metric"><span class="m-lbl">'+m.label+'</span>'
+      + '<span class="m-val" data-target="'+m.target+'">'+ (m.euro ? m.prefix+"0" : m.prefix+"0"+m.suffix) +'</span></div>';
+  }).join("");
+  return '<article class="card">'
+    + '<div class="card-cmp">'
+    +   '<div class="cmp-box"><span class="tag">Antes</span><span class="ph"><img src="'+r.antes+'" alt="" loading="lazy"></span></div>'
+    +   '<span class="cmp-arrow">&rarr;</span>'
+    +   '<div class="cmp-box"><span class="tag">Depois</span><span class="ph"><img src="'+r.depois+'" alt="" loading="lazy"></span></div>'
+    + '</div>'
+    + '<div class="card-metrics">'+rows+'</div>'
+    + '</article>';
+}).join("");
+
+(function countersOnView(){
+  var metricsByCard = RESULTS.map(function(r){ return r.metrics; });
+  var vals = document.querySelectorAll("#cards .m-val");
+  function run(el, m){
+    var target = +el.dataset.target, n = 0, step = target / 34;
+    (function tick(){
+      n += step;
+      if(n < target){ el.textContent = fmt(n, m); requestAnimationFrame(tick); }
+      else { el.textContent = fmt(target, m); }
+    })();
+  }
+  if(!("IntersectionObserver" in window)){
+    vals.forEach(function(el,k){ run(el, flatMetrics()[k]); }); return;
+  }
+  function flatMetrics(){ var out=[]; metricsByCard.forEach(function(ms){ ms.forEach(function(m){ out.push(m); }); }); return out; }
+  var flat = flatMetrics();
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if(!en.isIntersecting) return;
+      var idx = [].indexOf.call(vals, en.target);
+      run(en.target, flat[idx]);
+      io.unobserve(en.target);
+    });
+  }, { threshold: .4 });
+  vals.forEach(function(el){ io.observe(el); });
+})();
+
+/* ---------- Página do cliente (colagem) ---------- */
+var gallery = document.getElementById("gallery");
+var gcollage = document.getElementById("gcollage");
+var galleryName = document.getElementById("gallery-name");
+var galleryLead = document.getElementById("gallery-lead");
+var galleryOpen = false, lastFocus = null, vObserver = null;
+
+function openGallery(i){
+  var p = PORTFOLIO[i];
+  galleryName.textContent = p.client;
+  var vids = p.items.filter(function(it){ return it.type==="video"; }).length;
+  galleryLead.textContent = p.items.length + " peças" + (vids ? "  ·  " + vids + " em vídeo" : "");
+  gcollage.innerHTML = p.items.map(function(it, k){
+    if(it.type === "video"){
+      return '<figure data-k="'+k+'"><span class="vtag">&#9654;</span>'
+        + '<video src="'+it.src+'" muted loop playsinline preload="metadata"></video></figure>';
+    }
+    return '<figure data-k="'+k+'"><img src="'+it.src+'" alt="Trabalho para '+p.client+'" loading="lazy"></figure>';
+  }).join("");
+  gallery.dataset.client = i;
+  lastFocus = document.activeElement;
+  gallery.classList.add("open");
+  gallery.scrollTop = 0;
+  document.body.style.overflow = "hidden";
+  galleryOpen = true;
+  document.getElementById("gallery-back").focus();
+  try{ history.pushState({ gallery: i }, "", "#" + p.slug); }catch(e){}
+  observeGalleryVideos();
+}
+function closeGallery(fromPop){
+  if(!galleryOpen) return;
+  gallery.classList.remove("open");
+  document.body.style.overflow = "";
+  galleryOpen = false;
+  gcollage.querySelectorAll("video").forEach(function(v){ v.pause(); });
+  gcollage.innerHTML = "";
+  if(lastFocus) lastFocus.focus();
+  if(!fromPop){ try{ if(history.state && history.state.gallery != null) history.back(); else history.replaceState(null,"",location.pathname); }catch(e){} }
+}
+document.getElementById("gallery-back").addEventListener("click", function(){ closeGallery(); });
+
+function observeGalleryVideos(){
+  if(vObserver) vObserver.disconnect();
+  if(!("IntersectionObserver" in window)){ gcollage.querySelectorAll("video").forEach(function(v){ v.play().catch(function(){}); }); return; }
+  vObserver = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){ if(en.isIntersecting) en.target.play().catch(function(){}); else en.target.pause(); });
+  }, { threshold: 0.25 });
+  gcollage.querySelectorAll("video").forEach(function(v){ vObserver.observe(v); });
+}
+
+/* ---------- Zoom de peça única ---------- */
+var zoom = document.getElementById("zoom");
+var zoomWrap = document.getElementById("zoom-wrap");
+var zoomOpen = false;
+function openZoom(k){
+  var p = PORTFOLIO[+gallery.dataset.client];
+  var it = p.items[k];
+  zoomWrap.innerHTML = it.type === "video"
+    ? '<video class="zoom-media" src="'+it.src+'" controls autoplay playsinline></video>'
+    : '<img class="zoom-media" src="'+it.src.replace(/w_\d+/,"w_1800")+'" alt="Trabalho para '+p.client+'">';
+  zoom.classList.add("open"); zoomOpen = true;
+  document.getElementById("zoom-close").focus();
+}
+function closeZoom(){ zoom.classList.remove("open"); zoomWrap.innerHTML = ""; zoomOpen = false; }
+gcollage.addEventListener("click", function(e){
+  var fig = e.target.closest("figure"); if(fig) openZoom(+fig.dataset.k);
+});
+document.getElementById("zoom-close").addEventListener("click", closeZoom);
+zoom.addEventListener("click", function(e){ if(e.target === zoom) closeZoom(); });
+
+document.addEventListener("keydown", function(e){
+  if(e.key !== "Escape") return;
+  if(zoomOpen) closeZoom(); else if(galleryOpen) closeGallery();
+});
+window.addEventListener("popstate", function(){
+  if(zoomOpen) closeZoom();
+  if(galleryOpen) closeGallery(true);
+});
+
+/* ---------- Formulário ---------- */
+var form = document.getElementById("contact-form");
+var msg = document.getElementById("form-msg");
+if(CONFIG.formspreeId) form.action = "https://formspree.io/f/" + CONFIG.formspreeId;
+form.addEventListener("submit", async function(e){
+  e.preventDefault();
+  if(!CONFIG.formspreeId){ msg.textContent = "Formulário ainda não configurado — use o botão de WhatsApp por agora."; return; }
+  if(!form.checkValidity()){ msg.textContent = "Preencha nome, email e mensagem."; return; }
+  msg.textContent = "A enviar…";
+  try{
+    var r = await fetch(form.action, { method:"POST", body:new FormData(form), headers:{ Accept:"application/json" } });
+    if(r.ok){ form.reset(); msg.textContent = "Mensagem enviada. Respondemos em até 24 horas."; }
+    else { msg.textContent = "Não foi possível enviar. Tente pelo WhatsApp."; }
+  }catch(_){ msg.textContent = "Sem ligação. Tente pelo WhatsApp."; }
+});
+</script>
+</body>
+</html>
