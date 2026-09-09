@@ -6,6 +6,7 @@
   "expira": "2026-12-01",
   "proposta": {
     "validade": "15 dias",
+    "logo": "/assets/logos/fasano.svg",
     "secoes": [
       { "tipo": "texto", "eyebrow": "Onde estão hoje", "paragrafos": ["Cozinha de primeira, presença online de telemóvel."] },
       { "tipo": "texto", "eyebrow": "O que identificámos", "bullets": ["Sem vídeo curto", "Feed sem identidade", "Concorrência já a fazer reels"] },
