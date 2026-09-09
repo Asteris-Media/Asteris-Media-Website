@@ -505,10 +505,13 @@ if(document.readyState === "complete") refresh();
 window.addEventListener("load", refresh);
 if(document.fonts && document.fonts.ready) document.fonts.ready.then(fitTitles);
 if("ResizeObserver" in window) new ResizeObserver(refresh).observe(track);
-/* só o rato pausa a faixa; toque nunca (senão fica congelada no telemóvel) */
+/* rato: pausa enquanto está por cima. toque: pausa com o dedo pousado,
+   volta ao levantar (pointerup no window p/ não ficar congelada) */
 clientes.addEventListener("pointerenter", function(e){ if(e.pointerType === "mouse") hovering = true; });
 clientes.addEventListener("pointerleave", function(e){ if(e.pointerType === "mouse") hovering = false; });
-clientes.addEventListener("pointercancel", function(){ hovering = false; });
+clientes.addEventListener("pointerdown", function(e){ if(e.pointerType !== "mouse") hovering = true; });
+window.addEventListener("pointerup", function(e){ if(e.pointerType !== "mouse") hovering = false; });
+window.addEventListener("pointercancel", function(e){ if(e.pointerType !== "mouse") hovering = false; });
 requestAnimationFrame(frame);
 
 /* só toca os vídeos dos painéis visíveis (evita 27 decodes ao mesmo tempo) */
