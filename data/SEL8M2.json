@@ -1,0 +1,23 @@
+{
+  "type": "triagem",
+  "cliente": "Brendha & Pedro",
+  "titulo": "Escolha das fotos — ensaio gestante",
+  "intro": "Vê todas as fotos e marca as que queres na versão final editada. Quando terminares, carrega em Guardar seleção. Nós tratamos do resto.",
+  "capa": "/assets/clientes/brendha-pedro.mp4",
+  "expira": "2026-11-15",
+  "minimo": 5,
+  "instrucoes": "Toca no círculo de cada foto para a escolher.",
+  "formspree": "maeylznr",
+  "itens": [
+    { "tipo": "video", "nome": "teaser", "src": "/assets/clientes/brendha-pedro.mp4" },
+    { "tipo": "foto", "nome": "gestante-01", "src": "https://res.cloudinary.com/demo/image/upload/w_1400/lady.jpg", "thumb": "https://res.cloudinary.com/demo/image/upload/w_600/lady.jpg" },
+    { "tipo": "foto", "nome": "gestante-02", "src": "https://res.cloudinary.com/demo/image/upload/w_1400/couple.jpg", "thumb": "https://res.cloudinary.com/demo/image/upload/w_600/couple.jpg" },
+    { "tipo": "foto", "nome": "gestante-03", "src": "https://res.cloudinary.com/demo/image/upload/w_1400/sample.jpg", "thumb": "https://res.cloudinary.com/demo/image/upload/w_600/sample.jpg" },
+    { "tipo": "foto", "nome": "gestante-04", "src": "https://res.cloudinary.com/demo/image/upload/w_1400/kitten.jpg", "thumb": "https://res.cloudinary.com/demo/image/upload/w_600/kitten.jpg" },
+    { "tipo": "foto", "nome": "gestante-05", "src": "https://res.cloudinary.com/demo/image/upload/w_1400/balloons.jpg", "thumb": "https://res.cloudinary.com/demo/image/upload/w_600/balloons.jpg" },
+    { "tipo": "foto", "nome": "gestante-06", "src": "https://res.cloudinary.com/demo/image/upload/w_1400/coffee.jpg", "thumb": "https://res.cloudinary.com/demo/image/upload/w_600/coffee.jpg" },
+    { "tipo": "foto", "nome": "gestante-07", "src": "https://res.cloudinary.com/demo/image/upload/w_1400/bike.jpg", "thumb": "https://res.cloudinary.com/demo/image/upload/w_600/bike.jpg" },
+    { "tipo": "foto", "nome": "gestante-08", "src": "https://res.cloudinary.com/demo/image/upload/w_1400/dog.jpg", "thumb": "https://res.cloudinary.com/demo/image/upload/w_600/dog.jpg" },
+    { "tipo": "foto", "nome": "gestante-09", "src": "https://res.cloudinary.com/demo/image/upload/w_1400/sheep.jpg", "thumb": "https://res.cloudinary.com/demo/image/upload/w_600/sheep.jpg" }
+  ]
+}

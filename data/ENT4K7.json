@@ -1,0 +1,19 @@
+{
+  "type": "galeria",
+  "cliente": "Mudanças Everton",
+  "titulo": "Entrega — vídeo institucional + fotografia",
+  "intro": "Está tudo aqui. Descarrega peça a peça ou o pacote completo. O link fica ativo até à data indicada — avisa se precisares de mais tempo.",
+  "capa": "/assets/clientes/patrimar.mp4",
+  "expira": "2026-11-30",
+  "downloadTudo": "",
+  "itens": [
+    { "tipo": "video", "nome": "institucional-final", "src": "/assets/clientes/patrimar.mp4", "download": "/assets/clientes/patrimar.mp4" },
+    { "tipo": "video", "nome": "teaser-15s", "src": "/assets/clientes/villas.mp4", "download": "/assets/clientes/villas.mp4" },
+    { "tipo": "foto", "nome": "equipa-01", "src": "https://res.cloudinary.com/demo/image/upload/w_1600/sample.jpg", "thumb": "https://res.cloudinary.com/demo/image/upload/w_600/sample.jpg" },
+    { "tipo": "foto", "nome": "camiao-02", "src": "https://res.cloudinary.com/demo/image/upload/w_1600/bike.jpg", "thumb": "https://res.cloudinary.com/demo/image/upload/w_600/bike.jpg" },
+    { "tipo": "foto", "nome": "armazem-03", "src": "https://res.cloudinary.com/demo/image/upload/w_1600/coffee.jpg", "thumb": "https://res.cloudinary.com/demo/image/upload/w_600/coffee.jpg" },
+    { "tipo": "foto", "nome": "detalhe-04", "src": "https://res.cloudinary.com/demo/image/upload/w_1600/kitten.jpg", "thumb": "https://res.cloudinary.com/demo/image/upload/w_600/kitten.jpg" },
+    { "tipo": "foto", "nome": "fachada-05", "src": "https://res.cloudinary.com/demo/image/upload/w_1600/couple.jpg", "thumb": "https://res.cloudinary.com/demo/image/upload/w_600/couple.jpg" },
+    { "tipo": "foto", "nome": "retrato-06", "src": "https://res.cloudinary.com/demo/image/upload/w_1600/lady.jpg", "thumb": "https://res.cloudinary.com/demo/image/upload/w_600/lady.jpg" }
+  ]
+}
