@@ -228,7 +228,7 @@ function confirmModal(o){
     var c = el("button","btn ghost", o.cancel || "Cancelar"); c.onclick = function(){ close(false); };
     var k = el("button","btn "+(o.danger ? "danger" : "gold"), o.ok || "Confirmar"); k.onclick = function(){ close(true); };
     row.appendChild(c); row.appendChild(k); box.appendChild(row);
-    setTimeout(function(){ k.focus(); }, 30);
+    setTimeout(function(){ (o.danger ? c : k).focus(); }, 30);
   });
 }
 function promptModal(o){
