@@ -581,7 +581,7 @@ function openLb(i, list){
   if(list) LBSET = list; else if(!LBSET.length) LBSET = ITEMS;
   lbi=i; lbOpen=true; var it=LBSET[i];
   lbWrap.innerHTML = it.tipo==="video"
-    ? '<video class="lb-media" src="'+it.src+'" controls autoplay playsinline controlsList="nodownload nofullscreen noremoteplayback" disablePictureInPicture oncontextmenu="return false"></video>'
+    ? '<video class="lb-media" src="'+it.src+'" controls autoplay playsinline controlsList="nodownload nofullscreen noremoteplayback noplaybackrate" disablePictureInPicture oncontextmenu="return false"></video>'
     : '<img class="lb-media" src="'+it.src+'" alt="'+(it.nome||"")+'">';
   $("#lb-name").textContent = it.nome || "";
   $("#lb-count").textContent = (i+1) + " / " + LBSET.length;
