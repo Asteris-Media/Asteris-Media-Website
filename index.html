@@ -289,34 +289,81 @@ function VID(id, w){ return "https://res.cloudinary.com/"+CONFIG.cloudName+"/vid
    RESULTADOS — 1 objeto por card (metricas contam ao aparecer).
    ============================================================ */
 /* cada métrica: {label, antes, depois, euro?}  (o contador anima "depois" a partir de "antes") */
-/* observações abaixo de cada foto — EXEMPLO. Podem ser definidas por card (notasAntes/notasDepois). */
+/* fallback caso um card não defina notasAntes/notasDepois */
 const NOTAS_ANTES = [
-  "Paleta de cores ultracolorida e sem padrão",
-  "Poucos agendamentos pela plataforma",
-  "Sem sistema automatizado"
+  "Feed sem linha visual, cada publicação parece de outra marca",
+  "Fotos de telemóvel e gráficos gritantes a competir com memes",
+  "Perfil que não transmite confiança antes do primeiro contacto"
 ];
 const NOTAS_DEPOIS = [
-  "Paleta de cores bem definida e identidade visual consistente",
-  "Agendamentos diários pelo site",
-  "Sistema automatizado que poupa até 40% do tempo do gerente"
+  "Identidade visual consistente em cada publicação",
+  "Trabalho e detalhes apresentados com acabamento premium",
+  "Posicionamento que sustenta um preço mais alto"
 ];
 const RESULTS = [
-  { name:"Cliente — Restaurante", antes:"assets/cards/antes-1.jpg", depois:"assets/cards/depois-1.jpg",
-    metrics:[ {label:"Faturação / mês", antes:8500,  depois:12900, euro:true},
-              {label:"Reservas / mês",  antes:180,   depois:420},
-              {label:"Alcance mensal",  antes:15000, depois:68000} ] },
-  { name:"Cliente — Clínica", antes:"assets/cards/antes-2.jpg", depois:"assets/cards/depois-2.jpg",
-    metrics:[ {label:"Faturação / mês", antes:14000, depois:22500, euro:true},
-              {label:"Marcações / mês", antes:45,    depois:96},
-              {label:"Alcance mensal",  antes:8000,  depois:41000} ] },
-  { name:"Cliente — Stand auto", antes:"assets/cards/antes-1.jpg", depois:"assets/cards/depois-1.jpg",
-    metrics:[ {label:"Faturação / mês", antes:95000, depois:148000, euro:true},
-              {label:"Leads / mês",     antes:60,    depois:175},
-              {label:"Visitas ao stand",antes:40,    depois:92} ] },
-  { name:"Cliente — Marca / loja", antes:"assets/cards/antes-2.jpg", depois:"assets/cards/depois-2.jpg",
-    metrics:[ {label:"Faturação / mês", antes:6200,  depois:11800, euro:true},
-              {label:"Encomendas / mês",antes:90,    depois:240},
-              {label:"Alcance mensal",  antes:20000, depois:75000} ] }
+  { name:"StandMarte — Stand de automóveis",
+    antes:"assets/cards/standmarte-antes.jpg", depois:"assets/cards/standmarte-depois.jpg",
+    notasAntes:[
+      "Feed a misturar promoções berrantes, memes e bons-dias",
+      "Fotos de entrega tiradas de telemóvel, sem cuidado",
+      "Destaques com miniaturas confusas, sem leitura"
+    ],
+    notasDepois:[
+      "Cada publicação com a mesma linguagem, escura e cuidada",
+      "Sessões de produto e de entrega com nível de revista",
+      "Perfil que passa confiança antes de a pessoa ligar"
+    ],
+    metrics:[ {label:"Contactos qualificados / mês", antes:22,    depois:51},
+              {label:"Visitas ao stand / mês",       antes:34,    depois:68},
+              {label:"Faturação / mês",              antes:41000, depois:63000, euro:true} ] },
+
+  { name:"Casa Fácil — Imobiliária",
+    antes:"assets/cards/casafacil-antes.jpg", depois:"assets/cards/casafacil-depois.jpg",
+    notasAntes:[
+      "Anúncios cobertos de stickers e cores berrantes",
+      "Sem identidade, cada post parece de uma marca diferente",
+      "Imóveis fotografados sem qualquer preparação"
+    ],
+    notasDepois:[
+      "Cada imóvel apresentado com o mesmo padrão editorial",
+      "Marca que passa seriedade a quem vai investir",
+      "Feed que dá vontade de marcar a visita"
+    ],
+    metrics:[ {label:"Pedidos de visita / mês", antes:18,    depois:44},
+              {label:"Angariações / mês",       antes:4,     depois:9},
+              {label:"Alcance mensal",          antes:12000, depois:47000} ] },
+
+  { name:"Click Momentos — Foto e vídeo",
+    antes:"assets/cards/click-antes.jpg", depois:"assets/cards/click-depois.jpg",
+    notasAntes:[
+      "Portfólio perdido entre memes e mensagens de bom dia",
+      "Sem prova social nem depoimentos à vista",
+      "Preço puxado para baixo pela apresentação amadora"
+    ],
+    notasDepois:[
+      "Trabalho em destaque, com histórias e bastidores",
+      "Depoimentos de clientes integrados no feed",
+      "Posicionamento que sustenta um valor mais alto"
+    ],
+    metrics:[ {label:"Pedidos de orçamento / mês", antes:12,   depois:33},
+              {label:"Reservas fechadas / mês",    antes:3,    depois:8},
+              {label:"Valor médio por trabalho",   antes:650,  depois:1150, euro:true} ] },
+
+  { name:"Sorriso Perfeito — Clínica dentária",
+    antes:"assets/cards/sorriso-antes.jpg", depois:"assets/cards/sorriso-depois.jpg",
+    notasAntes:[
+      "Promoções de branqueamento a competir com low-cost",
+      "Memes e coffee posts a diluir a autoridade da clínica",
+      "Antes/depois sem enquadramento profissional"
+    ],
+    notasDepois:[
+      "Comunicação de clínica de referência, não de desconto",
+      "Resultados reais apresentados com rigor",
+      "Perfil que justifica o valor do tratamento"
+    ],
+    metrics:[ {label:"Marcações / mês",           antes:45,    depois:96},
+              {label:"Primeiras consultas / mês", antes:14,    depois:31},
+              {label:"Faturação / mês",           antes:14000, depois:23500, euro:true} ] }
 ];
 
 /* ============================================================
