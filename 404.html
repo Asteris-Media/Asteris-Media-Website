@@ -158,17 +158,21 @@ a{color:inherit}
 @media(max-width:420px){.mood{column-count:5}}
 .mood img{width:100%;height:auto;display:block;margin-bottom:4px;filter:grayscale(.25);break-inside:avoid;cursor:pointer;transition:filter .25s,opacity .25s}
 .mood img:hover{filter:grayscale(0)}
-.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:26px}
-.plan{position:relative;border:1px solid var(--gold-soft);background:var(--panel);padding:26px 20px;display:flex;flex-direction:column}
-.plan.hot{border-color:var(--gold);box-shadow:0 0 34px rgba(201,161,102,.14)}
-.plan .p-flag{position:absolute;top:-1px;right:-1px;background:var(--gold);color:var(--black);font-size:7.5px;letter-spacing:.18em;text-transform:uppercase;padding:4px 9px;font-weight:600}
-.plan .p-name{display:flex;align-items:center;gap:9px;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.plans{display:grid;grid-template-columns:repeat(var(--cols,3),minmax(0,1fr));gap:14px;margin-top:26px}
+@media(max-width:820px){.plans{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.plans{grid-template-columns:1fr}}
+.plan{position:relative;border:1px solid var(--gold-soft);background:var(--panel);padding:26px 20px;display:flex;flex-direction:column;overflow:hidden}
+.plan.hot{border-color:var(--acc,var(--gold));box-shadow:0 0 34px rgba(201,161,102,.14)}
+.plan .p-img{width:calc(100% + 40px);margin:-26px -20px 16px;aspect-ratio:16/10;object-fit:cover;filter:grayscale(.2)}
+.plan .p-flag{position:absolute;top:-1px;right:-1px;background:var(--acc,var(--gold));color:var(--black);font-size:7.5px;letter-spacing:.18em;text-transform:uppercase;padding:4px 9px;font-weight:600}
+.plan .p-name{display:flex;align-items:center;gap:9px;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--acc,var(--gold))}
 .plan .p-ico{width:22px;height:22px;flex-shrink:0}
 .plan .p-price{font-family:var(--serif);font-weight:300;font-size:2rem;margin:10px 0 6px}
-.plan .p-resumo{font-size:10.5px;font-weight:300;line-height:1.7;color:var(--white-faint);margin-bottom:14px}
+.plan h4{font-family:var(--serif);font-weight:400;font-size:1.2rem;color:var(--white);margin:8px 0 0}
+.plan .p-resumo{font-size:10.5px;font-weight:300;line-height:1.7;color:var(--white-faint);margin:8px 0 14px}
 .plan ul{list-style:none;display:flex;flex-direction:column;gap:8px;margin-top:auto}
 .plan li{font-size:11px;font-weight:300;color:var(--white-dim);padding-left:16px;position:relative}
-.plan li::before{content:"·";position:absolute;left:4px;color:var(--gold)}
+.plan li::before{content:"·";position:absolute;left:4px;color:var(--acc,var(--gold))}
 .ico{width:16px;height:16px;display:inline-block;vertical-align:-3px}
 /* referências */
 .refs{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:26px}
@@ -667,86 +671,97 @@ function playInView(grid){
   vs.forEach(function(v){ io.observe(v); });
 }
 
-/* ---------------- PROPOSTA ---------------- */
+/* ---------------- PROPOSTA (secções flexíveis) ---------------- */
+function legacyToSecoes(pr){
+  var s = [];
+  if(pr.ondeEstao) s.push({ tipo:"texto", eyebrow:"Onde estão hoje", paragrafos:[pr.ondeEstao] });
+  if(pr.oQueVimos && pr.oQueVimos.length) s.push({ tipo:"texto", eyebrow:"O que identificámos", bullets:pr.oQueVimos });
+  if(pr.ondePodemChegar) s.push({ tipo:"texto", eyebrow:"Onde podem chegar", paragrafos:[pr.ondePodemChegar] });
+  if(pr.conceitos && pr.conceitos.length) s.push({ tipo:"cards", eyebrow:"Conceitos", modo:"carrossel",
+    cards: pr.conceitos.map(function(c){ return { img:c.img, titulo:c.titulo, resumo:c.desc }; }) });
+  if(pr.moodboard && pr.moodboard.length) s.push({ tipo:"galeria", eyebrow:"Moodboard", modo:"colagem",
+    itens: pr.moodboard.map(function(u){ return { src:u, tipo:"foto" }; }) });
+  if(pr.referencias && pr.referencias.length) s.push({ tipo:"cards", eyebrow:"Referências", modo:"carrossel",
+    cards: pr.referencias.map(function(r){ return { img:r.img, resumo:r.nota }; }) });
+  if(pr.planos && pr.planos.length) s.push({ tipo:"cards", eyebrow:"Investimento", modo:"grelha", colunas:pr.planos.length,
+    cards: pr.planos.map(function(p){ return { titulo:p.nome, icone:p.icone, preco:p.preco, resumo:p.resumo, linhas:p.inclui, destaque:p.destaque }; }) });
+  var fecho = pr.fecho || "Obrigado pelo vosso tempo. Se fizer sentido para os dois lados, será um gosto avançar, construir aqui uma parceria de longo prazo e fazer bons negócios juntos.";
+  s.push({ tipo:"texto", classe:"cta-wrap", eyebrow:"Obrigado", titulo: pr.cta || "Se existe potencial, existe valor.", paragrafos:[fecho], fechoStyle:true });
+  return s;
+}
+
+function secTextoHTML(s){
+  var h = '<section'+(s.classe?' class="'+s.classe+'"':'')+'>';
+  if(s.eyebrow) h += '<p class="eyebrow">'+s.eyebrow+'</p>';
+  if(s.titulo) h += '<h2>'+s.titulo+'</h2>';
+  (s.paragrafos||[]).forEach(function(p){ if(p) h += '<p class="'+(s.fechoStyle?"fecho":"lead")+'">'+p+'</p>'; });
+  if(s.bullets && s.bullets.length){
+    h += '<ul class="pts">'+s.bullets.map(function(b){ return '<li>'+b+'</li>'; }).join("")+'</ul>';
+  }
+  return h + '</section>';
+}
+function secGaleriaHTML(s, idx){
+  var h = '<section>'+(s.eyebrow?'<p class="eyebrow">'+s.eyebrow+'</p>':'');
+  var itens = s.itens || [];
+  if(s.modo === "carrossel"){
+    h += '<div class="cx" data-lb="prop'+idx+'"><div class="cx-stage">' +
+      itens.map(function(it){ return '<article class="cx-card"><img src="'+(it.thumb||it.src)+'" alt=""></article>'; }).join("") +
+      '</div>' + (itens.length > 1 ? '<button class="cx-nav prev" aria-label="Anterior">&#8249;</button><button class="cx-nav next" aria-label="Seguinte">&#8250;</button><div class="cx-dots"></div>' : '') + '</div>';
+  } else {
+    h += '<div class="mood" data-lb="prop'+idx+'">' + itens.map(function(it){ return '<img src="'+(it.thumb||it.src)+'" alt="">'; }).join("") + '</div>';
+  }
+  return h + '</section>';
+}
+function secCardsHTML(s){
+  var cards = s.cards || [];
+  var inner = cards.map(function(c){
+    var acc = c.cor ? ' style="--acc:'+c.cor+'"' : '';
+    return '<div class="plan'+(c.destaque?" hot":"")+'"'+acc+'>' +
+      (c.destaque ? '<span class="p-flag">'+(c.flag||"Recomendado")+'</span>' : '') +
+      (c.img ? '<img class="p-img" src="'+c.img+'" alt="">' : '') +
+      (c.titulo ? '<span class="p-name">'+(c.icone?svgIcon(c.icone,"p-ico"):"")+'<span>'+c.titulo+'</span></span>' : '') +
+      (c.preco ? '<span class="p-price">'+c.preco+'</span>' : '') +
+      (c.resumo ? '<p class="p-resumo">'+c.resumo+'</p>' : '') +
+      ((c.linhas && c.linhas.length) ? '<ul>'+c.linhas.map(function(l){ return '<li>'+l+'</li>'; }).join("")+'</ul>' : '') +
+    '</div>';
+  }).join("");
+  if(s.modo === "carrossel"){
+    return '<section>'+(s.eyebrow?'<p class="eyebrow">'+s.eyebrow+'</p>':'') +
+      '<div class="cx cx-cards"><div class="cx-stage">' +
+      cards.map(function(c){
+        return '<article class="cx-card">'+(c.img?'<img src="'+c.img+'" alt="">':'')+
+          '<div class="c-body">'+(c.titulo?'<h3>'+c.titulo+'</h3>':'')+(c.resumo?'<p>'+c.resumo+'</p>':'')+'</div></article>';
+      }).join("") + '</div>' +
+      (cards.length > 1 ? '<button class="cx-nav prev" aria-label="Anterior">&#8249;</button><button class="cx-nav next" aria-label="Seguinte">&#8250;</button><div class="cx-dots"></div>' : '') +
+      '</div></section>';
+  }
+  return '<section>'+(s.eyebrow?'<p class="eyebrow">'+s.eyebrow+'</p>':'') +
+    '<div class="plans" style="--cols:'+(s.colunas || cards.length || 3)+'">'+inner+'</div></section>';
+}
+
 function renderProposta(d, app){
   var pr = d.proposta || {};
+  var secoes = (pr.secoes && pr.secoes.length) ? pr.secoes : legacyToSecoes(pr);
   var box = el("div","prop");
   var html = "";
-
-  if(pr.ondeEstao){
-    html += '<section><p class="eyebrow">Onde estão hoje</p><p class="lead">'+pr.ondeEstao+'</p></section>';
-  }
-  if(pr.oQueVimos && pr.oQueVimos.length){
-    html += '<section><p class="eyebrow">O que identificámos</p><ul class="pts">' +
-      pr.oQueVimos.map(function(x){ return '<li>'+x+'</li>'; }).join("") + '</ul></section>';
-  }
-  if(pr.ondePodemChegar){
-    html += '<section><p class="eyebrow">Onde podem chegar</p><p class="lead">'+pr.ondePodemChegar+'</p></section>';
-  }
-  if(pr.conceitos && pr.conceitos.length){
-    html += '<section><p class="eyebrow">Conceitos</p><div class="cx">' +
-      '<div class="cx-stage">' +
-      pr.conceitos.map(function(c){
-        return '<article class="cx-card">'+(c.img?'<img src="'+c.img+'" alt="">':'')+
-          '<div class="c-body"><h3>'+(c.titulo||"")+'</h3><p>'+(c.desc||"")+'</p></div></article>';
-      }).join("") + '</div>' +
-      (pr.conceitos.length > 1
-        ? '<button class="cx-nav prev" aria-label="Anterior">&#8249;</button>' +
-          '<button class="cx-nav next" aria-label="Seguinte">&#8250;</button>' +
-          '<div class="cx-dots"></div>'
-        : '') +
-      '</div></section>';
-  }
-  if(pr.moodboard && pr.moodboard.length){
-    html += '<section><p class="eyebrow">Moodboard</p><div class="mood">' +
-      pr.moodboard.map(function(u){ return '<img src="'+u+'" alt="">'; }).join("") + '</div></section>';
-  }
-  if(pr.referencias && pr.referencias.length){
-    html += '<section><p class="eyebrow">Referências</p><div class="cx" id="cxref">' +
-      '<div class="cx-stage">' +
-      pr.referencias.map(function(r){
-        return '<article class="cx-card">'+(r.img?'<img src="'+r.img+'" alt="">':'')+
-          (r.nota?'<div class="c-body"><p>'+r.nota+'</p></div>':'')+'</article>';
-      }).join("") + '</div>' +
-      (pr.referencias.length > 1
-        ? '<button class="cx-nav prev" aria-label="Anterior">&#8249;</button>' +
-          '<button class="cx-nav next" aria-label="Seguinte">&#8250;</button>' +
-          '<div class="cx-dots"></div>'
-        : '') +
-      '</div></section>';
-  }
-  if(pr.planos && pr.planos.length){
-    html += '<section><p class="eyebrow">Investimento</p><div class="plans">' +
-      pr.planos.map(function(p){
-        return '<div class="plan'+(p.destaque?" hot":"")+'">'+
-          (p.destaque?'<span class="p-flag">Recomendado</span>':'')+
-          '<span class="p-name">'+svgIcon(p.icone,"p-ico")+'<span>'+(p.nome||"")+'</span></span>'+
-          '<span class="p-price">'+(p.preco||"")+'</span>'+
-          (p.resumo?'<p class="p-resumo">'+p.resumo+'</p>':'')+
-          '<ul>'+(p.inclui||[]).map(function(i){ return '<li>'+i+'</li>'; }).join("")+'</ul>'+
-        '</div>';
-      }).join("") + '</div>' +
-      (pr.validade ? '<p class="lead" style="margin-top:18px;font-size:11px">Proposta válida por '+pr.validade+'.</p>' : '') +
-      '</section>';
-  }
-  var fecho = pr.fecho || "Obrigado pelo vosso tempo. Se fizer sentido para os dois lados, será um gosto avançar, construir aqui uma parceria de longo prazo e fazer bons negócios juntos.";
-  html += '<section class="cta-wrap"><p class="eyebrow">Obrigado</p>' +
-    '<h2>'+(pr.cta||"Se existe potencial, existe valor.")+'</h2>' +
-    '<p class="fecho">'+fecho+'</p></section>';
+  secoes.forEach(function(s, i){
+    if(s.tipo === "texto") html += secTextoHTML(s);
+    else if(s.tipo === "galeria") html += secGaleriaHTML(s, i);
+    else if(s.tipo === "cards") html += secCardsHTML(s);
+  });
+  if(pr.validade) html += '<section><p class="lead" style="font-size:11px">Proposta válida por '+pr.validade+'.</p></section>';
 
   box.innerHTML = html;
   app.appendChild(box);
   app.appendChild(footer(d));
   document.querySelectorAll(".cx").forEach(initCoverflow);
 
-  // moodboard: clicar abre galeria de passar
-  var moodImgs = [].slice.call(box.querySelectorAll(".mood img"));
-  if(moodImgs.length){
-    var MOOD = moodImgs.map(function(im){ return { src: im.src, tipo: "foto" }; });
-    moodImgs.forEach(function(im, i){
-      im.addEventListener("click", function(){ openLb(i, MOOD); });
-    });
-  }
+  // galerias em colagem: clicar abre a galeria de passar
+  box.querySelectorAll('.mood[data-lb]').forEach(function(grid){
+    var imgs = [].slice.call(grid.querySelectorAll("img"));
+    var SET = imgs.map(function(im){ return { src: im.src, tipo: "foto" }; });
+    imgs.forEach(function(im, i){ im.addEventListener("click", function(){ openLb(i, SET); }); });
+  });
 }
 
 function initCoverflow(cx){
