@@ -130,11 +130,29 @@ export async function onRequest(context) {
       } catch (e) { r2.error = String(e); }
     }
 
+    const cloudinary = { configured: !!(env.CLOUDINARY_CLOUD && env.CLOUDINARY_KEY && env.CLOUDINARY_SECRET) };
+    if (cloudinary.configured) {
+      try {
+        const auth = btoa(`${env.CLOUDINARY_KEY}:${env.CLOUDINARY_SECRET}`);
+        const cr = await fetch(`https://api.cloudinary.com/v1_1/${env.CLOUDINARY_CLOUD}/usage`, { headers: { authorization: `Basic ${auth}` } });
+        if (cr.ok) {
+          const cj = await cr.json();
+          cloudinary.plan = cj.plan;
+          cloudinary.credits = cj.credits || null;         // { usage, limit, used_percent }
+          cloudinary.storageBytes = cj.storage && cj.storage.usage != null ? cj.storage.usage : null;
+          cloudinary.bandwidthBytes = cj.bandwidth && cj.bandwidth.usage != null ? cj.bandwidth.usage : null;
+          cloudinary.resources = cj.resources != null ? cj.resources : null;
+        } else {
+          cloudinary.error = "usage " + cr.status;
+        }
+      } catch (e) { cloudinary.error = String(e).slice(0, 120); }
+    }
+
     return json({
       generated: new Date().toISOString(),
       pages: { total: idx.length, kvKeys, byType, expired, soon },
       r2,
-      cloudinary: { configured: !!(env.CLOUDINARY_CLOUD && env.CLOUDINARY_KEY && env.CLOUDINARY_SECRET) },
+      cloudinary,
       limits: {
         kv: { storageMB: 1024, readsDia: 100000, escritasDia: 1000, apagarDia: 1000 },
         r2: { storageGB: 10, classAmes: 1000000, classBmes: 10000000 },
@@ -183,24 +201,32 @@ export async function onRequest(context) {
     return json({ error: "método" }, 405);
   }
 
-  // ---- upload de ficheiro (R2 se ligado, senão Cloudinary se configurada) ----
+  // ---- upload de ficheiro ----
+  // dest="r2" (entregas)  |  dest="cloudinary" (portfólio, seleção)  |  sem dest = o que estiver ligado
   if (seg[0] === "upload" && method === "POST") {
     const form = await request.formData().catch(() => null);
     const file = form && form.get("file");
     if (!file || typeof file === "string") return json({ error: "sem ficheiro" }, 400);
     const folder = (form.get("folder") || "media").toString().replace(/[^a-z0-9/_-]/gi, "").replace(/^\/+|\/+$/g, "");
+    const dest = (form.get("dest") || "").toString().toLowerCase();
 
-    if (env.ASTERIS_R2) {
+    const cloudOK = !!(env.CLOUDINARY_CLOUD && env.CLOUDINARY_KEY && env.CLOUDINARY_SECRET);
+    const useR2 = dest === "r2" || (!dest && env.ASTERIS_R2);
+    const useCloud = dest === "cloudinary" || (!dest && !env.ASTERIS_R2 && cloudOK);
+
+    if (useR2) {
+      if (!env.ASTERIS_R2) return json({ error: "R2 ainda não está ligado" }, 501);
       const orig = (file.name || "ficheiro").replace(/[^a-z0-9.\-_]/gi, "-");
       const ext = (orig.match(/\.[a-z0-9]{2,5}$/i) || [""])[0].toLowerCase();
       const rand = [...crypto.getRandomValues(new Uint8Array(6))].map(b => b.toString(16).padStart(2, "0")).join("");
       const key = `${folder}/${Date.now().toString(36)}-${rand}${ext}`;
       await env.ASTERIS_R2.put(key, file.stream(), { httpMetadata: { contentType: file.type || "application/octet-stream" } });
       const base = env.R2_PUBLIC_BASE || "";
-      return json({ ok: true, key, url: base ? `${base.replace(/\/+$/, "")}/${key}` : `/api/r2/${key}` });
+      return json({ ok: true, via: "r2", key, url: base ? `${base.replace(/\/+$/, "")}/${key}` : `/api/r2/${key}` });
     }
 
-    if (env.CLOUDINARY_CLOUD && env.CLOUDINARY_KEY && env.CLOUDINARY_SECRET) {
+    if (useCloud) {
+      if (!cloudOK) return json({ error: "Cloudinary ainda não está ligado" }, 501);
       const ts = Math.floor(Date.now() / 1000);
       const params = { folder, timestamp: ts };
       const toSign = Object.keys(params).sort().map(k => `${k}=${params[k]}`).join("&");
@@ -214,11 +240,11 @@ export async function onRequest(context) {
       up.append("signature", sig);
       const r = await fetch(`https://api.cloudinary.com/v1_1/${env.CLOUDINARY_CLOUD}/auto/upload`, { method: "POST", body: up });
       const j = await r.json();
-      if (j.secure_url) return json({ ok: true, url: j.secure_url });
+      if (j.secure_url) return json({ ok: true, via: "cloudinary", url: j.secure_url });
       return json({ error: j.error ? j.error.message : "upload falhou" }, 502);
     }
 
-    return json({ error: "Sem armazenamento configurado (R2 ou Cloudinary). Usa colar links." }, 501);
+    return json({ error: "Nenhum armazenamento ligado. Cola o URL de cada ficheiro." }, 501);
   }
 
   // ---- servir ficheiro do R2 (fallback se não houver domínio público) ----

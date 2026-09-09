@@ -60,11 +60,11 @@ label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
 
 /* ===== painel de estado / quotas ===== */
 .dash-h{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);margin:0 0 11px}
-.dash{display:grid;grid-template-columns:1.35fr 1fr 1fr;gap:12px;margin-bottom:12px}
-@media(max-width:860px){
+.dash{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
+@media(max-width:1000px){
   .dash{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;margin:0 -4px 12px;padding:0 4px 4px}
   .dash::-webkit-scrollbar{display:none}
-  .qcard{flex:0 0 82%;scroll-snap-align:center}
+  .qcard{flex:0 0 76%;scroll-snap-align:center}
 }
 .qcard{background:linear-gradient(158deg,rgba(46,51,55,.42),rgba(20,22,24,.5));border:1px solid var(--edge);border-radius:12px;padding:15px 16px;min-width:0}
 .qcard.warn{border-color:rgba(245,197,24,.45)} .qcard.bad{border-color:rgba(255,91,76,.45)}
@@ -127,6 +127,8 @@ label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
 .modal .field{margin:14px 0 0}
 .modal .err{min-height:0;margin-top:6px}
 .modal .mrow{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:90;background:var(--panel2);border:1px solid var(--edge2);color:var(--ink);font-size:12px;padding:10px 16px;border-radius:9px;box-shadow:0 10px 30px rgba(0,0,0,.5);opacity:0;transition:opacity .2s}
+.toast.on{opacity:1}
 .tag{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--edge2);border-radius:3px;padding:2px 6px;color:var(--dim)}
 .tag.exp{border-color:var(--neg);color:var(--neg)}
 
@@ -259,6 +261,29 @@ function noticeModal(title, message){
     var row = el("div","mrow"); var k = el("button","btn gold","OK"); k.onclick = function(){ close(); };
     row.appendChild(k); box.appendChild(row); setTimeout(function(){ k.focus(); }, 30);
   });
+}
+var _toastT = null;
+function toast(msg){
+  var t = $("#toast");
+  if(!t){ t = el("div","toast"); t.id = "toast"; document.body.appendChild(t); }
+  t.textContent = msg;
+  requestAnimationFrame(function(){ t.classList.add("on"); });
+  clearTimeout(_toastT);
+  _toastT = setTimeout(function(){ t.classList.remove("on"); }, 2200);
+}
+function pageURL(code){ return location.origin + "/" + code; }
+function copyLink(code){
+  var u = pageURL(code);
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(u).then(function(){ toast("Link copiado — " + code); }, function(){ fallbackCopy(u, code); });
+  } else { fallbackCopy(u, code); }
+}
+function fallbackCopy(u, code){
+  var ta = el("textarea"); ta.value = u; ta.style.cssText = "position:fixed;opacity:0";
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand("copy"); toast("Link copiado — " + code); }
+  catch(e){ noticeModal("Copiar link", u); }
+  ta.remove();
 }
 function closeMenu(){ var p = $("#actpop"); if(p){ if(p._cleanup) p._cleanup(); p.remove(); } }
 function openMenu(anchor, items){
@@ -394,28 +419,52 @@ function loadStats(dash){
     var s = r.j, pg = s.pages, GB = 1073741824;
     var expN = (pg.expired||[]).length, soonN = (pg.soon||[]).length;
     var byT = pg.byType || {};
-    var r2 = s.r2, r2maxB = s.limits.r2.storageGB * GB;
-    var r2pct = (r2.bound && r2.bytes != null) ? r2.bytes / r2maxB * 100 : 0;
     var html = "";
 
-    /* 1 — quota de armazenamento (o contador real) */
+    /* 1 — R2 (entregas ao cliente) */
+    var r2 = s.r2, r2maxB = s.limits.r2.storageGB * GB;
     if(r2.bound && r2.bytes != null){
-      var cls = pctCls(r2pct);
-      html += '<div class="qcard '+cls+'">'
-        + '<div class="qt">Armazenamento — Cloudflare R2</div>'
-        + '<div class="qbig">'+fmtBytes(r2.bytes)+' <small>de '+s.limits.r2.storageGB+' GB usados</small></div>'
-        + '<div class="qbar"><i class="f '+cls+'" style="width:'+Math.max(2, Math.min(100, r2pct)).toFixed(1)+'%"></i></div>'
-        + '<div class="qmeta">'+fmtBytes(r2maxB - r2.bytes)+' livres · '+r2.objects+' ficheiro'+(r2.objects===1?'':'s')+(r2.truncated?'+':'')+'</div>'
+      var r2pct = r2.bytes / r2maxB * 100, r2cls = pctCls(r2pct);
+      html += '<div class="qcard '+r2cls+'">'
+        + '<div class="qt">R2 · Entregas</div>'
+        + '<div class="qbig">'+fmtBytes(r2.bytes)+' <small>/ '+s.limits.r2.storageGB+' GB</small></div>'
+        + '<div class="qbar"><i class="f '+r2cls+'" style="width:'+Math.max(2, Math.min(100, r2pct)).toFixed(1)+'%"></i></div>'
+        + '<div class="qmeta">'+fmtBytes(r2maxB - r2.bytes)+' livres · '+r2.objects+' ficheiro'+(r2.objects===1?'':'s')+(r2.truncated?'+':'')+' · downloads grátis</div>'
         + '</div>';
     } else {
-      html += '<div class="qcard">'
-        + '<div class="qt">Armazenamento de ficheiros</div>'
-        + '<div class="qbig">A guardar só por link</div>'
-        + '<div class="qmeta">Colar o URL de cada foto/vídeo funciona já. Para <b>arrastar ficheiros</b> no editor é preciso ligar o Cloudflare R2 (10 GB grátis).</div>'
+      html += '<div class="qcard warn">'
+        + '<div class="qt">R2 · Entregas</div>'
+        + '<div class="qbig">não ligado</div>'
+        + '<div class="qmeta">Falta criar o bucket + binding. Até lá, entregas por link colado.</div>'
         + '</div>';
     }
 
-    /* 2 — links ativos + distribuição */
+    /* 2 — Cloudinary (portfólio + seleção) */
+    var cd = s.cloudinary || {};
+    if(cd.configured && cd.credits && cd.credits.limit){
+      var cpct = cd.credits.used_percent != null ? cd.credits.used_percent : (cd.credits.usage / cd.credits.limit * 100);
+      var ccls = pctCls(cpct);
+      html += '<div class="qcard '+ccls+'">'
+        + '<div class="qt">Cloudinary · Portfólio + Seleção</div>'
+        + '<div class="qbig">'+(cd.credits.usage!=null?(+cd.credits.usage).toFixed(1):"?")+' <small>/ '+cd.credits.limit+' créditos</small></div>'
+        + '<div class="qbar"><i class="f '+ccls+'" style="width:'+Math.max(2, Math.min(100, cpct)).toFixed(1)+'%"></i></div>'
+        + '<div class="qmeta">'+(cd.storageBytes!=null?fmtBytes(cd.storageBytes)+' guardados · ':'')+(cd.resources!=null?cd.resources+' ficheiros':'')+'</div>'
+        + '</div>';
+    } else if(cd.configured){
+      html += '<div class="qcard'+(cd.error?' warn':'')+'">'
+        + '<div class="qt">Cloudinary · Portfólio + Seleção</div>'
+        + '<div class="qbig">ligado</div>'
+        + '<div class="qmeta">'+(cd.error ? "uso não disponível ("+esc(cd.error)+")" : "uso a carregar…")+'</div>'
+        + '</div>';
+    } else {
+      html += '<div class="qcard warn">'
+        + '<div class="qt">Cloudinary · Portfólio + Seleção</div>'
+        + '<div class="qbig">não ligado</div>'
+        + '<div class="qmeta">Falta pôr as 3 variáveis CLOUDINARY_* no Pages.</div>'
+        + '</div>';
+    }
+
+    /* 3 — links ativos + distribuição */
     var T = pg.total || 0;
     var seg = { proposta:byT.proposta||0, galeria:byT.galeria||0, portfolio:byT.portfolio||0, triagem:byT.triagem||0 };
     function w(n){ return T ? (n / T * 100).toFixed(1) : 0; }
@@ -436,7 +485,7 @@ function loadStats(dash){
       + '</div>'
       + '</div>';
 
-    /* 3 — a expirar */
+    /* 4 — a expirar */
     var acls = expN ? "bad" : (soonN ? "warn" : "");
     var body = "";
     if(expN || soonN){
@@ -457,13 +506,13 @@ function loadStats(dash){
     var strip = dash.nextElementSibling;
     if(strip && strip.classList.contains("sysbar")) strip.remove();
     var t = new Date(s.generated);
-    var cloud = s.cloudinary.configured;
+    var cloud = s.cloudinary && s.cloudinary.configured;
     dash.insertAdjacentHTML("afterend",
       '<div class="sysbar">'
       + '<span><span class="dot ok"></span>Base de dados ativa</span>'
       + '<span><span class="dot ok"></span>Site e API online</span>'
-      + '<span><span class="dot '+(r2.bound?'ok':'off')+'"></span>R2 '+(r2.bound?'ligado':'não ligado (opcional)')+'</span>'
-      + '<span><span class="dot '+(cloud?'ok':'off')+'"></span>Cloudinary '+(cloud?'ligado':'não ligado (opcional)')+'</span>'
+      + '<span><span class="dot '+(r2.bound?'ok':'bad')+'"></span>R2 '+(r2.bound?'ligado':'por ligar')+'</span>'
+      + '<span><span class="dot '+(cloud?'ok':'bad')+'"></span>Cloudinary '+(cloud?'ligado':'por ligar')+'</span>'
       + '<span>'+pg.kvKeys+' registos · máx. 1000 gravações/dia</span>'
       + '<span>atualizado '+t.toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"})+'</span>'
       + '</div>');
@@ -501,6 +550,7 @@ function buildCardMenu(anchor, p, expirado, expDate){
   var items = [
     { head: p.code },
     { label: "Abrir link", href: "/" + p.code },
+    { label: "Copiar link", onClick: function(){ copyLink(p.code); } },
     { label: "Editar", onClick: function(){ editView(p.code); } },
     { sep: true },
     { head: "Prazo" }
@@ -690,16 +740,19 @@ function imageList(host, arr, refresh){
 
 function uploadMany(files, prog, done){
   var out = [], n = 0, folder = "media/" + (CUR && CUR.code ? CUR.code : "geral");
+  // entregas -> R2 (downloads grátis) ; portfólio / seleção / proposta -> Cloudinary (otimização)
+  var dest = (CUR && CUR.data && CUR.data.type === "galeria" && CUR.data.anon !== true) ? "r2" : "cloudinary";
   function one(k){
     if(k >= files.length){ done(out); return; }
     var fd = new FormData();
     fd.append("file", files[k]);
     fd.append("folder", folder);
+    fd.append("dest", dest);
     fetch("/api/upload", { method:"POST", body:fd })
       .then(function(x){ return x.json(); })
       .then(function(j){
         if(j.url) out.push(j.url);
-        else if(k === 0 && !out.length) noticeModal("Upload indisponível", (j.error || "") + " Por agora, cola o URL de cada ficheiro. Para arrastar ficheiros é preciso ligar o Cloudflare R2.");
+        else if(k === 0 && !out.length) noticeModal("Upload indisponível", (j.error || "") + " Por agora, cola o URL de cada ficheiro.");
         n++; prog(n, files.length); one(k+1);
       })
       .catch(function(){ n++; prog(n, files.length); one(k+1); });
