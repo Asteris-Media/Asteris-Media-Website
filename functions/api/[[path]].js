@@ -100,6 +100,85 @@ export async function onRequest(context) {
     return new Response(obj.body, { headers: h });
   }
 
+  // ---- página de acesso a uma pasta (PÚBLICA, obscura — o link partilhável da biblioteca) ----
+  if (seg[0] === "media" && seg[1] === "view" && method === "GET") {
+    const folder = (url.searchParams.get("f") || "").replace(/[^a-z0-9/_-]/gi, "");
+    const cloud = url.searchParams.get("c") === "cloudinary" ? "cloudinary" : "r2";
+    if (!folder) return new Response("pasta em falta", { status: 400 });
+    const isVidU = (s) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(s || "");
+    let files = [];
+    try {
+      if (cloud === "r2" && env.ASTERIS_R2) {
+        let cursor;
+        do {
+          const r = await env.ASTERIS_R2.list({ cursor, prefix: folder + "/", limit: 1000 });
+          for (const o of r.objects) files.push({ url: "/api/r2/" + o.key.split("/").map(encodeURIComponent).join("/"), name: o.key.split("/").pop(), bytes: o.size || 0 });
+          cursor = r.truncated ? r.cursor : null;
+        } while (cursor);
+      } else if (cloud === "cloudinary" && env.CLOUDINARY_CLOUD && env.CLOUDINARY_KEY && env.CLOUDINARY_SECRET) {
+        const auth = btoa(`${env.CLOUDINARY_KEY}:${env.CLOUDINARY_SECRET}`);
+        for (const rt of ["image", "video"]) {
+          const cr = await fetch(`https://api.cloudinary.com/v1_1/${env.CLOUDINARY_CLOUD}/resources/${rt}?max_results=500`, { headers: { authorization: `Basic ${auth}` } });
+          if (!cr.ok) continue;
+          const cj = await cr.json();
+          for (const res of (cj.resources || [])) {
+            if ((res.asset_folder || res.folder || "") === folder) files.push({ url: res.secure_url, name: (res.public_id.split("/").pop()) + "." + res.format, bytes: res.bytes || 0 });
+          }
+        }
+      }
+    } catch (e) { /* ignore */ }
+    const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    const title = folder.split("/").pop();
+    const grid = files.map((f, i) => {
+      const v = isVidU(f.url);
+      return `<figure><a href="${esc(f.url)}${f.url.startsWith("/api/r2/") ? "?dl=" + encodeURIComponent(f.name) : ""}" download="${esc(f.name)}">${v
+        ? `<video src="${esc(f.url)}" muted preload="metadata"></video>`
+        : `<img src="${esc(f.url)}" loading="lazy" alt="">`}<figcaption>${esc(f.name)}</figcaption></a></figure>`;
+    }).join("");
+    const html = `<!doctype html><html lang="pt"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${esc(title)} — Asteris</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#0B0B0A;color:#F0EAE0;font-family:system-ui,sans-serif;padding:28px clamp(16px,5vw,52px)}
+header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:22px}h1{font-size:20px;font-weight:600}.n{color:#8a857b;font-size:12px}
+.dl{margin-left:auto;background:#C9A166;color:#0B0B0A;border:0;padding:11px 20px;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.04em}
+.dl:disabled{opacity:.6}
+.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+figure{background:#151412;border:1px solid #2a2724;border-radius:8px;overflow:hidden}
+figure a{color:inherit;text-decoration:none;display:block}
+figure img,figure video{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:#000}
+figcaption{font-size:10px;color:#8a857b;padding:7px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.empty{color:#8a857b;padding:40px;text-align:center}</style></head>
+<body><header><h1>${esc(title)}</h1><span class="n">${files.length} ficheiro${files.length === 1 ? "" : "s"}</span>
+${files.length ? '<button class="dl" id="dl">Descarregar tudo (.zip)</button>' : ""}</header>
+${files.length ? `<div class="g">${grid}</div>` : '<div class="empty">Pasta vazia ou nuvem não ligada.</div>'}
+<script>
+var FILES=${JSON.stringify(files.map(f => ({ url: f.url, name: f.name })))};
+var b=document.getElementById("dl");
+if(b) b.onclick=function(){
+  b.disabled=true;b.textContent="A preparar…";
+  var s=document.createElement("script");
+  s.src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
+  s.onload=function(){
+    var zip=new JSZip(),done=0;
+    Promise.all(FILES.map(function(f){
+      return fetch(f.url).then(function(r){return r.blob();}).then(function(bl){
+        zip.file(f.name,bl);done++;b.textContent="A preparar… "+done+"/"+FILES.length;
+      }).catch(function(){});
+    })).then(function(){
+      b.textContent="A comprimir…";
+      return zip.generateAsync({type:"blob"});
+    }).then(function(blob){
+      var u=URL.createObjectURL(blob),a=document.createElement("a");
+      a.href=u;a.download=${JSON.stringify(title)}+".zip";a.click();
+      setTimeout(function(){URL.revokeObjectURL(u);},4000);
+      b.disabled=false;b.textContent="Descarregar tudo (.zip)";
+    });
+  };
+  s.onerror=function(){b.disabled=false;b.textContent="Falhou — tenta ficheiro a ficheiro";};
+  document.head.appendChild(s);
+};
+</script></body></html>`;
+    return new Response(html, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
+  }
+
   const authed = await checkToken(SECRET, getCookie(request, COOKIE));
   if (seg[0] === "me") return json({ ok: authed });
   if (!authed) return json({ error: "Sessão inválida" }, 401);

@@ -157,21 +157,22 @@ label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
 .np-fromlib.picked{border-style:solid;border-color:var(--pos);color:var(--pos)}
 
 /* biblioteca */
-.lib-drop{border:1.5px dashed var(--edge2);border-radius:12px;padding:26px 16px;text-align:center;color:var(--faint);font-size:12px;margin-bottom:20px;transition:border-color .15s,color .15s}
+.lib-drop{border:1.5px dashed var(--edge2);border-radius:12px;padding:24px 16px;text-align:center;color:var(--faint);font-size:12px;margin-bottom:18px;transition:border-color .15s,color .15s,background .15s}
 .lib-drop.over{border-color:var(--gold);color:var(--gold);background:var(--gold-lo)}
-.lib-drop b{color:var(--ink);font-size:13px;display:block;margin-bottom:4px}
-.lib-sec{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin:18px 0 10px}
-.lib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
-.lib-folder{background:linear-gradient(158deg,rgba(52,58,63,.4),rgba(20,22,24,.6));border:1px solid var(--edge2);border-radius:11px;padding:12px;min-width:0}
-.lib-folder .lf-name{font-family:var(--mono);font-size:11.5px;color:var(--ink);word-break:break-all}
+.lib-drop b{color:var(--ink);font-size:13px;display:block;margin-bottom:5px}
+.lib-subtabs{display:flex;gap:6px;margin-bottom:14px}
+.lib-subtabs button{background:var(--panel2);border:1px solid var(--edge2);color:var(--dim);font-size:11px;font-weight:600;padding:7px 14px;border-radius:20px}
+.lib-subtabs button.on{background:var(--gold);color:#0C0D0E;border-color:var(--gold)}
+.lib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.lib-folder{position:relative;background:var(--panel);border:1px solid var(--edge2);border-radius:12px;overflow:hidden}
+.lib-folder:hover{border-color:var(--edge2)}
+.lib-folder .lf-cover{aspect-ratio:16/10;background:#0a0a0a center/cover no-repeat;display:flex;align-items:center;justify-content:center;color:var(--faint);font-size:24px;border-bottom:1px solid var(--edge)}
+.lib-folder .lf-body{padding:11px 12px}
+.lib-folder .lf-name{font-weight:700;font-size:12.5px;word-break:break-word;line-height:1.3}
 .lib-folder .lf-meta{font-size:10px;color:var(--dim);margin-top:3px}
-.lib-folder .lf-thumbs{display:flex;gap:3px;margin-top:9px}
-.lib-folder .lf-thumbs .th{width:44px;height:44px;border-radius:5px;background:#0a0a0a center/cover no-repeat;flex-shrink:0;border:1px solid var(--edge)}
-.lib-folder .lf-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.lib-folder .lf-acts button{font-size:10.5px;color:var(--dim);background:none;border:0;text-decoration:underline;text-underline-offset:2px}
-.lib-folder .lf-acts button:hover{color:var(--gold)}
-.lib-folder .lf-acts button.del{color:var(--neg)}
-.lib-empty{color:var(--faint);font-size:11px;padding:10px 2px}
+.lib-folder .lf-menu{position:absolute;top:7px;right:7px;width:28px;height:24px;border-radius:6px;border:1px solid transparent;background:rgba(11,11,10,.62);color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;letter-spacing:1px;backdrop-filter:blur(4px)}
+.lib-folder .lf-menu:hover,.lib-folder .lf-menu.open{background:var(--panel2);border-color:var(--edge2)}
+.lib-empty{color:var(--faint);font-size:11px;padding:16px 2px;text-align:center}
 .tag{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--edge2);border-radius:3px;padding:2px 6px;color:var(--dim)}
 .tag.exp{border-color:var(--neg);color:var(--neg)}
 
@@ -666,8 +667,13 @@ function skeletonFor(type, base){
 function itensFromFolder(folder){
   return (folder.files || []).map(function(f){ return { tipo: f.tipo === "video" ? "video" : "foto", src: f.url }; });
 }
-function newPageModal(){
-  var st = { type:"proposta", code:randCode(6), perm:false, touchedPrazo:false, folder:null };
+function newPageModal(preFolder){
+  var st = { type:"proposta", code:randCode(6), perm:false, touchedPrazo:false, folder: preFolder || null };
+  if(preFolder){
+    if(/entrega/i.test(preFolder.name)) st.type = "galeria";
+    else if(/selec/i.test(preFolder.name)) st.type = "triagem";
+    else st.type = "portfolio";
+  }
   modal(function(box, close){
     box.innerHTML =
       '<h4>Nova página</h4>'
@@ -744,13 +750,18 @@ function newPageModal(){
         else { box.querySelector("#np-err").textContent = (r.j && r.j.error) || "erro"; ok.disabled = false; ok.textContent = "Criar"; }
       });
     };
+    if(st.folder){
+      var lb = box.querySelector("#np-lib");
+      lb.classList.add("picked");
+      lb.textContent = "✓ " + st.folder.name + " (" + st.folder.count + " ficheiros)";
+    }
     syncType();
     box.querySelector("#np-cli").focus();
   }, { cls: "lg" });
 }
 
 /* ============================ biblioteca ============================ */
-var LIB_CACHE = null;
+var LIB_CACHE = null, LIB_TAB = "r2";
 function loadLib(force){
   if(LIB_CACHE && !force) return Promise.resolve(LIB_CACHE);
   return api("GET","media").then(function(r){ LIB_CACHE = r.ok ? r.j : null; return LIB_CACHE; });
@@ -792,55 +803,78 @@ function libraryView(){
     if(files.length) startFolderUpload(files, guessName(ev.dataTransfer));
   });
 
+  var subtabs = el("div","lib-subtabs"); v.appendChild(subtabs);
+
   loadLib(true).then(function(lib){
     body.innerHTML = "";
-    if(!lib){ body.innerHTML = '<div class="lib-empty">Nenhuma nuvem ligada. Liga o R2 ou o Cloudinary primeiro.</div>'; return; }
-    renderLibCloud(body, "R2 · entregas", lib.r2);
-    renderLibCloud(body, "Cloudinary · portfólio + seleção", lib.cloudinary);
+    if(!lib){ body.innerHTML = '<div class="lib-empty">Nenhuma nuvem ligada.</div>'; return; }
+    var clouds = [
+      { key:"r2", label:"R2 · Entregas", data: lib.r2 },
+      { key:"cloudinary", label:"Cloudinary · Portfólio + Seleção", data: lib.cloudinary }
+    ];
+    function show(key){
+      LIB_TAB = key;
+      subtabs.querySelectorAll("button").forEach(function(b){ b.classList.toggle("on", b.dataset.k === key); });
+      var cl = clouds.filter(function(c){ return c.key === key; })[0].data;
+      body.innerHTML = "";
+      if(!cl || (!cl.bound && !cl.configured)){ body.appendChild(el("div","lib-empty","Esta nuvem não está ligada.")); return; }
+      if(cl.error) body.appendChild(el("div","lib-empty","aviso: " + esc(cl.error)));
+      var folders = cl.folders || [];
+      if(!folders.length){ body.appendChild(el("div","lib-empty","Ainda sem pastas. Envia ficheiros acima.")); return; }
+      var grid = el("div","lib-grid"); body.appendChild(grid);
+      folders.forEach(function(f){ grid.appendChild(libFolderCard(f)); });
+    }
+    clouds.forEach(function(c){
+      var b = el("button","", c.label + "  " + (((c.data && c.data.folders) || []).length));
+      b.dataset.k = c.key;
+      b.onclick = function(){ closeMenu(); show(c.key); };
+      subtabs.appendChild(b);
+    });
+    show(LIB_TAB || "r2");
   });
 }
 function guessName(dt){
   try{ if(dt.items && dt.items[0]){ var e = dt.items[0].webkitGetAsEntry && dt.items[0].webkitGetAsEntry(); if(e && e.isDirectory) return e.name; } }catch(e){}
   return "";
 }
-function renderLibCloud(host, titulo, cloud){
-  host.appendChild(Object.assign(el("div","lib-sec"), { textContent: titulo }));
-  if(!cloud || (!cloud.bound && !cloud.configured)){ host.appendChild(el("div","lib-empty","não ligado")); return; }
-  if(cloud.error){ host.appendChild(el("div","lib-empty","erro: " + esc(cloud.error))); }
-  var folders = cloud.folders || [];
-  if(!folders.length){ host.appendChild(el("div","lib-empty","sem pastas ainda")); return; }
-  var grid = el("div","lib-grid"); host.appendChild(grid);
-  folders.forEach(function(f){ grid.appendChild(libFolderCard(f)); });
+function folderLink(f){
+  return location.origin + "/api/media/view?f=" + encodeURIComponent(f.name) + "&c=" + f.cloud;
 }
 function libFolderCard(f){
   var c = el("div","lib-folder");
-  c.appendChild(Object.assign(el("div","lf-name"), { textContent: f.name }));
-  c.appendChild(Object.assign(el("div","lf-meta"), { textContent: f.count + " ficheiro" + (f.count===1?"":"s") + " · " + fmtBytes(f.bytes) }));
-  var th = el("div","lf-thumbs");
-  (f.files || []).slice(0, 4).forEach(function(file){
-    var d = el("div","th");
-    if(file.tipo !== "video") d.style.backgroundImage = "url('" + file.url + "')";
-    else d.textContent = "▶", d.style.cssText += ";display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:11px";
-    th.appendChild(d);
-  });
-  c.appendChild(th);
-  var acts = el("div","lf-acts");
-  var cp = el("button", "", "copiar URLs");
-  cp.onclick = function(){
-    var txt = (f.files || []).map(function(x){ return x.url.charAt(0) === "/" ? location.origin + x.url : x.url; }).join("\n");
-    if(navigator.clipboard) navigator.clipboard.writeText(txt).then(function(){ toast(f.count + " URLs copiados"); });
-    else noticeModal("URLs", txt);
+  var cover = el("div","lf-cover");
+  var first = (f.files || [])[0];
+  if(first && first.tipo !== "video"){ cover.style.backgroundImage = "url('" + first.url + "')"; }
+  else { cover.textContent = first ? "▶" : "🗀"; }
+  c.appendChild(cover);
+  var bodyEl = el("div","lf-body");
+  bodyEl.appendChild(Object.assign(el("div","lf-name"), { textContent: f.name.split("/").pop() }));
+  bodyEl.appendChild(Object.assign(el("div","lf-meta"), { textContent: f.count + " ficheiro" + (f.count===1?"":"s") + " · " + fmtBytes(f.bytes) }));
+  c.appendChild(bodyEl);
+
+  var mb = el("button","lf-menu","&#8942;"); mb.setAttribute("aria-label","Ações");
+  mb.onclick = function(e){
+    e.stopPropagation();
+    var items = [
+      { head: f.name.split("/").pop() },
+      { label: "Abrir pasta", href: folderLink(f) },
+      { label: "Copiar link de download", onClick: function(){
+          var u = folderLink(f);
+          if(navigator.clipboard) navigator.clipboard.writeText(u).then(function(){ toast("Link da pasta copiado"); });
+          else noticeModal("Link da pasta", u);
+      } },
+      { label: "Usar numa página nova", onClick: function(){ newPageModal(f); } }
+    ];
+    if(f.cloud === "r2"){
+      items.push({ sep: true });
+      items.push({ label: "Apagar pasta", danger: true, onClick: function(){
+        confirmModal({ title:"Apagar pasta?", message:'"'+f.name+'" e os '+f.count+' ficheiros são apagados do R2. Não dá para desfazer.', ok:"Apagar", danger:true })
+          .then(function(yes){ if(yes) api("DELETE","media/r2-folder/"+f.name.split("/").map(encodeURIComponent).join("/")).then(function(){ LIB_CACHE=null; libraryView(); }); });
+      } });
+    }
+    openMenu(mb, items);
   };
-  acts.appendChild(cp);
-  if(f.cloud === "r2"){
-    var dl = el("button","del","apagar pasta");
-    dl.onclick = function(){
-      confirmModal({ title:"Apagar pasta?", message:'"' + f.name + '" e os ' + f.count + ' ficheiros são apagados do R2. Não dá para desfazer.', ok:"Apagar", danger:true })
-        .then(function(yes){ if(yes) api("DELETE","media/r2-folder/" + f.name.split("/").map(encodeURIComponent).join("/")).then(function(){ libraryView(); }); });
-    };
-    acts.appendChild(dl);
-  }
-  c.appendChild(acts);
+  c.appendChild(mb);
   return c;
 }
 function startFolderUpload(files, nameHint){
