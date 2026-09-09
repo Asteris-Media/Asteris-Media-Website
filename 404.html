@@ -55,6 +55,9 @@ a{color:inherit}
 .chip{border:1px solid var(--gold-soft);padding:5px 11px;font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--white-dim)}
 .chip.warn{border-color:var(--gold);color:var(--gold)}
 
+#app{display:flex;flex-direction:column;min-height:100vh}
+#app > .wrap,#app > .prop{flex:1 0 auto}
+#app > .phead,#app > .selbar,#app > footer.pfoot{flex:0 0 auto}
 .wrap{padding:clamp(30px,5vw,56px) var(--pad) 100px}
 
 /* galeria / triagem — grelha uniforme (tipo ícones de pasta) */
@@ -75,7 +78,7 @@ a{color:inherit}
 .tile.on .selbtn{background:var(--neg);color:#fff;border-color:var(--neg)}
 
 /* barra de triagem */
-.selbar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(11,11,10,.92);backdrop-filter:blur(10px);border-top:1px solid var(--gold-soft);padding:12px var(--pad);display:flex;align-items:center;justify-content:space-between;gap:14px}
+.selbar{position:sticky;bottom:0;z-index:40;background:rgba(11,11,10,.92);backdrop-filter:blur(10px);border-top:1px solid var(--gold-soft);padding:12px var(--pad);display:flex;align-items:center;justify-content:space-between;gap:14px}
 .selbar .count{font-family:var(--serif);font-size:16px;color:var(--gold)}
 .selbar .count small{color:var(--white-faint);font-family:var(--sans);font-size:9px;letter-spacing:.1em;text-transform:uppercase;margin-left:8px}
 .selbar .actions{display:flex;gap:8px;flex-wrap:wrap}
@@ -407,7 +410,6 @@ function renderGaleria(d, app, triagem){
         '</span>';
     }
     app.appendChild(bar);
-    document.body.style.paddingBottom = "76px";
   }
   app.appendChild(footer(d));
 
