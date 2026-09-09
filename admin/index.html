@@ -553,10 +553,11 @@ var CATS = [
 
 function daysBetween(a, b){ return Math.round((a - b) / 86400000); }
 
-function setExpira(code, novaData){
+function setExpira(code, novaData, logMsg){
   return api("GET","pages/"+code).then(function(r){
     if(!r.ok) throw new Error(r.j && r.j.error);
     var d = r.j.data; d.expira = novaData || "";
+    if(logMsg) d._log = logMsg;
     return api("PUT","pages/"+code, d);
   }).then(function(){ listView(); });
 }
@@ -756,7 +757,7 @@ function buildCardMenu(anchor, p, expirado, expDate){
     items.push({ label: "Estender +30 dias", onClick: function(){ extendExpira(p.code, 30, expirado, expDate); } });
     items.push({ label: "Estender +90 dias", onClick: function(){ extendExpira(p.code, 90, expirado, expDate); } });
     items.push({ label: "Definir data…",     onClick: function(){ pickExpira(p); } });
-    items.push({ label: "Tornar permanente", onClick: function(){ setExpira(p.code, ""); } });
+    items.push({ label: "Tornar permanente", onClick: function(){ setExpira(p.code, "", "tornou " + p.code + " permanente"); } });
   } else {
     items.push({ label: "Definir prazo…", onClick: function(){ pickExpira(p); } });
   }
@@ -766,8 +767,8 @@ function buildCardMenu(anchor, p, expirado, expDate){
 }
 function extendExpira(code, days, expirado, expDate){
   var base = expirado ? new Date() : expDate;
-  var nd = new Date(base.getTime() + days * 86400000);
-  setExpira(code, nd.toISOString().slice(0, 10));
+  var nd = new Date(base.getTime() + days * 86400000).toISOString().slice(0, 10);
+  setExpira(code, nd, "estendeu " + code + " +" + days + " dias (até " + nd + ")");
 }
 function pickExpira(p){
   promptModal({
@@ -776,7 +777,7 @@ function pickExpira(p){
     label: "Data (AAAA-MM-DD)", type: "date", value: p.expira || "",
     ok: "Guardar",
     validate: function(v){ return /^\d{4}-\d{2}-\d{2}$/.test(v) ? "" : "Escolhe uma data."; }
-  }).then(function(v){ if(v) setExpira(p.code, v); });
+  }).then(function(v){ if(v) setExpira(p.code, v, "definiu o prazo de " + p.code + " para " + v); });
 }
 function askDeletePage(p){
   confirmModal({
@@ -880,6 +881,9 @@ function newPageModal(preFolder){
       if(!box.querySelector("#np-anon-row").hidden) base.anon = !!anonEl.checked;
       var data = skeletonFor(st.type, base);
       if(st.folder && data.itens) data.itens = itensFromFolder(st.folder);
+      var TL = { proposta:"proposta", galeria:"entrega", triagem:"seleção", portfolio:"portfólio" };
+      data._log = "criou " + (TL[st.type] || st.type) + " " + st.code + (cli ? " · " + cli : "")
+        + (st.folder ? " (da pasta " + st.folder.name + ")" : "");
       var ok = box.querySelector("#np-ok"); ok.disabled = true; ok.textContent = "A criar…";
       api("PUT", "pages/" + st.code, data).then(function(r){
         if(r.ok){ close(); editView(st.code); }
@@ -1634,6 +1638,7 @@ function doSave(){
   var d = collectBase();
   var code = CUR.isNew ? ($("#f-code").value.trim().toUpperCase() || CUR.code) : CUR.code;
   if(!/^[A-Z0-9_-]{3,32}$/.test(code)){ msg.className="msg bad"; msg.textContent="código inválido"; return; }
+  d._log = (CUR.isNew ? "criou" : "editou o conteúdo de") + " " + code + (d.cliente ? " · " + d.cliente : "");
   api("PUT","pages/"+code, d).then(function(r){
     if(r.ok){
       CUR.code = code; CUR.isNew = false;

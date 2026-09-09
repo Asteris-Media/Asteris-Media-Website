@@ -433,6 +433,9 @@ if(b) b.onclick=function(){
     if (method === "PUT") {
       const body = await request.json().catch(() => null);
       if (!body || typeof body !== "object") return json({ error: "json inválido" }, 400);
+      const logMsg = typeof body._log === "string" ? body._log.slice(0, 180) : null;
+      delete body._log;
+      const jaExistia = !!(await env.ASTERIS_KV.get(key));
       await env.ASTERIS_KV.put(key, JSON.stringify(body));
       const list = upsertIndex(await loadIndex(env), {
         code,
@@ -444,7 +447,9 @@ if(b) b.onclick=function(){
         atualizado: new Date().toISOString()
       });
       await saveIndex(env, list);
-      await logAction(env, ME, "guardou a página " + code + (body.cliente ? " · " + body.cliente : ""), { code });
+      await logAction(env, ME,
+        logMsg || ((jaExistia ? "editou" : "criou") + " a página " + code + (body.cliente ? " · " + body.cliente : "")),
+        { code });
       return json({ ok: true, code });
     }
     if (method === "DELETE") {
