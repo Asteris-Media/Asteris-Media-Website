@@ -244,9 +244,12 @@ footer{background:var(--black);border-top:1px solid rgba(255,255,255,.07);paddin
    CONFIG — editar estes 3 valores e o site fica pronto
    ============================================================ */
 const CONFIG = {
-  cloudName:   "demo",          // <<< cloud name da Cloudinary (Dashboard > Product Environment)
-  whatsapp:    "351900000000",  // <<< número WhatsApp, só dígitos, com indicativo
-  formspreeId: ""               // <<< ID do form Formspree; vazio = form desativado (só WhatsApp)
+  // A tua conta Cloudinary é "bv9q81il". Deixei "demo" para o site já renderizar com
+  // imagens de exemplo enquanto não fazes upload dos trabalhos. Quando tiveres os
+  // ficheiros na tua conta (pasta asteris/portfolio/...), troca "demo" por "bv9q81il".
+  cloudName:   "demo",
+  whatsapp:    "351900000000",  // <<< TROCAR pelo número WhatsApp real, só dígitos, com indicativo
+  formspreeId: "maeylznr"       // Formspree "Site Asteris" -> asteris.media@hotmail.com
 };
 
 /* helpers Cloudinary */
