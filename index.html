@@ -116,8 +116,8 @@ section.block{padding:clamp(64px,9vw,120px) var(--pad)}
 .cmp-note svg{width:12px;height:12px;flex-shrink:0;margin-top:.5px}
 .cmp-note.bad{color:#8E8A81;border-color:rgba(30,27,23,.12);border-left:2px solid #B4AFA4;background:#F1EEE8}
 .cmp-note.bad svg{color:#A8A399}
-.cmp-note.good{color:#4A453D;border-color:rgba(154,118,56,.28);border-left:2px solid #B08A4A;background:rgba(201,161,102,.08)}
-.cmp-note.good svg{color:#9A7638}
+.cmp-note.good{color:#5A4526;border-color:rgba(178,133,58,.5);border-left:2px solid #C79A4E;background:linear-gradient(180deg,rgba(214,175,110,.2),rgba(201,161,102,.12));box-shadow:0 0 0 1px rgba(201,161,102,.2),0 6px 20px rgba(190,148,78,.22)}
+.cmp-note.good svg{color:#B07D2E}
 .card-cmp{position:relative}
 .cmp-arrow{position:absolute;left:50%;top:64px;transform:translateX(-50%);color:#9A7638;font-size:12px;opacity:.6}
 @media (max-width:560px){
@@ -514,8 +514,8 @@ document.getElementById("cards").innerHTML = RESULTS.map(function(r){
       +   '<span class="m-depois" data-from="'+m.antes+'" data-to="'+m.depois+'" data-euro="'+(m.euro?1:0)+'">'+fmtNum(m.antes, m.euro)+'</span>'
       + '</span></div>';
   }).join("");
-  var ICO_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" aria-hidden="true"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77a4 4 0 0 1 6.74 0a4 4 0 0 1 4.78 4.78a4 4 0 0 1 0 6.74a4 4 0 0 1-4.77 4.78a4 4 0 0 1-6.75 0a4 4 0 0 1-4.78-4.77a4 4 0 0 1 0-6.76M15 9l-6 6m0-6l6 6"/></svg>';
-  var ICO_V = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m8.6 22.5l-1.9-3.2l-3.6-.8l.35-3.7L1 12l2.45-2.8l-.35-3.7l3.6-.8l1.9-3.2L12 2.95l3.4-1.45l1.9 3.2l3.6.8l-.35 3.7L23 12l-2.45 2.8l.35 3.7l-3.6.8l-1.9 3.2l-3.4-1.45zm2.35-6.95L16.6 9.9l-1.4-1.45l-4.25 4.25l-2.15-2.1L7.4 12z"/></svg>';
+  var ICO_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 14V2M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"/></svg>';
+  var ICO_V = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 10v12M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/></svg>';
   var notesHTML = function(list, good){
     return '<div class="cmp-notes">' + (list||[]).map(function(n){
       return '<div class="cmp-note '+(good?"good":"bad")+'">'+(good?ICO_V:ICO_X)+'<span>'+n+'</span></div>';
