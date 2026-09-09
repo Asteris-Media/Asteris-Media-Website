@@ -126,22 +126,42 @@ export async function onRequest(context) {
     return json({ error: "método" }, 405);
   }
 
-  // ---- upload de ficheiro para R2 ----
+  // ---- upload de ficheiro (R2 se ligado, senão Cloudinary se configurada) ----
   if (seg[0] === "upload" && method === "POST") {
-    if (!env.ASTERIS_R2) return json({ error: "R2 não ligado" }, 501);
     const form = await request.formData().catch(() => null);
     const file = form && form.get("file");
     if (!file || typeof file === "string") return json({ error: "sem ficheiro" }, 400);
     const folder = (form.get("folder") || "media").toString().replace(/[^a-z0-9/_-]/gi, "").replace(/^\/+|\/+$/g, "");
-    const orig = (file.name || "ficheiro").replace(/[^a-z0-9.\-_]/gi, "-");
-    const ext = (orig.match(/\.[a-z0-9]{2,5}$/i) || [""])[0].toLowerCase();
-    const rand = [...crypto.getRandomValues(new Uint8Array(6))].map(b => b.toString(16).padStart(2, "0")).join("");
-    const key = `${folder}/${Date.now().toString(36)}-${rand}${ext}`;
-    await env.ASTERIS_R2.put(key, file.stream(), {
-      httpMetadata: { contentType: file.type || "application/octet-stream" }
-    });
-    const base = env.R2_PUBLIC_BASE || "";
-    return json({ ok: true, key, url: base ? `${base.replace(/\/+$/, "")}/${key}` : `/api/r2/${key}` });
+
+    if (env.ASTERIS_R2) {
+      const orig = (file.name || "ficheiro").replace(/[^a-z0-9.\-_]/gi, "-");
+      const ext = (orig.match(/\.[a-z0-9]{2,5}$/i) || [""])[0].toLowerCase();
+      const rand = [...crypto.getRandomValues(new Uint8Array(6))].map(b => b.toString(16).padStart(2, "0")).join("");
+      const key = `${folder}/${Date.now().toString(36)}-${rand}${ext}`;
+      await env.ASTERIS_R2.put(key, file.stream(), { httpMetadata: { contentType: file.type || "application/octet-stream" } });
+      const base = env.R2_PUBLIC_BASE || "";
+      return json({ ok: true, key, url: base ? `${base.replace(/\/+$/, "")}/${key}` : `/api/r2/${key}` });
+    }
+
+    if (env.CLOUDINARY_CLOUD && env.CLOUDINARY_KEY && env.CLOUDINARY_SECRET) {
+      const ts = Math.floor(Date.now() / 1000);
+      const params = { folder, timestamp: ts };
+      const toSign = Object.keys(params).sort().map(k => `${k}=${params[k]}`).join("&");
+      const hb = await crypto.subtle.digest("SHA-1", enc.encode(toSign + env.CLOUDINARY_SECRET));
+      const sig = [...new Uint8Array(hb)].map(b => b.toString(16).padStart(2, "0")).join("");
+      const up = new FormData();
+      up.append("file", file);
+      up.append("api_key", env.CLOUDINARY_KEY);
+      up.append("timestamp", String(ts));
+      up.append("folder", folder);
+      up.append("signature", sig);
+      const r = await fetch(`https://api.cloudinary.com/v1_1/${env.CLOUDINARY_CLOUD}/auto/upload`, { method: "POST", body: up });
+      const j = await r.json();
+      if (j.secure_url) return json({ ok: true, url: j.secure_url });
+      return json({ error: j.error ? j.error.message : "upload falhou" }, 502);
+    }
+
+    return json({ error: "Sem armazenamento configurado (R2 ou Cloudinary). Usa colar links." }, 501);
   }
 
   // ---- servir ficheiro do R2 (fallback se não houver domínio público) ----
