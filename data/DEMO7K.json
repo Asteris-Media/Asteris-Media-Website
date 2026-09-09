@@ -1,0 +1,14 @@
+{
+  "type": "galeria",
+  "cliente": "Mudanças Everton",
+  "titulo": "Entrega — vídeo institucional + fotos",
+  "intro": "Está tudo aqui. Podes descarregar peça a peça ou o pacote completo em .zip. O link fica ativo até à data indicada; avisa se precisares de mais tempo.",
+  "capa": "/assets/clientes/patrimar.mp4",
+  "expira": "2026-10-15",
+  "downloadTudo": "",
+  "itens": [
+    { "tipo": "video", "nome": "institucional-final", "src": "/assets/clientes/patrimar.mp4", "download": "" },
+    { "tipo": "foto", "nome": "camiao-01", "src": "https://res.cloudinary.com/demo/image/upload/w_1600/sample.jpg", "thumb": "https://res.cloudinary.com/demo/image/upload/w_600/sample.jpg" },
+    { "tipo": "foto", "nome": "equipa-02", "src": "https://res.cloudinary.com/demo/image/upload/w_1600/couple.jpg", "thumb": "https://res.cloudinary.com/demo/image/upload/w_600/couple.jpg" }
+  ]
+}

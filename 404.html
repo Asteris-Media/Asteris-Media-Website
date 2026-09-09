@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Asteris</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#C9A166; --gold-soft:rgba(201,161,102,.22);
+  --black:#0B0B0A; --black2:#111110; --panel:#151412;
+  --white:#F0EAE0; --white-dim:rgba(240,234,224,.5); --white-faint:rgba(240,234,224,.32);
+  --serif:"Cormorant Garamond",Georgia,serif; --sans:"Montserrat",system-ui,sans-serif;
+  --pad:clamp(20px,5vw,56px);
+}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--white);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;min-height:100vh}
+img,video{max-width:100%;display:block}
+a{color:inherit}
+::selection{background:var(--gold);color:var(--black)}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.hidden{display:none!important}
+
+/* estados */
+#loading,#notfound{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:var(--pad);gap:14px}
+.mark{width:34px;height:34px}
+#notfound h1{font-family:var(--serif);font-weight:300;font-size:clamp(1.6rem,3vw,2.2rem)}
+#notfound p{font-size:12px;color:var(--white-dim);max-width:36ch}
+#notfound a.home{margin-top:10px;border:1px solid var(--gold);color:var(--white);padding:12px 24px;font-size:9px;letter-spacing:.2em;text-transform:uppercase;text-decoration:none;transition:background .25s,color .25s}
+#notfound a.home:hover{background:var(--gold);color:var(--black)}
+.spin{width:26px;height:26px;border:2px solid var(--gold-soft);border-top-color:var(--gold);border-radius:50%;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+
+/* header comum */
+.phead{position:relative;min-height:clamp(220px,34vw,360px);display:flex;flex-direction:column;justify-content:flex-end;padding:var(--pad);overflow:hidden;border-bottom:1px solid var(--gold-soft)}
+.phead .bg{position:absolute;inset:0;z-index:0}
+.phead .bg img{width:100%;height:100%;object-fit:cover;filter:grayscale(.4) brightness(.4)}
+.phead::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(to top,var(--black) 4%,rgba(11,11,10,.35) 60%,rgba(11,11,10,.55))}
+.phead .in{position:relative;z-index:2}
+.pbrand{font-family:var(--sans);font-size:10px;font-weight:500;letter-spacing:.4em;text-transform:uppercase;color:var(--white);opacity:.8;margin-bottom:auto}
+.peyebrow{font-size:8px;font-weight:600;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);margin-top:26px}
+.pclient{font-family:var(--serif);font-weight:300;font-size:clamp(2rem,5vw,3.2rem);line-height:1.05;margin:6px 0 4px}
+.ptitle{font-family:var(--serif);font-weight:300;font-style:italic;font-size:clamp(1.1rem,2.4vw,1.5rem);color:var(--white-dim)}
+.pintro{font-size:12px;font-weight:300;line-height:1.9;color:var(--white-dim);max-width:60ch;margin-top:14px}
+.pmeta{margin-top:16px;display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--gold-soft);padding:5px 11px;font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--white-dim)}
+.chip.warn{border-color:var(--gold);color:var(--gold)}
+
+.wrap{padding:clamp(30px,5vw,56px) var(--pad) 100px}
+
+/* galeria / triagem — colagem sem separadores */
+.collage{column-count:2;column-gap:0}
+@media(min-width:640px){.collage{column-count:3}}
+@media(min-width:1024px){.collage{column-count:4}}
+@media(min-width:1500px){.collage{column-count:5}}
+.tile{position:relative;display:block;line-height:0;break-inside:avoid;overflow:hidden;cursor:pointer;border:1px solid rgba(0,0,0,0)}
+.tile img,.tile video{width:100%;height:auto;transition:transform .5s cubic-bezier(.2,.7,.2,1),filter .4s;filter:grayscale(.15)}
+.tile:hover img,.tile:hover video{transform:scale(1.04);filter:grayscale(0)}
+@media (prefers-reduced-motion:reduce){.tile:hover img,.tile:hover video{transform:none}}
+.tile .vtag{position:absolute;top:10px;left:10px;color:#fff;font-size:15px;opacity:.9;text-shadow:0 1px 6px rgba(0,0,0,.6);pointer-events:none;z-index:2}
+/* triagem: selecção */
+.tile .pick{position:absolute;top:9px;right:9px;width:26px;height:26px;border:1.5px solid rgba(255,255,255,.7);border-radius:50%;background:rgba(8,8,7,.4);z-index:3;display:flex;align-items:center;justify-content:center;font-size:14px;color:transparent;transition:background .2s,color .2s,border-color .2s}
+.tile.on .pick{background:var(--gold);border-color:var(--gold);color:var(--black)}
+.tile.on::after{content:"";position:absolute;inset:0;border:3px solid var(--gold);z-index:1;pointer-events:none}
+
+/* barra de triagem */
+.selbar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(11,11,10,.92);backdrop-filter:blur(10px);border-top:1px solid var(--gold-soft);padding:12px var(--pad);display:flex;align-items:center;justify-content:space-between;gap:14px}
+.selbar .count{font-family:var(--serif);font-size:16px;color:var(--gold)}
+.selbar .count small{color:var(--white-faint);font-family:var(--sans);font-size:9px;letter-spacing:.1em;text-transform:uppercase;margin-left:8px}
+.selbar .actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--gold-soft);background:transparent;color:var(--white);padding:11px 18px;font-family:var(--sans);font-size:8.5px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:background .2s,color .2s,border-color .2s}
+.btn:hover{border-color:var(--gold)}
+.btn.gold{background:var(--gold);color:var(--black);border-color:var(--gold)}
+.btn.gold:hover{opacity:.88}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.selmsg{padding:0 var(--pad) 30px;font-size:11px;color:var(--gold);letter-spacing:.03em}
+
+/* download tudo */
+.dlall{margin:0 0 26px}
+
+/* lightbox */
+.lb{position:fixed;inset:0;z-index:60;background:rgba(6,6,5,.95);backdrop-filter:blur(6px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:clamp(14px,4vw,50px);opacity:0;pointer-events:none;transition:opacity .25s}
+.lb.open{opacity:1;pointer-events:auto}
+.lb-top{width:100%;max-width:1200px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px}
+.lb-name{font-family:var(--sans);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--white-dim)}
+.lb-x{background:none;border:1px solid var(--gold-soft);color:#fff;width:34px;height:34px;cursor:pointer;font-size:14px}
+.lb-x:hover{background:var(--gold);color:var(--black)}
+.lb-stage{flex:1;width:100%;max-width:1200px;display:flex;align-items:center;justify-content:center;position:relative;min-height:0}
+.lb-media{max-width:100%;max-height:74vh;object-fit:contain;border:1px solid var(--gold-soft);background:#000}
+.lb-nav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;background:rgba(11,11,10,.7);border:1px solid var(--gold-soft);color:#fff;cursor:pointer;font-size:16px}
+.lb-nav:hover{background:var(--gold);color:var(--black)}
+.lb-nav.prev{left:0}.lb-nav.next{right:0}
+.lb-bottom{margin-top:12px;display:flex;gap:10px;align-items:center}
+.lb-count{font-family:var(--serif);font-size:14px;color:var(--white-dim)}
+
+/* proposta */
+.prop section{padding:clamp(40px,7vw,80px) var(--pad);border-bottom:1px solid var(--gold-soft)}
+.prop .eyebrow{font-size:8px;font-weight:600;letter-spacing:.28em;text-transform:uppercase;color:var(--gold)}
+.prop h2{font-family:var(--serif);font-weight:300;font-size:clamp(1.5rem,3vw,2.2rem);line-height:1.25;margin:12px 0 0;max-width:22ch}
+.prop p.lead{font-size:13px;font-weight:300;line-height:1.95;color:var(--white-dim);max-width:62ch;margin-top:14px}
+.prop ul.pts{list-style:none;margin:16px 0 0;max-width:62ch}
+.prop ul.pts li{padding:9px 0 9px 20px;position:relative;font-size:13px;font-weight:300;color:var(--white-dim);border-bottom:1px solid rgba(255,255,255,.05)}
+.prop ul.pts li::before{content:"—";position:absolute;left:0;color:var(--gold)}
+.concepts{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:26px}
+.concept{border:1px solid var(--gold-soft);background:var(--panel)}
+.concept img{width:100%;aspect-ratio:4/3;object-fit:cover;filter:grayscale(.2)}
+.concept .c-body{padding:16px}
+.concept h3{font-family:var(--serif);font-weight:400;font-size:1.15rem;color:var(--white)}
+.concept p{font-size:11px;font-weight:300;line-height:1.8;color:var(--white-dim);margin-top:6px}
+.mood{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:26px}
+@media(max-width:560px){.mood{grid-template-columns:repeat(2,1fr)}}
+.mood img{width:100%;aspect-ratio:1;object-fit:cover;filter:grayscale(.25)}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:26px}
+.plan{border:1px solid var(--gold-soft);background:var(--panel);padding:24px 20px;display:flex;flex-direction:column}
+.plan.hot{border-color:var(--gold);box-shadow:0 0 30px rgba(201,161,102,.12)}
+.plan .p-name{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.plan .p-price{font-family:var(--serif);font-weight:300;font-size:2rem;margin:8px 0 14px}
+.plan ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+.plan li{font-size:11px;font-weight:300;color:var(--white-dim);padding-left:16px;position:relative}
+.plan li::before{content:"·";position:absolute;left:4px;color:var(--gold)}
+.prop .cta-wrap{text-align:center;border-bottom:none}
+.prop .cta-wrap h2{margin:0 auto}
+.btn-cta{display:inline-flex;align-items:center;gap:10px;margin-top:24px;border:1px solid var(--gold);background:transparent;color:var(--white);padding:16px 34px;font-size:9px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;text-decoration:none;transition:background .25s,color .25s}
+.btn-cta:hover{background:var(--gold);color:var(--black)}
+
+footer{padding:22px var(--pad);border-top:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:8.5px;color:var(--white-faint);letter-spacing:.05em}
+</style>
+</head>
+<body>
+
+<div id="loading"><div class="spin"></div></div>
+
+<div id="notfound" class="hidden">
+  <svg class="mark" viewBox="0 0 40 40" fill="none"><path d="M20 3L36 37H29.5L20 15.5L10.5 37H4L20 3Z" fill="#C9A166"/><path d="M13.7 27H26.3" stroke="#0B0B0A" stroke-width="2.4"/></svg>
+  <h1>Nada aqui.</h1>
+  <p id="nf-msg">Este link não existe ou já expirou. Se recebeste um código de acesso, confirma que está completo.</p>
+  <a class="home" href="/">Asteris</a>
+</div>
+
+<div id="app" class="hidden"></div>
+
+<!-- lightbox -->
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Ver peça">
+  <div class="lb-top"><span class="lb-name" id="lb-name"></span><button class="lb-x" id="lb-x" aria-label="Fechar">&#10005;</button></div>
+  <div class="lb-stage">
+    <button class="lb-nav prev" id="lb-prev" aria-label="Anterior">&#8249;</button>
+    <div id="lb-wrap"></div>
+    <button class="lb-nav next" id="lb-next" aria-label="Seguinte">&#8250;</button>
+  </div>
+  <div class="lb-bottom"><span class="lb-count" id="lb-count"></span><a class="btn" id="lb-dl" download>Descarregar</a></div>
+</div>
+
+<script>
+/* ============================================================
+   PORTAL ASTERIS — 1 página, 3 modos (galeria / triagem / proposta)
+   URL: asteris.pt/<CODIGO>   →  lê /data/<CODIGO>.json
+   O JSON diz o "type". Ver /data/COMO-CRIAR.md
+   ============================================================ */
+var CONTACT_WA = "351933829767";                 // WhatsApp para CTAs de proposta
+var TRIAGEM_FORMSPREE = "";                       // ID Formspree p/ receber as seleções (vazio = envia por email do browser)
+
+var $ = function(s,r){ return (r||document).querySelector(s); };
+var el = function(tag,cls,html){ var e=document.createElement(tag); if(cls)e.className=cls; if(html!=null)e.innerHTML=html; return e; };
+
+/* --- código a partir do caminho --- */
+var parts = location.pathname.split("/").filter(Boolean);
+var repoBase = location.pathname.indexOf("/Asteris-Media-Website/") === 0 ? "/Asteris-Media-Website/" : "/";
+var qc = new URLSearchParams(location.search).get("c");   // fallback: 404.html?c=CODIGO
+var code = qc || (parts.length ? parts[parts.length-1].replace(/\.html?$/,"") : "");
+var RESERVED = ["index","404","g","p","t","c","data","assets"];
+
+function fail(msg){
+  $("#loading").classList.add("hidden");
+  if(msg) $("#nf-msg").textContent = msg;
+  $("#notfound").classList.remove("hidden");
+}
+
+if(!code || RESERVED.indexOf(code) !== -1 || !/^[a-z0-9][a-z0-9_-]{3,}$/i.test(code)){
+  fail();
+} else {
+  fetch(repoBase + "data/" + encodeURIComponent(code) + ".json", { cache:"no-store" })
+    .then(function(r){ if(!r.ok) throw 0; return r.json(); })
+    .then(render)
+    .catch(function(){ fail("Este link não existe. Confirma o código."); });
+}
+
+function expired(d){
+  if(!d.expira) return false;
+  var e = new Date(d.expira + "T23:59:59");
+  return !isNaN(e) && Date.now() > e.getTime();
+}
+
+function render(d){
+  document.title = "Asteris — " + (d.cliente || "");
+  if(expired(d)){ fail("Este link expirou em " + d.expira + ". Fala connosco para o reabrirmos."); return; }
+  $("#loading").classList.add("hidden");
+  var app = $("#app"); app.classList.remove("hidden"); app.innerHTML = "";
+
+  var head = el("div","phead");
+  head.innerHTML =
+    (d.capa ? '<div class="bg"><img src="'+d.capa+'" alt=""></div>' : '') +
+    '<div class="in">' +
+      '<div class="pbrand">Asteris</div>' +
+      '<div class="peyebrow">'+({galeria:"Galeria",triagem:"Seleção",proposta:"Proposta"}[d.type]||"")+'</div>' +
+      '<div class="pclient">'+(d.cliente||"")+'</div>' +
+      (d.titulo ? '<div class="ptitle">'+d.titulo+'</div>' : '') +
+      (d.intro ? '<div class="pintro">'+d.intro+'</div>' : '') +
+      '<div class="pmeta">' +
+        (d.itens ? '<span class="chip">'+d.itens.length+' peças</span>' : '') +
+        (d.expira ? '<span class="chip warn">Disponível até '+d.expira+'</span>' : '') +
+      '</div>' +
+    '</div>';
+  app.appendChild(head);
+
+  if(d.type === "proposta") return renderProposta(d, app);
+  return renderGaleria(d, app, d.type === "triagem");
+}
+
+/* ---------------- GALERIA + TRIAGEM ---------------- */
+var ITEMS = [], SEL = new Set();
+
+function renderGaleria(d, app, triagem){
+  ITEMS = d.itens || [];
+  var wrap = el("div","wrap");
+
+  if(!triagem && d.downloadTudo){
+    var a = el("a","btn gold dlall","Descarregar tudo (.zip)");
+    a.href = d.downloadTudo; a.setAttribute("download","");
+    wrap.appendChild(a);
+  }
+  if(triagem && d.instrucoes){
+    var p = el("p","selmsg", d.instrucoes + (d.minimo ? "  ·  mínimo "+d.minimo : ""));
+    wrap.appendChild(p);
+  }
+
+  var grid = el("div","collage");
+  ITEMS.forEach(function(it, i){
+    var t = el("button","tile"); t.dataset.i = i;
+    var media = it.tipo === "video"
+      ? '<span class="vtag">&#9654;</span><video src="'+(it.src)+'" muted loop playsinline preload="metadata"></video>'
+      : '<img src="'+(it.thumb||it.src)+'" alt="'+(it.nome||"")+'" loading="lazy">';
+    t.innerHTML = media + (triagem ? '<span class="pick">&#10003;</span>' : '');
+    grid.appendChild(t);
+  });
+  wrap.appendChild(grid);
+  app.appendChild(wrap);
+
+  if(triagem){
+    var bar = el("div","selbar");
+    bar.innerHTML =
+      '<span class="count"><span id="sc">0</span><small>selecionadas</small></span>' +
+      '<span class="actions">' +
+        '<button class="btn" id="only">Ver selecionadas</button>' +
+        '<button class="btn gold" id="save" disabled>Guardar seleção</button>' +
+      '</span>';
+    app.appendChild(bar);
+    document.body.style.paddingBottom = "72px";
+  }
+  app.appendChild(footer(d));
+
+  /* eventos */
+  grid.addEventListener("click", function(e){
+    var t = e.target.closest(".tile"); if(!t) return;
+    var i = +t.dataset.i;
+    if(triagem && e.target.closest(".pick")){ toggle(i, t); return; }
+    openLb(i);
+  });
+  playInView(grid);
+
+  if(triagem){
+    var onlyBtn = $("#only"), showAll = true;
+    onlyBtn.addEventListener("click", function(){
+      showAll = !showAll;
+      grid.querySelectorAll(".tile").forEach(function(t){
+        t.classList.toggle("hidden", !showAll && !t.classList.contains("on"));
+      });
+      onlyBtn.textContent = showAll ? "Ver selecionadas" : "Ver todas";
+    });
+    $("#save").addEventListener("click", function(){ saveSelection(d); });
+  }
+}
+
+function toggle(i, tile){
+  if(SEL.has(i)){ SEL.delete(i); tile.classList.remove("on"); }
+  else { SEL.add(i); tile.classList.add("on"); }
+  $("#sc").textContent = SEL.size;
+  $("#save").disabled = SEL.size === 0;
+}
+
+function saveSelection(d){
+  var chosen = [...SEL].map(function(i){ return ITEMS[i].nome || ("item-"+(i+1)); });
+  if(d.minimo && chosen.length < d.minimo){
+    alert("Escolhe pelo menos " + d.minimo + " (tens " + chosen.length + ").");
+    return;
+  }
+  var payload = { codigo: code, cliente: d.cliente, total: ITEMS.length, escolhidas: chosen.length, lista: chosen.join(", ") };
+  var btn = $("#save"); btn.disabled = true; btn.textContent = "A enviar…";
+  var fid = d.formspree || TRIAGEM_FORMSPREE;
+  if(fid){
+    fetch("https://formspree.io/f/" + fid, {
+      method:"POST", headers:{ "Content-Type":"application/json", Accept:"application/json" },
+      body: JSON.stringify(payload)
+    }).then(function(r){
+      done(r.ok);
+    }).catch(function(){ done(false); });
+  } else {
+    var body = encodeURIComponent("Seleção — " + d.cliente + " (" + code + ")\n\n" + chosen.length + " de " + ITEMS.length + "\n\n" + chosen.join("\n"));
+    window.location.href = "mailto:asteris.media@hotmail.com?subject=" + encodeURIComponent("Seleção — " + d.cliente) + "&body=" + body;
+    done(true);
+  }
+  function done(ok){
+    var bar = $(".selbar");
+    bar.innerHTML = ok
+      ? '<span class="count" style="color:var(--gold)">Seleção enviada &#10003;<small>recebemos '+chosen.length+' peças</small></span>'
+      : '<span class="count" style="color:#FF5B4C">Não deu para enviar<small>tenta outra vez ou fala connosco</small></span>';
+    if(!ok){ btn.disabled = false; btn.textContent = "Guardar seleção"; }
+  }
+}
+
+/* ---------------- LIGHTBOX ---------------- */
+var lb=$("#lb"), lbWrap=$("#lb-wrap"), lbi=0, lbOpen=false;
+function openLb(i){
+  lbi=i; lbOpen=true; var it=ITEMS[i];
+  lbWrap.innerHTML = it.tipo==="video"
+    ? '<video class="lb-media" src="'+it.src+'" controls autoplay playsinline></video>'
+    : '<img class="lb-media" src="'+it.src+'" alt="'+(it.nome||"")+'">';
+  $("#lb-name").textContent = it.nome || "";
+  $("#lb-count").textContent = (i+1) + " / " + ITEMS.length;
+  var dl=$("#lb-dl");
+  if(it.download){ dl.href=it.download; dl.classList.remove("hidden"); } else { dl.classList.add("hidden"); }
+  lb.classList.add("open"); document.body.style.overflow="hidden";
+}
+function closeLb(){ lb.classList.remove("open"); lbWrap.innerHTML=""; lbOpen=false; document.body.style.overflow=""; }
+function step(n){ lbi=(lbi+n+ITEMS.length)%ITEMS.length; openLb(lbi); }
+$("#lb-x").onclick=closeLb; $("#lb-prev").onclick=function(){step(-1)}; $("#lb-next").onclick=function(){step(1)};
+lb.addEventListener("click",function(e){ if(e.target===lb) closeLb(); });
+document.addEventListener("keydown",function(e){
+  if(!lbOpen) return;
+  if(e.key==="Escape") closeLb();
+  if(e.key==="ArrowLeft") step(-1);
+  if(e.key==="ArrowRight") step(1);
+});
+
+/* vídeos só tocam quando visíveis */
+function playInView(grid){
+  var vs = grid.querySelectorAll("video");
+  if(!("IntersectionObserver" in window)){ vs.forEach(function(v){ v.play().catch(function(){}); }); return; }
+  var io = new IntersectionObserver(function(en){
+    en.forEach(function(x){ if(x.isIntersecting) x.target.play().catch(function(){}); else x.target.pause(); });
+  }, { threshold:.2 });
+  vs.forEach(function(v){ io.observe(v); });
+}
+
+/* ---------------- PROPOSTA ---------------- */
+function renderProposta(d, app){
+  var pr = d.proposta || {};
+  var box = el("div","prop");
+  var html = "";
+
+  if(pr.ondeEstao){
+    html += '<section><p class="eyebrow">Onde estão hoje</p><p class="lead">'+pr.ondeEstao+'</p></section>';
+  }
+  if(pr.oQueVimos && pr.oQueVimos.length){
+    html += '<section><p class="eyebrow">O que identificámos</p><ul class="pts">' +
+      pr.oQueVimos.map(function(x){ return '<li>'+x+'</li>'; }).join("") + '</ul></section>';
+  }
+  if(pr.ondePodemChegar){
+    html += '<section><p class="eyebrow">Onde podem chegar</p><p class="lead">'+pr.ondePodemChegar+'</p></section>';
+  }
+  if(pr.conceitos && pr.conceitos.length){
+    html += '<section><p class="eyebrow">Conceitos</p><div class="concepts">' +
+      pr.conceitos.map(function(c){
+        return '<div class="concept">'+(c.img?'<img src="'+c.img+'" alt="">':'')+
+          '<div class="c-body"><h3>'+(c.titulo||"")+'</h3><p>'+(c.desc||"")+'</p></div></div>';
+      }).join("") + '</div></section>';
+  }
+  if(pr.moodboard && pr.moodboard.length){
+    html += '<section><p class="eyebrow">Moodboard</p><div class="mood">' +
+      pr.moodboard.map(function(u){ return '<img src="'+u+'" alt="">'; }).join("") + '</div></section>';
+  }
+  if(pr.planos && pr.planos.length){
+    html += '<section><p class="eyebrow">Investimento</p><div class="plans">' +
+      pr.planos.map(function(p){
+        return '<div class="plan'+(p.destaque?" hot":"")+'">'+
+          '<span class="p-name">'+(p.nome||"")+'</span>'+
+          '<span class="p-price">'+(p.preco||"")+'</span>'+
+          '<ul>'+(p.inclui||[]).map(function(i){ return '<li>'+i+'</li>'; }).join("")+'</ul>'+
+        '</div>';
+      }).join("") + '</div>' +
+      (pr.validade ? '<p class="lead" style="margin-top:18px;font-size:11px">Proposta válida por '+pr.validade+'.</p>' : '') +
+      '</section>';
+  }
+  var wa = "https://wa.me/" + CONTACT_WA + "?text=" + encodeURIComponent("Olá! Vi a proposta ("+(d.cliente||"")+") e quero avançar.");
+  html += '<section class="cta-wrap"><p class="eyebrow">Próximo passo</p><h2>'+(pr.cta||"Se existe valor, existe potencial.")+'</h2>' +
+    '<a class="btn-cta" href="'+wa+'" target="_blank" rel="noopener">Falar connosco</a></section>';
+
+  box.innerHTML = html;
+  app.appendChild(box);
+  app.appendChild(footer(d));
+}
+
+function footer(d){
+  var f = el("footer");
+  f.innerHTML = '<span>&#128274; Documento privado da Asteris' + (d.cliente ? " — " + d.cliente : "") + '</span><span>&copy; ' + new Date().getFullYear() + ' Asteris</span>';
+  return f;
+}
+</script>
+</body>
+</html>

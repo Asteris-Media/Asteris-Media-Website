@@ -1,0 +1,17 @@
+{
+  "type": "triagem",
+  "cliente": "Brendha & Pedro",
+  "titulo": "Escolha das fotos — ensaio gestante",
+  "intro": "Vê todas as fotos e marca as que queres na versão final. Quando terminares, carrega em Guardar seleção. Nós tratamos do resto.",
+  "capa": "/assets/clientes/brendha-pedro.mp4",
+  "expira": "2026-09-30",
+  "minimo": 2,
+  "instrucoes": "Toca no círculo de cada foto para a escolher.",
+  "formspree": "",
+  "itens": [
+    { "tipo": "video", "nome": "teaser", "src": "/assets/clientes/brendha-pedro.mp4" },
+    { "tipo": "foto", "nome": "gestante-01", "src": "https://res.cloudinary.com/demo/image/upload/w_1400/lady.jpg", "thumb": "https://res.cloudinary.com/demo/image/upload/w_600/lady.jpg" },
+    { "tipo": "foto", "nome": "gestante-02", "src": "https://res.cloudinary.com/demo/image/upload/w_1400/couple.jpg", "thumb": "https://res.cloudinary.com/demo/image/upload/w_600/couple.jpg" },
+    { "tipo": "foto", "nome": "gestante-03", "src": "https://res.cloudinary.com/demo/image/upload/w_1400/sample.jpg", "thumb": "https://res.cloudinary.com/demo/image/upload/w_600/sample.jpg" }
+  ]
+}
