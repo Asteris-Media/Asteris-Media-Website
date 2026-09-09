@@ -18,14 +18,14 @@
   --serif:"Cormorant Garamond",Georgia,serif; --sans:"Montserrat",system-ui,sans-serif;
   --pad:clamp(20px,5vw,56px);
 }
-body{background:var(--black);color:var(--white);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--pad)}
+body{background:var(--black);color:var(--white);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;padding:0}
 body::before{content:"";position:fixed;inset:0;z-index:-2;background:url("assets/hero/estatua.jpg") 62% center/cover no-repeat}
 body::after{content:"";position:fixed;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(11,11,10,.96) 0%,rgba(11,11,10,.62) 30%,rgba(11,11,10,.62) 58%,rgba(11,11,10,.98) 100%),rgba(11,11,10,.5)}
 ::selection{background:var(--gold);color:var(--black)}
 :focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 [hidden]{display:none!important}
 
-.wrap{width:100%;max-width:440px;text-align:center}
+.wrap{flex:1;display:flex;flex-direction:column;justify-content:center;width:100%;max-width:440px;margin:0 auto;padding:72px var(--pad) 28px;text-align:center}
 .mark{width:auto;height:36px;display:block;margin:0 auto 24px}
 .brand{font-size:10px;font-weight:500;letter-spacing:.42em;text-transform:uppercase;color:var(--white-dim);margin-bottom:10px}
 h1{font-family:var(--serif);font-weight:300;font-size:clamp(1.7rem,4vw,2.3rem);line-height:1.15;margin-bottom:8px}
@@ -56,17 +56,14 @@ h1{font-family:var(--serif);font-weight:300;font-size:clamp(1.7rem,4vw,2.3rem);l
 
 .foot{margin-top:40px;font-size:8.5px;letter-spacing:.06em;color:var(--white-faint)}
 .foot a{color:var(--white-dim);text-decoration:none;border-bottom:1px solid var(--gold-soft)}
-.site-footer{position:fixed;left:0;right:0;bottom:0;padding:18px clamp(20px,5vw,56px);border-top:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;background:var(--black)}
+.site-footer{flex-shrink:0;width:100%;padding:16px clamp(20px,5vw,56px);border-top:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;background:transparent}
 .site-footer .sf-brand{display:flex;align-items:center;gap:9px;text-decoration:none;font-family:var(--sans);font-size:10px;font-weight:500;letter-spacing:.32em;text-transform:uppercase;color:rgba(240,234,224,.4)}
 .site-footer .sf-brand svg,.site-footer .sf-brand img{width:auto;height:15px;opacity:.7;flex-shrink:0}
 .site-footer .sf-copy{font-size:8.5px;color:rgba(240,234,224,.28);letter-spacing:.06em}
 .site-footer .sf-cross{color:var(--gold);font-size:15px;opacity:.55}
-@media(max-height:620px){.site-footer{position:static;margin-top:30px}}
-.home-link{position:fixed;top:20px;left:20px;display:inline-flex;align-items:center;gap:7px;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--white-dim);text-decoration:none;padding:8px 12px;border:1px solid var(--gold-soft);transition:color .2s,border-color .2s}
+.home-link{position:fixed;top:20px;left:20px;z-index:5;display:inline-flex;align-items:center;gap:7px;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--white-dim);text-decoration:none;padding:8px 12px;border:1px solid var(--gold-soft);background:rgba(11,11,10,.4);transition:color .2s,border-color .2s}
 @media(max-width:560px){
-  html,body{overflow:hidden}
-  body{justify-content:flex-start;padding-top:58px;padding-bottom:14px}
-  .wrap{margin:auto 0}
+  .wrap{padding:60px var(--pad) 18px}
   .mark{height:28px;margin-bottom:14px}
   h1{font-size:1.55rem}
   .sub{margin-bottom:18px}
@@ -74,7 +71,7 @@ h1{font-family:var(--serif);font-weight:300;font-size:clamp(1.7rem,4vw,2.3rem);l
   .choice{padding:13px 15px}
   .choice .tx span{font-size:10px}
   .foot{margin-top:18px}
-  .site-footer{position:static;margin-top:0;padding:14px 0 2px;border:none;justify-content:center;text-align:center}
+  .site-footer{padding:14px var(--pad);justify-content:center;text-align:center}
   .home-link{top:14px;left:14px}
 }
 .home-link:hover{color:var(--gold);border-color:var(--gold)}
