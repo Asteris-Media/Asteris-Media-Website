@@ -142,17 +142,18 @@ section.block{padding:clamp(64px,9vw,120px) var(--pad)}
 /* ========= PÁGINA DO CLIENTE — colagem sem separadores ========= */
 .gallery{position:fixed;inset:0;z-index:100;background:var(--black);overflow-y:auto;overscroll-behavior:contain;opacity:0;pointer-events:none;transition:opacity .3s}
 .gallery.open{opacity:1;pointer-events:auto}
-.gallery-bar{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:15px var(--pad);background:rgba(11,11,10,.86);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--gold-soft)}
-.gallery-id{display:flex;align-items:baseline;gap:12px;min-width:0}
-.gallery-mark{color:var(--gold);font-size:13px;flex-shrink:0}
-.gallery-name{font-family:var(--serif);font-weight:400;font-size:clamp(1.15rem,2.2vw,1.6rem);color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gallery-bar{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:flex-start;padding:14px var(--pad);background:rgba(11,11,10,.86);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--gold-soft)}
 .gallery-back{flex-shrink:0;background:none;border:1px solid var(--gold-soft);color:var(--white);padding:9px 15px;font-family:var(--sans);font-size:8px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:background .2s,color .2s}
 .gallery-back:hover{background:var(--gold);color:var(--black)}
-.gallery-lead{padding:24px var(--pad) 0;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--white-faint)}
+.gallery-head{display:flex;flex-direction:column;align-items:center;text-align:center;gap:9px;padding:40px var(--pad) 6px}
+.gallery-mark{color:var(--gold);font-size:14px}
+.gallery-name{font-family:var(--serif);font-weight:400;font-size:clamp(1.5rem,3.4vw,2.3rem);line-height:1.2;color:var(--white);margin:0;text-wrap:balance}
+.gallery-lead{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--white-faint);margin:0}
+.gallery-lead:empty{display:none}
 .gcollage{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,360px));justify-content:center;align-content:start;gap:2px;margin:14px auto 0;padding:0 2px 60px;max-width:1480px}
 @media (max-width:520px){.gcollage{grid-template-columns:minmax(0,420px)}}
-.gcollage figure{margin:0;display:block;position:relative;overflow:hidden;line-height:0;cursor:zoom-in}
-.gcollage img,.gcollage video{width:100%;height:auto;display:block;transition:transform .55s cubic-bezier(.2,.7,.2,1),filter .4s;filter:grayscale(.25)}
+.gcollage figure{margin:0;display:flex;justify-content:center;align-items:center;position:relative;overflow:hidden;line-height:0;cursor:zoom-in;background:#000}
+.gcollage img,.gcollage video{width:100%;height:auto;max-height:78vh;object-fit:contain;display:block;transition:transform .55s cubic-bezier(.2,.7,.2,1),filter .4s;filter:grayscale(.25)}
 .gcollage figure:hover img,.gcollage figure:hover video{transform:scale(1.045);filter:grayscale(0)}
 @media (prefers-reduced-motion:reduce){.gcollage figure:hover img,.gcollage figure:hover video{transform:none}}
 .gcollage figure .vtag{position:absolute;top:10px;left:10px;color:var(--white);font-size:15px;opacity:.85;text-shadow:0 1px 6px rgba(0,0,0,.6);pointer-events:none}
@@ -266,10 +267,13 @@ footer{background:var(--black);border-top:1px solid rgba(255,255,255,.07);paddin
 <!-- PÁGINA DO CLIENTE (colagem) -->
 <div class="gallery" id="gallery" role="dialog" aria-modal="true" aria-label="Galeria do cliente">
   <div class="gallery-bar">
-    <span class="gallery-id"><span class="gallery-mark">&#10022;</span><span class="gallery-name" id="gallery-name"></span></span>
     <button class="gallery-back" id="gallery-back">&#8249; Voltar</button>
   </div>
-  <p class="gallery-lead" id="gallery-lead"></p>
+  <header class="gallery-head">
+    <span class="gallery-mark">&#10022;</span>
+    <h2 class="gallery-name" id="gallery-name"></h2>
+    <p class="gallery-lead" id="gallery-lead"></p>
+  </header>
   <div class="gcollage" id="gcollage"></div>
 </div>
 
@@ -431,6 +435,7 @@ var PORTFOLIO = CLIENTS.map(function(c){
   var vid = "assets/clientes/" + c[1] + ".mp4";
   return {
     client: c[0], slug: c[1],
+    subtitulo: c[4] || "",   /* subtítulo opcional no cabeçalho da galeria */
     logo: c[3] || "",   /* PNG/SVG do cliente -> zoom lento; sem logo -> titulo em texto com tracking */
     bg:   vid,
     items: [{ type:"video", src: vid }]   /* só o nosso clip; sem imagens mock */
@@ -639,8 +644,7 @@ var galleryOpen = false, lastFocus = null, vObserver = null;
 function openGallery(i){
   var p = PORTFOLIO[i];
   galleryName.textContent = p.client;
-  var vids = p.items.filter(function(it){ return it.type==="video"; }).length;
-  galleryLead.textContent = p.items.length + " peças" + (vids ? "  ·  " + vids + " em vídeo" : "");
+  galleryLead.textContent = p.subtitulo || "";
   gcollage.innerHTML = p.items.map(function(it, k){
     if(it.type === "video"){
       return '<figure data-k="'+k+'"><span class="vtag">&#9654;</span>'
