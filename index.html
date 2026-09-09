@@ -505,8 +505,10 @@ if(document.readyState === "complete") refresh();
 window.addEventListener("load", refresh);
 if(document.fonts && document.fonts.ready) document.fonts.ready.then(fitTitles);
 if("ResizeObserver" in window) new ResizeObserver(refresh).observe(track);
-clientes.addEventListener("pointerenter", function(){ hovering = true; });
-clientes.addEventListener("pointerleave", function(){ hovering = false; });
+/* só o rato pausa a faixa; toque nunca (senão fica congelada no telemóvel) */
+clientes.addEventListener("pointerenter", function(e){ if(e.pointerType === "mouse") hovering = true; });
+clientes.addEventListener("pointerleave", function(e){ if(e.pointerType === "mouse") hovering = false; });
+clientes.addEventListener("pointercancel", function(){ hovering = false; });
 requestAnimationFrame(frame);
 
 /* só toca os vídeos dos painéis visíveis (evita 27 decodes ao mesmo tempo) */
