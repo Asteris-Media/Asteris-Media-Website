@@ -16,7 +16,8 @@
     "ondePodemChegar": "Um corpo de conteúdo de 3 meses que fixa a identidade visual, alimenta o feed sem esforço vosso e dá material para campanhas pagas. Objetivo prático: encher as noites de terça a quinta.",
     "conceitos": [
       { "titulo": "A mesa como palco", "desc": "Série curta de vídeo focada no ritual, o serviço, o empratamento, o primeiro corte.", "img": "https://res.cloudinary.com/demo/image/upload/w_800/coffee.jpg" },
-      { "titulo": "Retrato de casa", "desc": "Fotografia de ambiente e equipa, luz natural, para site e redes.", "img": "https://res.cloudinary.com/demo/image/upload/w_800/couple.jpg" }
+      { "titulo": "Retrato de casa", "desc": "Fotografia de ambiente e equipa, luz natural, para site e redes.", "img": "https://res.cloudinary.com/demo/image/upload/w_800/couple.jpg" },
+      { "titulo": "Hora dourada", "desc": "Sessão ao fim da tarde na sala, a luz que já lá está aproveitada para o feed.", "img": "https://res.cloudinary.com/demo/image/upload/w_800/lady.jpg" }
     ],
     "moodboard": [
       "https://res.cloudinary.com/demo/image/upload/w_600/sample.jpg",

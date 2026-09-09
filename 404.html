@@ -116,15 +116,25 @@ a{color:inherit}
 .prop ul.pts{list-style:none;margin:16px 0 0;max-width:62ch}
 .prop ul.pts li{padding:9px 0 9px 20px;position:relative;font-size:13px;font-weight:300;color:var(--white-dim);border-bottom:1px solid rgba(255,255,255,.05)}
 .prop ul.pts li::before{content:"—";position:absolute;left:0;color:var(--gold)}
-.concepts{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:26px}
-.concept{border:1px solid var(--gold-soft);background:var(--panel)}
-.concept img{width:100%;aspect-ratio:4/3;object-fit:cover;filter:grayscale(.2)}
-.concept .c-body{padding:16px}
-.concept h3{font-family:var(--serif);font-weight:400;font-size:1.15rem;color:var(--white)}
-.concept p{font-size:11px;font-weight:300;line-height:1.8;color:var(--white-dim);margin-top:6px}
-.mood{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:26px}
-@media(max-width:560px){.mood{grid-template-columns:repeat(2,1fr)}}
-.mood img{width:100%;aspect-ratio:1;object-fit:cover;filter:grayscale(.25)}
+/* conceitos — carrossel coverflow */
+.cx{position:relative;margin-top:26px;padding:8px 0 40px}
+.cx-stage{position:relative;height:clamp(280px,44vw,430px)}
+.cx-card{position:absolute;top:0;left:50%;width:min(80%,430px);height:100%;background:var(--panel);border:1px solid var(--gold-soft);overflow:hidden;
+  transform:translateX(-50%);transition:transform .6s cubic-bezier(.4,0,.2,1),opacity .55s,filter .55s;will-change:transform,opacity;pointer-events:none}
+.cx-card.mid{pointer-events:auto}
+.cx-card img{width:100%;height:62%;object-fit:cover;filter:grayscale(.2)}
+.cx-card .c-body{padding:16px}
+.cx-card h3{font-family:var(--serif);font-weight:400;font-size:1.2rem;color:var(--white)}
+.cx-card p{font-size:11px;font-weight:300;line-height:1.8;color:var(--white-dim);margin-top:6px}
+.cx-nav{position:absolute;top:calc(50% - 20px);z-index:20;width:40px;height:40px;background:rgba(11,11,10,.72);border:1px solid var(--gold-soft);color:#fff;font-size:16px;cursor:pointer;transition:background .2s,color .2s}
+.cx-nav:hover{background:var(--gold);color:var(--black)}
+.cx-nav.prev{left:2px}.cx-nav.next{right:2px}
+.cx-dots{position:absolute;left:0;right:0;bottom:12px;display:flex;justify-content:center;gap:7px}
+.cx-dots button{width:6px;height:6px;border-radius:50%;border:0;background:var(--gold-soft);cursor:pointer;padding:0;transition:background .2s}
+.cx-dots button.on{background:var(--gold)}
+.mood{margin-top:26px;column-count:3;column-gap:8px}
+@media(max-width:640px){.mood{column-count:2}}
+.mood img{width:100%;height:auto;display:block;margin-bottom:8px;filter:grayscale(.25);break-inside:avoid}
 .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:26px}
 .plan{position:relative;border:1px solid var(--gold-soft);background:var(--panel);padding:26px 20px;display:flex;flex-direction:column}
 .plan.hot{border-color:var(--gold);box-shadow:0 0 34px rgba(201,161,102,.14)}
@@ -563,22 +573,36 @@ function renderProposta(d, app){
     html += '<section><p class="eyebrow">Onde podem chegar</p><p class="lead">'+pr.ondePodemChegar+'</p></section>';
   }
   if(pr.conceitos && pr.conceitos.length){
-    html += '<section><p class="eyebrow">Conceitos</p><div class="concepts">' +
+    html += '<section><p class="eyebrow">Conceitos</p><div class="cx">' +
+      '<div class="cx-stage">' +
       pr.conceitos.map(function(c){
-        return '<div class="concept">'+(c.img?'<img src="'+c.img+'" alt="">':'')+
-          '<div class="c-body"><h3>'+(c.titulo||"")+'</h3><p>'+(c.desc||"")+'</p></div></div>';
-      }).join("") + '</div></section>';
+        return '<article class="cx-card">'+(c.img?'<img src="'+c.img+'" alt="">':'')+
+          '<div class="c-body"><h3>'+(c.titulo||"")+'</h3><p>'+(c.desc||"")+'</p></div></article>';
+      }).join("") + '</div>' +
+      (pr.conceitos.length > 1
+        ? '<button class="cx-nav prev" aria-label="Anterior">&#8249;</button>' +
+          '<button class="cx-nav next" aria-label="Seguinte">&#8250;</button>' +
+          '<div class="cx-dots"></div>'
+        : '') +
+      '</div></section>';
   }
   if(pr.moodboard && pr.moodboard.length){
     html += '<section><p class="eyebrow">Moodboard</p><div class="mood">' +
       pr.moodboard.map(function(u){ return '<img src="'+u+'" alt="">'; }).join("") + '</div></section>';
   }
   if(pr.referencias && pr.referencias.length){
-    html += '<section><p class="eyebrow">Referências</p><div class="refs">' +
+    html += '<section><p class="eyebrow">Referências</p><div class="cx" id="cxref">' +
+      '<div class="cx-stage">' +
       pr.referencias.map(function(r){
-        return '<figure class="ref">'+(r.img?'<img src="'+r.img+'" alt="">':'')+
-          (r.nota?'<figcaption>'+r.nota+'</figcaption>':'')+'</figure>';
-      }).join("") + '</div></section>';
+        return '<article class="cx-card">'+(r.img?'<img src="'+r.img+'" alt="">':'')+
+          (r.nota?'<div class="c-body"><p>'+r.nota+'</p></div>':'')+'</article>';
+      }).join("") + '</div>' +
+      (pr.referencias.length > 1
+        ? '<button class="cx-nav prev" aria-label="Anterior">&#8249;</button>' +
+          '<button class="cx-nav next" aria-label="Seguinte">&#8250;</button>' +
+          '<div class="cx-dots"></div>'
+        : '') +
+      '</div></section>';
   }
   if(pr.planos && pr.planos.length){
     html += '<section><p class="eyebrow">Investimento</p><div class="plans">' +
@@ -601,6 +625,50 @@ function renderProposta(d, app){
   box.innerHTML = html;
   app.appendChild(box);
   app.appendChild(footer(d));
+  document.querySelectorAll(".cx").forEach(initCoverflow);
+}
+
+function initCoverflow(cx){
+  var cards = [].slice.call(cx.querySelectorAll(".cx-card"));
+  var N = cards.length; if(N < 2) return;
+  var cur = 0, timer;
+
+  function place(){
+    cards.forEach(function(c, i){
+      var dd = i - cur;
+      if(dd >  N/2) dd -= N;
+      if(dd < -N/2) dd += N;
+      var a = Math.abs(dd);
+      c.style.transform = "translateX(calc(-50% + " + (dd * 58) + "%)) scale(" + Math.max(0.55, 1 - a*0.24) + ")";
+      c.style.opacity = a === 0 ? 1 : Math.max(0, 0.42 - (a-1)*0.22);
+      c.style.filter = a === 0 ? "none" : "blur(1.5px)";
+      c.style.zIndex = 20 - a;
+      c.classList.toggle("mid", a === 0);
+    });
+    var dots = cx.querySelectorAll(".cx-dots button");
+    dots.forEach(function(b, i){ b.classList.toggle("on", i === cur); });
+  }
+  function go(n){ cur = (n + N) % N; place(); }
+  function next(){ go(cur + 1); }
+  function prev(){ go(cur - 1); }
+  function restart(){ clearInterval(timer); timer = setInterval(next, 10000); }
+
+  var dotsWrap = cx.querySelector(".cx-dots");
+  if(dotsWrap){
+    for(var k = 0; k < N; k++){
+      var b = document.createElement("button"); b.type = "button";
+      b.setAttribute("aria-label", "Ver " + (k+1));
+      (function(idx){ b.addEventListener("click", function(){ go(idx); restart(); }); })(k);
+      dotsWrap.appendChild(b);
+    }
+  }
+  var pv = cx.querySelector(".cx-nav.prev"), nx = cx.querySelector(".cx-nav.next");
+  if(pv) pv.addEventListener("click", function(){ prev(); restart(); });
+  if(nx) nx.addEventListener("click", function(){ next(); restart(); });
+  cx.addEventListener("pointerenter", function(){ clearInterval(timer); });
+  cx.addEventListener("pointerleave", restart);
+
+  place(); restart();
 }
 
 function footer(d){
