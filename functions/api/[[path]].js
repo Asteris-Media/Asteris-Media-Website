@@ -88,6 +88,62 @@ export async function onRequest(context) {
   if (seg[0] === "me") return json({ ok: authed });
   if (!authed) return json({ error: "Sessão inválida" }, 401);
 
+  // ---- painel de estado / quotas ----
+  if (seg[0] === "stats" && method === "GET") {
+    const idx = await loadIndex(env);
+    const now = Date.now();
+    const byType = {};
+    const expired = [];
+    const soon = [];
+    for (const e of idx) {
+      byType[e.type || "?"] = (byType[e.type || "?"] || 0) + 1;
+      if (e.expira) {
+        const t = new Date(e.expira + "T23:59:59").getTime();
+        if (t < now) expired.push({ code: e.code, expira: e.expira });
+        else if (t - now < 14 * 86400000) soon.push({ code: e.code, expira: e.expira, dias: Math.round((t - now) / 86400000) });
+      }
+    }
+    soon.sort((a, b) => a.dias - b.dias);
+
+    let kvKeys = 0;
+    try {
+      let cursor, done = false;
+      while (!done) {
+        const r = await env.ASTERIS_KV.list({ cursor, limit: 1000 });
+        kvKeys += r.keys.length;
+        cursor = r.cursor; done = r.list_complete;
+      }
+    } catch { kvKeys = idx.length + 1; }
+
+    const r2 = { bound: !!env.ASTERIS_R2, objects: null, bytes: null, truncated: false };
+    if (env.ASTERIS_R2) {
+      try {
+        let cursor, bytes = 0, count = 0, trunc = false, n = 0;
+        do {
+          const o = await env.ASTERIS_R2.list({ cursor, limit: 1000 });
+          count += o.objects.length;
+          bytes += o.objects.reduce((s, x) => s + (x.size || 0), 0);
+          cursor = o.truncated ? o.cursor : null;
+          trunc = o.truncated; n++;
+        } while (cursor && n < 20);
+        r2.objects = count; r2.bytes = bytes; r2.truncated = trunc;
+      } catch (e) { r2.error = String(e); }
+    }
+
+    return json({
+      generated: new Date().toISOString(),
+      pages: { total: idx.length, kvKeys, byType, expired, soon },
+      r2,
+      cloudinary: { configured: !!(env.CLOUDINARY_CLOUD && env.CLOUDINARY_KEY && env.CLOUDINARY_SECRET) },
+      limits: {
+        kv: { storageMB: 1024, readsDia: 100000, escritasDia: 1000, apagarDia: 1000 },
+        r2: { storageGB: 10, classAmes: 1000000, classBmes: 10000000 },
+        pagesBuildsMes: 500,
+        cloudinaryCreditosMes: 25
+      }
+    });
+  }
+
   // ---- páginas ----
   if (seg[0] === "pages") {
     if (!seg[1]) {
@@ -113,6 +169,7 @@ export async function onRequest(context) {
         cliente: body.cliente || "",
         titulo: body.titulo || "",
         expira: body.expira || "",
+        anon: body.anon === true,
         atualizado: new Date().toISOString()
       });
       await saveIndex(env, list);
