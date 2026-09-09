@@ -150,9 +150,15 @@ Casos antes/depois: as métricas e as notas são **credíveis mas ilustrativas**
 
 `asteris.pt/admin` — SPA de gestão. **Não tem build.** Toda a lógica num `<script>`.
 
-### Login
-Password → `POST /api/login` → cookie assinado `as_sess` (HMAC-SHA256 com `SESSION_SECRET`, validade 14 dias). Campo com olho para ver a password.
-**Password atual:** `Administrador.10` (variável `ADMIN_PW` no Cloudflare, tipo Text). Trocar = editar a variável + redeploy.
+### Login (multi-utilizador)
+Password → `POST /api/login` → cookie assinado `as_sess` (HMAC-SHA256 com `SESSION_SECRET`, payload inclui `u: <nome>`, validade 14 dias). Campo com olho para ver a password. O nome do utilizador aparece no topo do admin.
+
+- **`ADMIN_PW`** (Text) = password partilhada; o utilizador chama-se **"Admin"**. Atual: `Administrador.10`.
+- **`ADMIN_USERS`** (Secret, opcional) = várias contas nomeadas, formato **`Nome:senha,Nome:senha`** (nome:senha, separados por vírgula). Ex.: `Brener:xxxxx,Gustavo:yyyyy`. O nome é o que aparece no **registo de atividade**.
+- A password identifica o utilizador (não há campo de "utilizador"). Trocar/adicionar = editar a variável no Cloudflare Pages + **redeploy**.
+
+### Registo de atividade (Logs)
+Cada ação de escrita fica registada em KV (`activitylog`, array, últimas 400). Ver no **rodapé do admin → "Logs"** (data/hora · quem · ação). Regista: entrar/sair, guardar/apagar página, apagar ficheiro(s)/pasta da biblioteca, tag de pasta, upload de pasta. Rotas: `GET /api/log` (ler) · `POST /api/log {action,detail}` (o admin usa para registar o upload de pasta).
 
 ### Painel (aba "Links")
 - **"Estado & quotas"** no topo: 4 cartões —
@@ -240,7 +246,8 @@ Cripto: Web Crypto. `makeToken`/`checkToken` = `b64url(payload).b64url(HMAC-SHA2
 | WhatsApp | **`351933829767`** — número **pessoal do Brener**, provisório até haver o da empresa | — |
 
 **Variáveis no Cloudflare Pages** (Settings → Variables and secrets):
-- `ADMIN_PW` = `Administrador.10` (Text) — password do `/admin`
+- `ADMIN_PW` = `Administrador.10` (Text) — password partilhada do `/admin` (utilizador "Admin")
+- `ADMIN_USERS` (Secret, opcional) = `Brener:senha1,Gustavo:senha2` — contas nomeadas para o registo de atividade
 - `SESSION_SECRET` = string aleatória longa (Text) — assina a sessão
 - `CLOUDINARY_CLOUD` = `bv9q81il` (Text)
 - `CLOUDINARY_KEY` / `CLOUDINARY_SECRET` (Secret) — API keys da Cloudinary
