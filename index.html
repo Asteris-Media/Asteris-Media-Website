@@ -57,9 +57,15 @@ header{position:absolute;top:0;left:0;width:100%;z-index:20;padding:26px var(--p
 .hero-sub{font-size:11px;font-weight:300;line-height:2;color:var(--white-dim);letter-spacing:.02em;margin-bottom:42px}
 
 /* BOTÃO */
-.btn-wa{display:inline-flex;align-items:center;gap:11px;padding:14px 26px;border:1px solid var(--gold);background:transparent;color:var(--white);font-family:var(--sans);font-size:9px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;cursor:pointer;text-decoration:none;width:fit-content;transition:background .25s,color .25s}
-.btn-wa:hover{background:var(--gold);color:var(--black)}
-.btn-wa svg{width:15px;height:15px;flex-shrink:0}
+.btn-wa{position:relative;overflow:hidden;display:inline-flex;align-items:center;gap:11px;padding:14px 26px;border:1px solid var(--gold);background:transparent;color:var(--gold);font-family:var(--sans);font-size:9px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;cursor:pointer;text-decoration:none;width:fit-content;transition:background .25s,color .25s,box-shadow .25s}
+.btn-wa > *{position:relative;z-index:1}
+.btn-wa svg{width:15px;height:15px;flex-shrink:0;stroke:currentColor}
+.btn-wa::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;z-index:0;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(201,161,102,.28) 45%,rgba(240,234,224,.5) 50%,rgba(201,161,102,.28) 55%,transparent);
+  transform:skewX(-18deg);animation:wa-shine 5.5s ease-in-out infinite}
+@keyframes wa-shine{0%,72%{left:-60%}88%,100%{left:130%}}
+.btn-wa:hover{background:var(--gold);color:var(--black);box-shadow:0 0 22px rgba(201,161,102,.5),0 0 4px rgba(201,161,102,.7)}
+@media (prefers-reduced-motion:reduce){.btn-wa::after{animation:none;display:none}}
 
 /* ========= CARROSSEL INFINITO DE CLIENTES ========= */
 .clientes{width:100vw;position:relative;left:50%;margin-left:-50vw;overflow:hidden;background:#000;border-top:2px solid var(--gold);border-bottom:2px solid var(--gold);line-height:0}
@@ -95,8 +101,7 @@ section.block{padding:clamp(64px,9vw,120px) var(--pad)}
 .card-metrics{display:flex;flex-direction:column;gap:16px;margin-top:auto}
 .metric{display:flex;flex-direction:column;gap:5px}
 .metric .m-lbl{font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--white-faint);text-align:center}
-.metric .m-head,.metric .m-cmp{display:grid;grid-template-columns:1fr auto 1fr;align-items:baseline;gap:10px;font-family:var(--sans);font-variant-numeric:tabular-nums}
-.metric .m-head span{font-size:7.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--white-faint);text-align:center}
+.metric .m-cmp{display:grid;grid-template-columns:1fr auto 1fr;align-items:baseline;gap:10px;font-family:var(--sans);font-variant-numeric:tabular-nums}
 .metric .m-antes{font-size:12.5px;font-weight:400;color:var(--white-dim);text-align:left}
 .metric .m-arrow{color:var(--gold);font-size:10px;text-align:center}
 .metric .m-depois{font-size:16px;font-weight:600;color:var(--gold);letter-spacing:.005em;text-align:right}
@@ -167,7 +172,7 @@ footer{background:var(--black);border-top:1px solid rgba(255,255,255,.07);paddin
       É sobre a forma como o seu cliente o vê.
     </p>
     <a class="btn-wa" data-wa="Olá! Vim pelo site e gostava de uma análise da minha presença digital.">
-      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 00-8.6 15l-1.3 4.8 4.9-1.3A10 10 0 1012 2zm5.8 14.2c-.2.7-1.4 1.3-2 1.4-.5.1-1.2.1-1.9-.1-.4-.1-1-.3-1.8-.6-3-1.3-5-4.4-5.2-4.6-.1-.2-1.2-1.6-1.2-3.1s.8-2.2 1-2.5c.3-.3.6-.4.8-.4h.6c.2 0 .4 0 .7.5l.9 2.1c.1.2.1.4 0 .6l-.4.5-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.1.5.1.7-.1l.9-1.1c.2-.2.4-.2.6-.1l2 1c.3.1.5.2.5.4.1.2.1.9-.1 1.6z"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21l1.7-5A9 9 0 1 1 8 19.3z"/><path d="M9 8.4c-.1.7.4 1.2 1 1.4l1 1.7c.5 1 1.5 2 2.5 2.5l1.7 1c.2.6.7 1.1 1.4 1 .6-.1 1.1-.6 1.3-1.2.1-.4 0-.7-.3-.9l-1.7-1c-.3-.2-.6-.1-.8.1l-.5.6c-1.3-.6-2.3-1.6-2.9-2.9l.6-.5c.2-.2.3-.5.1-.8l-1-1.7c-.2-.3-.5-.4-.9-.3-.6.2-1.1.7-1.1 1.4z"/></svg>
       Solicitar análise
     </a>
   </div>
@@ -196,7 +201,7 @@ footer{background:var(--black);border-top:1px solid rgba(255,255,255,.07);paddin
     <p class="eyebrow">Vamos conversar?</p>
     <p class="contact-title">Se existe potencial, existe valor.</p>
     <a class="btn-wa" data-wa="Olá! Vim pelo site e gostava de falar sobre um projeto.">
-      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 00-8.6 15l-1.3 4.8 4.9-1.3A10 10 0 1012 2zm5.8 14.2c-.2.7-1.4 1.3-2 1.4-.5.1-1.2.1-1.9-.1-.4-.1-1-.3-1.8-.6-3-1.3-5-4.4-5.2-4.6-.1-.2-1.2-1.6-1.2-3.1s.8-2.2 1-2.5c.3-.3.6-.4.8-.4h.6c.2 0 .4 0 .7.5l.9 2.1c.1.2.1.4 0 .6l-.4.5-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.1.5.1.7-.1l.9-1.1c.2-.2.4-.2.6-.1l2 1c.3.1.5.2.5.4.1.2.1.9-.1 1.6z"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21l1.7-5A9 9 0 1 1 8 19.3z"/><path d="M9 8.4c-.1.7.4 1.2 1 1.4l1 1.7c.5 1 1.5 2 2.5 2.5l1.7 1c.2.6.7 1.1 1.4 1 .6-.1 1.1-.6 1.3-1.2.1-.4 0-.7-.3-.9l-1.7-1c-.3-.2-.6-.1-.8.1l-.5.6c-1.3-.6-2.3-1.6-2.9-2.9l.6-.5c.2-.2.3-.5.1-.8l-1-1.7c-.2-.3-.5-.4-.9-.3-.6.2-1.1.7-1.1 1.4z"/></svg>
       Solicitar análise
     </a>
   </div>
@@ -404,7 +409,6 @@ function fmtNum(n, euro){
 document.getElementById("cards").innerHTML = RESULTS.map(function(r){
   var rows = r.metrics.map(function(m){
     return '<div class="metric"><span class="m-lbl">'+m.label+'</span>'
-      + '<span class="m-head"><span>Antes</span><span></span><span>Depois</span></span>'
       + '<span class="m-cmp">'
       +   '<span class="m-antes">'+fmtNum(m.antes, m.euro)+'</span>'
       +   '<span class="m-arrow">&rarr;</span>'
