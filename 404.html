@@ -490,7 +490,7 @@ var lb=$("#lb"), lbWrap=$("#lb-wrap"), lbi=0, lbOpen=false;
 function openLb(i){
   lbi=i; lbOpen=true; var it=ITEMS[i];
   lbWrap.innerHTML = it.tipo==="video"
-    ? '<video class="lb-media" src="'+it.src+'" controls autoplay playsinline></video>'
+    ? '<video class="lb-media" src="'+it.src+'" controls autoplay playsinline controlsList="nodownload nofullscreen noremoteplayback" disablePictureInPicture oncontextmenu="return false"></video>'
     : '<img class="lb-media" src="'+it.src+'" alt="'+(it.nome||"")+'">';
   $("#lb-name").textContent = it.nome || "";
   $("#lb-count").textContent = (i+1) + " / " + ITEMS.length;
