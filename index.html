@@ -75,12 +75,12 @@ header{position:absolute;top:0;left:0;width:100%;z-index:20;padding:26px var(--p
 .car-item{width:clamp(208px,26vw,328px);aspect-ratio:9/16;position:relative;flex-shrink:0;background:#000;transform:skewX(-14deg) scale(1.02);border-right:3px solid var(--gold);box-shadow:inset -1px 0 6px rgba(201,161,102,.35);cursor:pointer;overflow:hidden}
 .car-item .bg-video{width:150%;height:104%;object-fit:cover;position:absolute;top:-2%;left:-25%;transform:skewX(14deg) scale(1);transform-origin:center center;filter:grayscale(.35) brightness(.62);will-change:transform;transition:transform 1.6s cubic-bezier(.22,1,.36,1),filter .8s ease}
 .car-item:hover .bg-video,.car-item:focus-visible .bg-video{transform:skewX(14deg) scale(1.24);filter:grayscale(.12) brightness(.72);transition:transform 11s cubic-bezier(.12,.42,.24,1),filter .8s ease}
-@media (prefers-reduced-motion:reduce){.car-item .bg-video,.car-item:hover .bg-video,.car-item:focus-visible .bg-video{transition:filter .4s ease;transform:skewX(14deg) scale(1)}}
+@media (prefers-reduced-motion:reduce){.car-item .bg-video,.car-item:hover .bg-video,.car-item:focus-visible .bg-video{transition:filter .4s ease;transform:skewX(14deg) scale(1)}.car-item:hover .c-logo,.car-item:focus-visible .c-logo{transform:translate(-50%,-50%) skewX(14deg) scale(1);transition:opacity .4s ease,filter .4s ease}}
 .car-item .overlay{position:absolute;top:-2%;left:-25%;width:150%;height:104%;background:rgba(5,5,6,.62);z-index:2;transform:skewX(14deg);transition:background .6s ease}
-.car-item .c-logo{position:absolute;top:50%;left:50%;width:64%;max-width:150px;transform:translate(-50%,-50%) skewX(14deg);z-index:3;opacity:.82;transition:opacity .4s ease,filter .4s ease}
+.car-item .c-logo{position:absolute;top:50%;left:50%;width:64%;max-width:150px;transform:translate(-50%,-50%) skewX(14deg) scale(1);transform-origin:center center;z-index:3;opacity:.82;will-change:transform;transition:opacity .4s ease,filter .4s ease,transform 1.6s cubic-bezier(.22,1,.36,1)}
 .car-item .c-cta{position:absolute;left:50%;bottom:26px;transform:translateX(-50%) skewX(14deg);z-index:3;font-size:7px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);opacity:0;transition:opacity .35s ease}
 .car-item:hover .overlay,.car-item:focus-visible .overlay{background:rgba(5,5,6,.32)}
-.car-item:hover .c-logo,.car-item:focus-visible .c-logo{opacity:1;filter:drop-shadow(0 0 14px rgba(255,255,255,.28))}
+.car-item:hover .c-logo,.car-item:focus-visible .c-logo{opacity:1;filter:drop-shadow(0 0 14px rgba(255,255,255,.28));transform:translate(-50%,-50%) skewX(14deg) scale(1.16);transition:opacity .4s ease,filter .4s ease,transform 7s cubic-bezier(.12,.42,.24,1)}
 .car-item:hover .c-cta,.car-item:focus-visible .c-cta{opacity:1}
 
 /* ========= POSICIONAMENTO + RESULTADOS (uma secção) ========= */
