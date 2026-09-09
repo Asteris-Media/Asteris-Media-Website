@@ -170,6 +170,10 @@ label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
 .lib-folder .lf-body{padding:11px 12px}
 .lib-folder .lf-name{font-weight:700;font-size:12.5px;word-break:break-word;line-height:1.3}
 .lib-folder .lf-meta{font-size:10px;color:var(--dim);margin-top:3px}
+.lf-tag{position:absolute;top:7px;left:7px;font-size:8.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 7px;border-radius:20px;background:rgba(11,11,10,.7);backdrop-filter:blur(3px);border:1px solid var(--edge2);color:var(--dim)}
+.lf-tag.entrega{color:var(--gold);border-color:rgba(201,161,102,.5)}
+.lf-tag.selecao{color:var(--pos);border-color:rgba(63,208,122,.5)}
+.lf-tag.portfolio{color:#B79CE0;border-color:rgba(183,156,224,.5)}
 .lib-folder .lf-menu{position:absolute;top:7px;right:7px;width:28px;height:24px;border-radius:6px;border:1px solid transparent;background:rgba(11,11,10,.62);color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;letter-spacing:1px;backdrop-filter:blur(4px)}
 .lib-folder .lf-menu:hover,.lib-folder .lf-menu.open{background:var(--panel2);border-color:var(--edge2)}
 .lib-folder{cursor:pointer}
@@ -728,9 +732,8 @@ function itensFromFolder(folder){
 function newPageModal(preFolder){
   var st = { type:"proposta", code:randCode(6), perm:false, touchedPrazo:false, folder: preFolder || null };
   if(preFolder){
-    if(/entrega/i.test(preFolder.name)) st.type = "galeria";
-    else if(/selec/i.test(preFolder.name)) st.type = "triagem";
-    else st.type = "portfolio";
+    var pt = preFolder.tag || (/entrega/i.test(preFolder.name) ? "entrega" : /selec/i.test(preFolder.name) ? "selecao" : "portfolio");
+    st.type = pt === "entrega" ? "galeria" : pt === "selecao" ? "triagem" : "portfolio";
   }
   modal(function(box, close){
     box.innerHTML =
@@ -897,6 +900,24 @@ function guessName(dt){
 function folderLink(f){
   return location.origin + "/api/media/view?f=" + encodeURIComponent(f.name) + "&c=" + f.cloud;
 }
+var TAG_LABEL = { entrega:"Entrega", selecao:"Seleção", portfolio:"Portfólio", outro:"Outro" };
+function setFolderTag(f){
+  modal(function(box, close){
+    box.innerHTML = '<h4>Tag da pasta</h4><p>' + esc(f.name) + '</p><div class="radio-row" id="tg" style="flex-wrap:wrap">'
+      + '<label data-t="entrega">Entrega</label><label data-t="selecao">Seleção</label>'
+      + '<label data-t="portfolio">Portfólio</label><label data-t="outro">Outro</label>'
+      + '<label data-t="">Sem tag</label></div>'
+      + '<div class="mrow"><button class="btn ghost" id="tg-c">Cancelar</button><button class="btn gold" id="tg-ok">Guardar</button></div>';
+    var pick = f.tag || "";
+    function sync(){ box.querySelectorAll("#tg label").forEach(function(l){ l.classList.toggle("on", (l.dataset.t||"") === pick); }); }
+    box.querySelectorAll("#tg label").forEach(function(l){ l.onclick = function(){ pick = l.dataset.t || ""; sync(); }; });
+    sync();
+    box.querySelector("#tg-c").onclick = function(){ close(); };
+    box.querySelector("#tg-ok").onclick = function(){
+      api("PUT","media/tag",{ folder: f.name, tag: pick }).then(function(){ close(); LIB_CACHE = null; libraryView(); });
+    };
+  });
+}
 function libFolderCard(f){
   var c = el("div","lib-folder");
   var cover = el("div","lf-cover");
@@ -904,6 +925,9 @@ function libFolderCard(f){
   if(first && first.tipo !== "video"){ cover.style.backgroundImage = "url('" + first.url + "')"; }
   else { cover.textContent = first ? "▶" : "🗀"; }
   c.appendChild(cover);
+  if(f.tag){
+    c.appendChild(Object.assign(el("span","lf-tag " + f.tag), { textContent: TAG_LABEL[f.tag] || f.tag }));
+  }
   var bodyEl = el("div","lf-body");
   bodyEl.appendChild(Object.assign(el("div","lf-name"), { textContent: f.name.split("/").pop() }));
   bodyEl.appendChild(Object.assign(el("div","lf-meta"), { textContent: f.count + " ficheiro" + (f.count===1?"":"s") + " · " + fmtBytes(f.bytes) }));
@@ -918,6 +942,7 @@ function libFolderCard(f){
     var items = [
       { head: f.name.split("/").pop() },
       { label: "Abrir pasta", onClick: function(){ folderModal(f); } },
+      { label: "Definir tag…", onClick: function(){ setFolderTag(f); } },
       { label: "Copiar link de download", onClick: function(){
           var u = folderLink(f);
           if(navigator.clipboard) navigator.clipboard.writeText(u).then(function(){ toast("Link da pasta copiado"); });

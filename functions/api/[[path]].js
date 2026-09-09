@@ -257,9 +257,23 @@ if(b) b.onclick=function(){
     });
   }
 
+  // ---- tags das pastas da biblioteca (KV) ----
+  if (seg[0] === "media" && seg[1] === "tag" && method === "PUT") {
+    const b = await request.json().catch(() => ({}));
+    if (!b.folder) return json({ error: "pasta em falta" }, 400);
+    const raw = await env.ASTERIS_KV.get("mediatags");
+    const tags = raw ? JSON.parse(raw) : {};
+    if (b.tag) tags[b.folder] = b.tag; else delete tags[b.folder];
+    await env.ASTERIS_KV.put("mediatags", JSON.stringify(tags));
+    return json({ ok: true });
+  }
+
   // ---- biblioteca de media: pastas + ficheiros das duas nuvens ----
   if (seg[0] === "media" && !seg[1] && method === "GET") {
     const isVidExt = (s) => /\.(mp4|webm|mov|m4v)$/i.test(s || "");
+    const tagsRaw = await env.ASTERIS_KV.get("mediatags");
+    const TAGS = tagsRaw ? JSON.parse(tagsRaw) : {};
+    const tagOf = (name) => TAGS[name] || (/entrega/i.test(name) ? "entrega" : /selec/i.test(name) ? "selecao" : /portf/i.test(name) ? "portfolio" : "");
     const out = { r2: { bound: !!env.ASTERIS_R2, folders: [] }, cloudinary: { configured: !!(env.CLOUDINARY_CLOUD && env.CLOUDINARY_KEY && env.CLOUDINARY_SECRET), folders: [] } };
 
     if (env.ASTERIS_R2) {
@@ -271,7 +285,7 @@ if(b) b.onclick=function(){
           for (const o of r.objects) {
             const parts = o.key.split("/");
             const folder = parts.length > 1 ? parts.slice(0, -1).join("/") : "(raiz)";
-            const f = map[folder] || (map[folder] = { name: folder, cloud: "r2", count: 0, bytes: 0, files: [] });
+            const f = map[folder] || (map[folder] = { name: folder, cloud: "r2", tag: tagOf(folder), count: 0, bytes: 0, files: [] });
             f.count++; f.bytes += o.size || 0;
             f.files.push({ url: "/api/r2/" + o.key.split("/").map(encodeURIComponent).join("/"), key: o.key, tipo: isVidExt(o.key) ? "video" : "foto", bytes: o.size || 0 });
           }
@@ -291,7 +305,7 @@ if(b) b.onclick=function(){
           const cj = await cr.json();
           for (const res of (cj.resources || [])) {
             const folder = res.asset_folder || res.folder || "(raiz)";
-            const f = map[folder] || (map[folder] = { name: folder, cloud: "cloudinary", count: 0, bytes: 0, files: [] });
+            const f = map[folder] || (map[folder] = { name: folder, cloud: "cloudinary", tag: tagOf(folder), count: 0, bytes: 0, files: [] });
             f.count++; f.bytes += res.bytes || 0;
             f.files.push({ url: res.secure_url, publicId: res.public_id, resourceType: rt, tipo: rt === "video" ? "video" : "foto", bytes: res.bytes || 0 });
           }
