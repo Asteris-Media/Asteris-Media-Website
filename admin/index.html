@@ -254,8 +254,10 @@ label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
 .logobox{width:104px;height:104px;border:1px dashed var(--edge2);border-radius:6px;display:flex;align-items:center;justify-content:center;position:relative;background:#141311;overflow:hidden;cursor:pointer}
 .logobox:hover{border-color:var(--gold)}
 .logobox.has{border-style:solid;border-color:var(--edge)}
+.logobox.wide{width:100%;max-width:340px;height:120px}
 .logobox span{font-size:10px;letter-spacing:.05em;color:var(--faint)}
-.logobox img{max-width:100%;max-height:100%;object-fit:contain}
+.logobox img,.logobox video{max-width:100%;max-height:100%;object-fit:contain}
+.logobox.wide img,.logobox.wide video{width:100%;height:100%;object-fit:cover}
 .logobox .rm{position:absolute;top:3px;right:3px;width:19px;height:19px;border:0;border-radius:4px;background:rgba(0,0,0,.62);color:#fff;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .logobox .rm:hover{background:var(--neg,#D9705F)}
 
@@ -1073,16 +1075,40 @@ function folderMenuItems(f){
         if(navigator.clipboard) navigator.clipboard.writeText(u).then(function(){ toast("Link da pasta copiado"); });
         else noticeModal("Link da pasta", u);
     } },
-    { label: "Usar numa página nova", onClick: function(){ newPageModal(f); } }
+    { label: "Usar numa página nova", onClick: function(){ newPageModal(f); } },
+    { sep: true },
+    { label: "Renomear pasta…", onClick: function(){ renameFolder(f); } },
+    { label: "Apagar pasta", danger: true, onClick: function(){ deleteFolder(f); } }
   ];
-  if(f.cloud === "r2"){
-    items.push({ sep: true });
-    items.push({ label: "Apagar pasta", danger: true, onClick: function(){
-      confirmModal({ title:"Apagar pasta?", message:'"'+f.name+'" e os '+f.count+' ficheiros são apagados do R2. Não dá para desfazer.', ok:"Apagar", danger:true })
-        .then(function(yes){ if(yes) api("DELETE","media/r2-folder/"+f.name.split("/").map(encodeURIComponent).join("/")).then(function(){ LIB_CACHE=null; libraryView(); }); });
-    } });
-  }
   return items;
+}
+function renameFolder(f){
+  promptModal({ title:"Renomear pasta", label:"Novo nome", value:f.name, ok:"Renomear" }).then(function(nome){
+    nome = (nome||"").trim();
+    if(!nome || nome === f.name) return;
+    toast("A renomear…");
+    var body = { cloud:f.cloud, from:f.name, to:nome };
+    if(f.cloud === "cloudinary") body.items = (f.files||[]).map(function(x){ return { publicId:x.publicId, resourceType:x.resourceType }; });
+    api("POST","media/rename-folder", body).then(function(r){
+      if(r.ok){ toast("Pasta renomeada"); LIB_CACHE=null; libraryView(); }
+      else noticeModal("Não deu para renomear", (r.j && r.j.error) || "Tenta outra vez.");
+    });
+  });
+}
+function deleteFolder(f){
+  confirmModal({ title:"Apagar pasta?", message:'"'+f.name+'" e os '+f.count+' ficheiro(s) são apagados. Não dá para desfazer.', ok:"Apagar", danger:true })
+    .then(function(yes){
+      if(!yes) return;
+      var done = function(r){
+        if(r.ok || (r.j && r.j.ok)){ toast("Pasta apagada"); LIB_CACHE=null; libraryView(); }
+        else noticeModal("Não deu para apagar", (r.j && r.j.error) || "Tenta outra vez.");
+      };
+      if(f.cloud === "r2"){
+        api("DELETE","media/r2-folder/"+f.name.split("/").map(encodeURIComponent).join("/")).then(done);
+      } else {
+        api("DELETE","media/files", { cloud:"cloudinary", publicIds:(f.files||[]).map(function(x){ return { publicId:x.publicId, resourceType:x.resourceType }; }) }).then(done);
+      }
+    });
 }
 function libFolderCard(f){
   var c = el("div","lib-folder");
@@ -1508,6 +1534,37 @@ function uploadMany(files, prog, done){
   one(0);
 }
 
+/* ---------- caixa de upload de 1 ficheiro (imagem ou vídeo) ---------- */
+function mediaBox(o){
+  var field = el("div","field");
+  field.appendChild(el("label", null, o.label));
+  var box = el("div","logobox" + (o.wide ? " wide" : ""));
+  var file = el("input"); file.type = "file"; file.accept = o.accept || "image/*"; file.style.display = "none";
+  var isVideo = function(u){ return /\.(mp4|webm|mov|m4v)(\?|$)/i.test(u || ""); };
+  function paint(){
+    var v = o.get();
+    box.classList.toggle("has", !!v);
+    if(!v){ box.innerHTML = '<span>+ ficheiro</span>'; return; }
+    box.innerHTML = (isVideo(v) ? '<video src="'+v+'" muted></video>' : '<img src="'+v+'" alt="">')
+      + '<button type="button" class="rm" aria-label="Remover">&times;</button>';
+    box.querySelector(".rm").onclick = function(e){ e.stopPropagation(); o.set(""); paint(); };
+  }
+  box.onclick = function(e){ if(!e.target.closest(".rm")) file.click(); };
+  file.onchange = function(){
+    var f = file.files && file.files[0]; if(!f) return;
+    box.innerHTML = '<span>a enviar…</span>';
+    uploadMany([f], function(){}, function(urls){
+      if(urls && urls[0]) o.set(urls[0]);
+      paint();
+      file.value = "";
+    });
+  };
+  paint();
+  field.appendChild(box);
+  field.appendChild(file);
+  return field;
+}
+
 /* ---------- editor proposta ---------- */
 function renderPropostaEditor(host, d){
   d.proposta = d.proposta || {};
@@ -1516,32 +1573,19 @@ function renderPropostaEditor(host, d){
 
   var c = el("div","card"); c.innerHTML = '<h3>Proposta <span></span></h3>';
 
-  var logoField = el("div","field");
-  logoField.appendChild(el("label", null, "Imagem / logo do cliente (quadrado à esquerda do título)"));
-  var lbox = el("div","logobox");
-  var lfile = el("input"); lfile.type = "file"; lfile.accept = "image/*"; lfile.style.display = "none";
-  function paintLogo(){
-    lbox.classList.toggle("has", !!pr.logo);
-    lbox.innerHTML = pr.logo
-      ? '<img src="'+pr.logo+'" alt=""><button type="button" class="rm" aria-label="Remover">&times;</button>'
-      : '<span>+ imagem</span>';
-    var rm = lbox.querySelector(".rm");
-    if(rm) rm.onclick = function(e){ e.stopPropagation(); pr.logo = undefined; paintLogo(); };
-  }
-  lbox.onclick = function(e){ if(!e.target.closest(".rm")) lfile.click(); };
-  lfile.onchange = function(){
-    var f = lfile.files && lfile.files[0]; if(!f) return;
-    lbox.innerHTML = '<span>a enviar…</span>';
-    uploadMany([f], function(){}, function(urls){
-      if(urls && urls[0]) pr.logo = urls[0];
-      paintLogo();
-      lfile.value = "";
-    });
-  };
-  paintLogo();
-  logoField.appendChild(lbox);
-  logoField.appendChild(lfile);
-  c.appendChild(logoField);
+  c.appendChild(mediaBox({
+    label: "Imagem / logo do cliente (quadrado centrado no topo)",
+    accept: "image/*",
+    get: function(){ return pr.logo; },
+    set: function(v){ pr.logo = v || undefined; }
+  }));
+  c.appendChild(mediaBox({
+    label: "Fundo do topo (foto ou vídeo atrás do título)",
+    accept: "image/*,video/*",
+    wide: true,
+    get: function(){ return d.capa; },
+    set: function(v){ d.capa = v || undefined; }
+  }));
 
   c.appendChild(fieldEl("Validade (ex.: 15 dias)", inputEl("validade", pr.validade||"")));
 

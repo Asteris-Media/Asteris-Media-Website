@@ -47,17 +47,20 @@ a{color:inherit}
 .phead.mosaic::before{content:"";position:absolute;inset:0;z-index:1;background:rgba(8,8,7,.55)}
 .phead::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(to top,var(--black) 4%,rgba(11,11,10,.35) 60%,rgba(11,11,10,.55))}
 .phead .in{position:relative;z-index:2}
-.phead .in.with-badge{display:flex;align-items:flex-end;gap:clamp(16px,3.5vw,34px)}
-.phead .in.with-badge .pcol{min-width:0}
-.pbadge{flex:0 0 auto;width:clamp(64px,11vw,100px);height:clamp(64px,11vw,100px);display:flex;align-items:center;justify-content:center;padding:9px;border:1px solid var(--gold-soft);background:rgba(240,234,224,.05);backdrop-filter:blur(2px)}
+.pbadge{width:clamp(76px,13vw,116px);height:clamp(76px,13vw,116px);display:flex;align-items:center;justify-content:center;padding:11px;border:1px solid var(--gold-soft);background:rgba(240,234,224,.05);backdrop-filter:blur(2px);margin-bottom:20px}
 .pbadge img{max-width:100%;max-height:100%;width:auto;object-fit:contain;filter:none}
-@media(max-width:560px){.phead .in.with-badge{flex-direction:column;align-items:flex-start;gap:14px}}
 .pbrand{font-family:var(--sans);font-size:10px;font-weight:500;letter-spacing:.4em;text-transform:uppercase;color:var(--white);opacity:.8;margin-bottom:auto}
 .peyebrow{font-size:8px;font-weight:600;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);margin-top:26px}
 .pclient{font-family:var(--serif);font-weight:300;font-size:clamp(2rem,5vw,3.2rem);line-height:1.05;margin:6px 0 4px}
 .ptitle{font-family:var(--serif);font-weight:300;font-style:italic;font-size:clamp(1.1rem,2.4vw,1.5rem);color:var(--white-dim)}
 .pintro{font-size:12px;font-weight:300;line-height:1.9;color:var(--white-dim);max-width:60ch;margin-top:14px}
 .pmeta{margin-top:16px;display:flex;flex-wrap:wrap;gap:8px}
+/* proposta: cabeçalho centrado, sem marca nem rótulo */
+.phead-prop{align-items:center;text-align:center}
+.phead-prop .in{width:100%}
+.phead-prop .pcol{display:flex;flex-direction:column;align-items:center}
+.phead-prop .pintro{margin-left:auto;margin-right:auto}
+.phead-prop .pmeta{justify-content:center}
 .chip{border:1px solid var(--gold-soft);padding:5px 11px;font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--white-dim)}
 .chip.warn{border-color:var(--gold);color:var(--gold)}
 
@@ -133,14 +136,14 @@ a{color:inherit}
 .lb-bottom{margin-top:12px;display:flex;gap:10px;align-items:center}
 .lb-count{font-family:var(--serif);font-size:14px;color:var(--white-dim)}
 
-/* proposta */
-.prop section{padding:clamp(40px,7vw,80px) var(--pad);border-bottom:1px solid var(--gold-soft)}
+/* proposta — tudo centrado */
+.prop section{padding:clamp(40px,7vw,80px) var(--pad);border-bottom:1px solid var(--gold-soft);text-align:center}
 .prop .eyebrow{font-size:8px;font-weight:600;letter-spacing:.28em;text-transform:uppercase;color:var(--gold)}
-.prop h2{font-family:var(--serif);font-weight:300;font-size:clamp(1.5rem,3vw,2.2rem);line-height:1.25;margin:12px 0 0;max-width:22ch}
-.prop p.lead{font-size:13px;font-weight:300;line-height:1.95;color:var(--white-dim);max-width:62ch;margin-top:14px}
-.prop ul.pts{list-style:none;margin:16px 0 0;max-width:62ch}
-.prop ul.pts li{padding:9px 0 9px 20px;position:relative;font-size:13px;font-weight:300;color:var(--white-dim);border-bottom:1px solid rgba(255,255,255,.05)}
-.prop ul.pts li::before{content:"—";position:absolute;left:0;color:var(--gold)}
+.prop h2{font-family:var(--serif);font-weight:300;font-size:clamp(1.5rem,3vw,2.2rem);line-height:1.25;margin:12px auto 0;max-width:22ch}
+.prop p.lead{font-size:13px;font-weight:300;line-height:1.95;color:var(--white-dim);max-width:62ch;margin:14px auto 0}
+.prop ul.pts{list-style:none;margin:16px auto 0;max-width:62ch}
+.prop ul.pts li{padding:9px 0;font-size:13px;font-weight:300;color:var(--white-dim);border-bottom:1px solid rgba(255,255,255,.05)}
+.prop ul.pts li::before{content:"—  ";color:var(--gold)}
 /* conceitos — carrossel coverflow */
 .cx{position:relative;margin-top:26px;padding:8px 0 40px}
 .cx-stage{position:relative;height:clamp(280px,44vw,430px)}
@@ -182,8 +185,9 @@ a{color:inherit}
 .plan li{font-size:11px;font-weight:300;color:var(--white-dim);padding-left:16px;position:relative}
 .plan li::before{content:"·";position:absolute;left:4px;color:var(--acc,var(--gold))}
 .ico{width:16px;height:16px;display:inline-block;vertical-align:-3px}
+.plan{text-align:left}
 /* referências */
-.refs{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:26px}
+.refs{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:26px;justify-content:center}
 .ref{border:1px solid var(--gold-soft);background:var(--panel)}
 .ref img{width:100%;aspect-ratio:4/3;object-fit:cover;filter:grayscale(.2)}
 .ref figcaption{padding:11px 13px;font-size:10.5px;font-weight:300;line-height:1.7;color:var(--white-dim)}
@@ -376,17 +380,18 @@ function render(d){
     bgHTML = '<div class="bg">'+bgOne(d.capa)+'</div>';
   }
 
-  var propLogo = (d.type === "proposta" && d.proposta && d.proposta.logo) ? d.proposta.logo : "";
+  var isProp = d.type === "proposta";
+  var propLogo = (isProp && d.proposta && d.proposta.logo) ? d.proposta.logo : "";
   var badgeHTML = propLogo ? '<div class="pbadge"><img src="'+propLogo+'" alt=""></div>' : '';
 
-  var head = el("div","phead" + (mosaic ? " mosaic" : ""));
+  var head = el("div","phead" + (mosaic ? " mosaic" : "") + (isProp ? " phead-prop" : ""));
   head.innerHTML =
     bgHTML +
-    '<div class="in' + (badgeHTML ? ' with-badge' : '') + '">' +
-      badgeHTML +
+    '<div class="in">' +
       '<div class="pcol">' +
-      '<div class="pbrand">Asteris</div>' +
-      (anon ? '' : '<div class="peyebrow">'+({galeria:"Galeria",triagem:"Seleção",proposta:"Proposta"}[d.type]||"")+'</div>') +
+      (isProp ? badgeHTML : '') +
+      (isProp ? '' : '<div class="pbrand">Asteris</div>') +
+      (anon || isProp ? '' : '<div class="peyebrow">'+({galeria:"Galeria",triagem:"Seleção",proposta:"Proposta"}[d.type]||"")+'</div>') +
       (mosaic
         ? (d.titulo ? '<div class="pclient">'+d.titulo+'</div>' : '') + (d.cliente ? '<div class="ptitle">'+d.cliente+'</div>' : '')
         : (d.cliente ? '<div class="pclient">'+d.cliente+'</div>' : '') + (d.titulo ? '<div class="ptitle">'+d.titulo+'</div>' : '')

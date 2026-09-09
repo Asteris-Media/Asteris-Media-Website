@@ -415,6 +415,55 @@ if(b) b.onclick=function(){
     return json({ ok: true, apagados: n });
   }
 
+  // ---- renomear uma pasta ----  body: { cloud, from, to, items:[{publicId,resourceType}] }
+  if (seg[0] === "media" && seg[1] === "rename-folder" && (method === "POST" || method === "PUT")) {
+    const b = await request.json().catch(() => ({}));
+    const from = String(b.from || "").replace(/^\/+|\/+$/g, "");
+    const to = String(b.to || "").replace(/^\/+|\/+$/g, "").replace(/\.\.+/g, "").replace(/[<>:"|?*\x00-\x1f]+/g, "").trim();
+    if (!from || !to || from === to) return json({ error: "nome inválido" }, 400);
+    let n = 0;
+    if (b.cloud === "r2") {
+      if (!env.ASTERIS_R2) return json({ error: "R2 não ligado" }, 501);
+      let cursor;
+      do {
+        const r = await env.ASTERIS_R2.list({ cursor, prefix: from + "/", limit: 1000 });
+        for (const o of r.objects) {
+          const nk = to + o.key.slice(from.length);
+          const obj = await env.ASTERIS_R2.get(o.key);
+          if (!obj) continue;
+          await env.ASTERIS_R2.put(nk, obj.body, { httpMetadata: obj.httpMetadata });
+          await env.ASTERIS_R2.delete(o.key);
+          n++;
+        }
+        cursor = r.truncated ? r.cursor : null;
+      } while (cursor);
+    } else if (b.cloud === "cloudinary" && env.CLOUDINARY_CLOUD && env.CLOUDINARY_KEY && env.CLOUDINARY_SECRET) {
+      for (const it of (b.items || [])) {
+        const rt = it.resourceType || "image";
+        const oldId = it.publicId;
+        const baseName = oldId.indexOf("/") >= 0 ? oldId.slice(oldId.lastIndexOf("/") + 1) : oldId;
+        const newId = to + "/" + baseName;
+        const ts = Math.floor(Date.now() / 1000);
+        const signParams = { from_public_id: oldId, timestamp: ts, to_public_id: newId };
+        const toSign = Object.keys(signParams).sort().map(k => `${k}=${signParams[k]}`).join("&");
+        const hb = await crypto.subtle.digest("SHA-1", enc.encode(toSign + env.CLOUDINARY_SECRET));
+        const sig = [...new Uint8Array(hb)].map(x => x.toString(16).padStart(2, "0")).join("");
+        const body = new URLSearchParams({ from_public_id: oldId, to_public_id: newId, timestamp: String(ts), api_key: env.CLOUDINARY_KEY, signature: sig });
+        const r = await fetch(`https://api.cloudinary.com/v1_1/${env.CLOUDINARY_CLOUD}/${rt}/rename`, { method: "POST", body });
+        if (r.ok) n++;
+      }
+    } else {
+      return json({ error: "nuvem não ligada" }, 501);
+    }
+    try {
+      const raw = await env.ASTERIS_KV.get("mediatags");
+      const tags = raw ? JSON.parse(raw) : {};
+      if (tags[from] != null) { tags[to] = tags[from]; delete tags[from]; await env.ASTERIS_KV.put("mediatags", JSON.stringify(tags)); }
+    } catch (e) {}
+    await logAction(env, ME, "renomeou a pasta \"" + from + "\" para \"" + to + "\" (" + n + " ficheiros)");
+    return json({ ok: true, movidos: n });
+  }
+
   // ---- páginas ----
   if (seg[0] === "pages") {
     if (!seg[1]) {
