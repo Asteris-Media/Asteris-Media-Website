@@ -76,6 +76,10 @@ a{color:inherit}
 .tile.on .thumb::after{content:"";position:absolute;inset:0;background:rgba(217,112,95,.22);z-index:1}
 .tile.on .thumb img,.tile.on .thumb video{filter:grayscale(.2) brightness(.85)}
 .tile.on .selbtn{background:var(--neg);color:#fff;border-color:var(--neg)}
+/* ver só as selecionadas: escurece as outras */
+.collage.focus-sel .tile:not(.on){pointer-events:none}
+.collage.focus-sel .tile:not(.on) .thumb::after{content:"";position:absolute;inset:0;background:rgba(6,6,5,.82);z-index:2;transition:background .3s}
+.collage.focus-sel .tile:not(.on) .selbtn{opacity:.25}
 
 /* barra de triagem */
 .selbar{position:sticky;bottom:0;z-index:40;background:rgba(11,11,10,.92);backdrop-filter:blur(10px);border-top:1px solid var(--gold-soft);padding:12px var(--pad);display:flex;align-items:center;justify-content:space-between;gap:14px}
@@ -132,9 +136,12 @@ a{color:inherit}
 .cx-dots{position:absolute;left:0;right:0;bottom:12px;display:flex;justify-content:center;gap:7px}
 .cx-dots button{width:6px;height:6px;border-radius:50%;border:0;background:var(--gold-soft);cursor:pointer;padding:0;transition:background .2s}
 .cx-dots button.on{background:var(--gold)}
-.mood{margin-top:26px;column-count:3;column-gap:8px}
-@media(max-width:640px){.mood{column-count:2}}
-.mood img{width:100%;height:auto;display:block;margin-bottom:8px;filter:grayscale(.25);break-inside:avoid}
+.mood{margin-top:26px;column-count:6;column-gap:6px}
+@media(max-width:900px){.mood{column-count:5}}
+@media(max-width:640px){.mood{column-count:4}}
+@media(max-width:420px){.mood{column-count:3}}
+.mood img{width:100%;height:auto;display:block;margin-bottom:6px;filter:grayscale(.25);break-inside:avoid;cursor:pointer;transition:filter .25s,opacity .25s}
+.mood img:hover{filter:grayscale(0)}
 .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:26px}
 .plan{position:relative;border:1px solid var(--gold-soft);background:var(--panel);padding:26px 20px;display:flex;flex-direction:column}
 .plan.hot{border-color:var(--gold);box-shadow:0 0 34px rgba(201,161,102,.14)}
@@ -428,7 +435,7 @@ function renderGaleria(d, app, triagem){
     var t = e.target.closest(".tile"); if(!t) return;
     var i = +t.dataset.i;
     if(picking && e.target.closest(".selbtn")){ toggle(i, t); return; }
-    openLb(i);
+    openLb(i, ITEMS);
   });
   playInView(grid);
 
@@ -446,18 +453,16 @@ function renderGaleria(d, app, triagem){
     });
   }
   if(triagem){
-    var onlyBtn = $("#only"), showAll = true;
+    var onlyBtn = $("#only"), focus = false;
     onlyBtn.addEventListener("click", function(){
-      showAll = !showAll;
-      grid.querySelectorAll(".tile").forEach(function(t){
-        t.classList.toggle("hidden", !showAll && !t.classList.contains("on"));
-      });
-      onlyBtn.textContent = showAll ? "Ver selecionadas" : "Ver todas";
+      focus = !focus;
+      grid.classList.toggle("focus-sel", focus);
+      onlyBtn.textContent = focus ? "Ver todas" : "Ver selecionadas";
     });
     $("#save").addEventListener("click", function(){ saveSelection(d); });
   }
   if(entrega){
-    $("#dl").addEventListener("click", baixarSelecionadas);
+    $("#dl").addEventListener("click", function(){ baixarSelecionadas(d); });
   }
 }
 
@@ -478,19 +483,71 @@ function toggle(i, tile){
   refreshBar();
 }
 
-function baixarSelecionadas(){
-  var lista = [...SEL].map(function(i){ return ITEMS[i]; });
-  var btn = $("#dl"); btn.disabled = true;
-  lista.forEach(function(it, k){
-    setTimeout(function(){
-      var url = it.download || it.src;
-      var a = document.createElement("a");
-      a.href = url; a.download = (it.nome || "asteris-"+(k+1));
-      document.body.appendChild(a); a.click(); a.remove();
-      if(k === lista.length - 1){ btn.disabled = false; refreshBar(); }
-    }, k * 700);
+function loadJSZip(){
+  if(window.JSZip) return Promise.resolve(window.JSZip);
+  return new Promise(function(res, rej){
+    var s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
+    s.onload = function(){ res(window.JSZip); };
+    s.onerror = rej;
+    document.head.appendChild(s);
   });
 }
+function extOf(url, tipo){
+  var m = (url || "").split("?")[0].match(/\.([a-z0-9]{2,4})$/i);
+  if(m) return "." + m[1].toLowerCase();
+  return tipo === "video" ? ".mp4" : ".jpg";
+}
+function saveBlob(blob, name){
+  var u = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = u; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(u); }, 4000);
+}
+function baixarSelecionadas(d){
+  var lista = [...SEL].map(function(i){ return ITEMS[i]; });
+  if(!lista.length) return;
+  var btn = $("#dl"); btn.disabled = true;
+  var base = "asteris-" + ((d && d.cliente ? d.cliente : "entrega").toLowerCase().replace(/[^a-z0-9]+/g, "-"));
+
+  // 1 peça: download direto
+  if(lista.length === 1){
+    var it0 = lista[0], url0 = it0.download || it0.src;
+    btn.textContent = "A descarregar…";
+    fetch(url0).then(function(r){ return r.blob(); })
+      .then(function(b){ saveBlob(b, (it0.nome || base) + extOf(url0, it0.tipo)); doneDl(btn); })
+      .catch(function(){ window.open(url0, "_blank"); doneDl(btn); });
+    return;
+  }
+
+  // várias: junta tudo num .zip
+  var done = 0;
+  btn.textContent = "A preparar… 0/" + lista.length;
+  loadJSZip().then(function(JSZip){
+    var zip = new JSZip();
+    return Promise.all(lista.map(function(it, k){
+      var url = it.download || it.src;
+      return fetch(url).then(function(r){
+        if(!r.ok) throw 0; return r.blob();
+      }).then(function(blob){
+        zip.file((String(k+1).padStart(2,"0")) + "-" + (it.nome || "peca") + extOf(url, it.tipo), blob);
+        done++; btn.textContent = "A preparar… " + done + "/" + lista.length;
+      });
+    })).then(function(){
+      btn.textContent = "A comprimir…";
+      return zip.generateAsync({ type: "blob" });
+    }).then(function(zipBlob){
+      saveBlob(zipBlob, base + ".zip");
+      doneDl(btn);
+    });
+  }).catch(function(){
+    // fallback: abre cada uma em separador novo
+    lista.forEach(function(it, k){ setTimeout(function(){ window.open(it.download || it.src, "_blank"); }, k * 400); });
+    doneDl(btn);
+  });
+}
+function doneDl(btn){ btn.disabled = false; refreshBar(); }
 
 function saveSelection(d){
   var chosen = [...SEL].map(function(i){ return ITEMS[i].nome || ("item-"+(i+1)); });
@@ -523,20 +580,21 @@ function saveSelection(d){
 }
 
 /* ---------------- LIGHTBOX ---------------- */
-var lb=$("#lb"), lbWrap=$("#lb-wrap"), lbi=0, lbOpen=false;
-function openLb(i){
-  lbi=i; lbOpen=true; var it=ITEMS[i];
+var lb=$("#lb"), lbWrap=$("#lb-wrap"), lbi=0, lbOpen=false, LBSET=[];
+function openLb(i, list){
+  if(list) LBSET = list; else if(!LBSET.length) LBSET = ITEMS;
+  lbi=i; lbOpen=true; var it=LBSET[i];
   lbWrap.innerHTML = it.tipo==="video"
     ? '<video class="lb-media" src="'+it.src+'" controls autoplay playsinline controlsList="nodownload nofullscreen noremoteplayback" disablePictureInPicture oncontextmenu="return false"></video>'
     : '<img class="lb-media" src="'+it.src+'" alt="'+(it.nome||"")+'">';
   $("#lb-name").textContent = it.nome || "";
-  $("#lb-count").textContent = (i+1) + " / " + ITEMS.length;
+  $("#lb-count").textContent = (i+1) + " / " + LBSET.length;
   var dl=$("#lb-dl");
   if(it.download){ dl.href=it.download; dl.classList.remove("hidden"); } else { dl.classList.add("hidden"); }
   lb.classList.add("open"); document.body.style.overflow="hidden";
 }
 function closeLb(){ lb.classList.remove("open"); lbWrap.innerHTML=""; lbOpen=false; document.body.style.overflow=""; }
-function step(n){ lbi=(lbi+n+ITEMS.length)%ITEMS.length; openLb(lbi); }
+function step(n){ lbi=(lbi+n+LBSET.length)%LBSET.length; openLb(lbi); }
 $("#lb-x").onclick=closeLb; $("#lb-prev").onclick=function(){step(-1)}; $("#lb-next").onclick=function(){step(1)};
 lb.addEventListener("click",function(e){ if(e.target===lb) closeLb(); });
 document.addEventListener("keydown",function(e){
@@ -626,6 +684,15 @@ function renderProposta(d, app){
   app.appendChild(box);
   app.appendChild(footer(d));
   document.querySelectorAll(".cx").forEach(initCoverflow);
+
+  // moodboard: clicar abre galeria de passar
+  var moodImgs = [].slice.call(box.querySelectorAll(".mood img"));
+  if(moodImgs.length){
+    var MOOD = moodImgs.map(function(im){ return { src: im.src, tipo: "foto" }; });
+    moodImgs.forEach(function(im, i){
+      im.addEventListener("click", function(){ openLb(i, MOOD); });
+    });
+  }
 }
 
 function initCoverflow(cx){
