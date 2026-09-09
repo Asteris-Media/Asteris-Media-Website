@@ -51,6 +51,8 @@ h1{font-family:var(--serif);font-weight:300;font-size:clamp(1.7rem,4vw,2.3rem);l
 .gate button.go{background:var(--gold);color:var(--black);border:none;padding:14px;font-family:var(--sans);font-size:9px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;cursor:pointer;transition:opacity .2s}
 .gate button.go:hover{opacity:.88}
 .err{color:var(--neg);font-size:11px;margin-top:10px;min-height:1.2em}
+.gate-back{margin-top:14px;background:none;border:none;color:var(--white-dim);font-family:var(--sans);font-size:9px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;padding:8px 10px}
+.gate-back:hover{color:var(--gold)}
 
 .foot{margin-top:40px;font-size:8.5px;letter-spacing:.06em;color:var(--white-faint)}
 .foot a{color:var(--white-dim);text-decoration:none;border-bottom:1px solid var(--gold-soft)}
@@ -114,6 +116,7 @@ h1{font-family:var(--serif);font-weight:300;font-size:clamp(1.7rem,4vw,2.3rem);l
              spellcheck="false" maxlength="16" placeholder="CÓDIGO" aria-label="Código de acesso">
       <button class="go" type="submit">Entrar</button>
     </form>
+    <button class="gate-back" type="button" id="gate-back">&#8592; Voltar</button>
     <div class="err" id="err" role="alert"></div>
   </div>
 
@@ -139,20 +142,17 @@ var homeLink = $(".home-link");
 
 function toMenu(){
   gate.hidden = true; menu.hidden = false; err.textContent = ""; input.value = "";
-  homeLink.innerHTML = "&#8592; Voltar ao site"; homeLink.setAttribute("href", "/");
+  homeLink.hidden = false;
 }
 document.querySelectorAll(".choice").forEach(function(b){
   b.addEventListener("click", function(){
     $("#gate-label").textContent = LABELS[b.dataset.k] || "Acesso";
     menu.hidden = true; gate.hidden = false;
-    homeLink.innerHTML = "&#8592; Voltar";
+    homeLink.hidden = true;   // no menu de código o "voltar" fica por baixo do Entrar
     input.focus();
   });
 });
-// no menu de código, o botão do canto volta ao menu de escolha
-homeLink.addEventListener("click", function(e){
-  if(!gate.hidden){ e.preventDefault(); toMenu(); }
-});
+$("#gate-back").addEventListener("click", toMenu);
 
 $("#gate-form").addEventListener("submit", function(e){
   e.preventDefault();
