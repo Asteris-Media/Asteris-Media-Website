@@ -96,7 +96,19 @@ section.block{padding:clamp(64px,9vw,120px) var(--pad)}
 .cmp-box .tag{font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:8px;text-align:center}
 .cmp-box .ph{width:100%;aspect-ratio:.74;background:#1c1b19;overflow:hidden}
 .cmp-box .ph img{width:100%;height:100%;object-fit:cover}
-.cmp-arrow{color:var(--gold);font-size:13px;opacity:.55;align-self:center;margin-top:14px}
+.cmp-notes{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.cmp-note{display:flex;gap:7px;font-size:9px;font-weight:300;line-height:1.55;color:var(--white-faint);background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);padding:8px 9px}
+.cmp-note svg{width:12px;height:12px;flex-shrink:0;margin-top:.5px}
+.cmp-note.bad svg{color:#8c8c8c}
+.cmp-box.is-depois .cmp-note{color:var(--white-dim);border-color:var(--gold-soft);border-left:2px solid var(--gold)}
+.cmp-note.good svg{color:var(--gold)}
+.card-cmp{position:relative}
+.cmp-arrow{position:absolute;left:50%;top:64px;transform:translateX(-50%);color:var(--gold);font-size:12px;opacity:.5}
+@media (max-width:560px){
+  .card-cmp{flex-direction:column;gap:20px}
+  .cmp-box{width:100%}
+  .cmp-arrow{position:static;transform:rotate(90deg);align-self:center}
+}
 .card-metrics{display:flex;flex-direction:column;gap:16px;margin-top:auto}
 .metric{display:flex;flex-direction:column;gap:5px}
 .metric .m-lbl{font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--white-faint);text-align:center}
@@ -265,6 +277,17 @@ function VID(id, w){ return "https://res.cloudinary.com/"+CONFIG.cloudName+"/vid
    RESULTADOS — 1 objeto por card (metricas contam ao aparecer).
    ============================================================ */
 /* cada métrica: {label, antes, depois, euro?}  (o contador anima "depois" a partir de "antes") */
+/* observações abaixo de cada foto — EXEMPLO. Podem ser definidas por card (notasAntes/notasDepois). */
+const NOTAS_ANTES = [
+  "Paleta de cores ultracolorida e sem padrão",
+  "Poucos agendamentos pela plataforma",
+  "Sem sistema automatizado"
+];
+const NOTAS_DEPOIS = [
+  "Paleta de cores bem definida e identidade visual consistente",
+  "Agendamentos diários pelo site",
+  "Sistema automatizado que poupa até 40% do tempo do gerente"
+];
 const RESULTS = [
   { name:"Cliente — Restaurante", antes:"assets/cards/antes-1.jpg", depois:"assets/cards/depois-1.jpg",
     metrics:[ {label:"Faturação / mês", antes:8500,  depois:12900, euro:true},
@@ -413,11 +436,19 @@ document.getElementById("cards").innerHTML = RESULTS.map(function(r){
       +   '<span class="m-depois" data-from="'+m.antes+'" data-to="'+m.depois+'" data-euro="'+(m.euro?1:0)+'">'+fmtNum(m.antes, m.euro)+'</span>'
       + '</span></div>';
   }).join("");
+  var ICO_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>';
+  var ICO_V = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16 9"/></svg>';
+  var notesHTML = function(list, good){
+    return '<div class="cmp-notes">' + (list||[]).map(function(n){
+      return '<div class="cmp-note '+(good?"good":"bad")+'">'+(good?ICO_V:ICO_X)+'<span>'+n+'</span></div>';
+    }).join("") + '</div>';
+  };
+  var nA = r.notasAntes || NOTAS_ANTES, nD = r.notasDepois || NOTAS_DEPOIS;
   return '<article class="card">'
     + '<div class="card-cmp">'
-    +   '<div class="cmp-box"><span class="tag">Antes</span><span class="ph"><img src="'+r.antes+'" alt="" loading="lazy"></span></div>'
+    +   '<div class="cmp-box"><span class="tag">Antes</span><span class="ph"><img src="'+r.antes+'" alt="" loading="lazy"></span>'+notesHTML(nA,false)+'</div>'
     +   '<span class="cmp-arrow">&rarr;</span>'
-    +   '<div class="cmp-box"><span class="tag">Depois</span><span class="ph"><img src="'+r.depois+'" alt="" loading="lazy"></span></div>'
+    +   '<div class="cmp-box is-depois"><span class="tag">Depois</span><span class="ph"><img src="'+r.depois+'" alt="" loading="lazy"></span>'+notesHTML(nD,true)+'</div>'
     + '</div>'
     + '<div class="card-metrics">'+rows+'</div>'
     + '</article>';
