@@ -152,11 +152,11 @@ a{color:inherit}
 .cx-dots{position:absolute;left:0;right:0;bottom:12px;display:flex;justify-content:center;gap:7px}
 .cx-dots button{width:6px;height:6px;border-radius:50%;border:0;background:var(--gold-soft);cursor:pointer;padding:0;transition:background .2s}
 .cx-dots button.on{background:var(--gold)}
-.mood{margin-top:26px;column-count:6;column-gap:6px}
-@media(max-width:900px){.mood{column-count:5}}
-@media(max-width:640px){.mood{column-count:4}}
-@media(max-width:420px){.mood{column-count:3}}
-.mood img{width:100%;height:auto;display:block;margin-bottom:6px;filter:grayscale(.25);break-inside:avoid;cursor:pointer;transition:filter .25s,opacity .25s}
+.mood{margin-top:24px;column-count:11;column-gap:4px}
+@media(max-width:900px){.mood{column-count:8}}
+@media(max-width:640px){.mood{column-count:6}}
+@media(max-width:420px){.mood{column-count:5}}
+.mood img{width:100%;height:auto;display:block;margin-bottom:4px;filter:grayscale(.25);break-inside:avoid;cursor:pointer;transition:filter .25s,opacity .25s}
 .mood img:hover{filter:grayscale(0)}
 .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:26px}
 .plan{position:relative;border:1px solid var(--gold-soft);background:var(--panel);padding:26px 20px;display:flex;flex-direction:column}
@@ -182,6 +182,7 @@ a{color:inherit}
 .ico-lg{width:30px;height:30px;color:var(--gold)}
 .prop .cta-wrap{text-align:center;border-bottom:none}
 .prop .cta-wrap h2{margin:0 auto}
+.prop .fecho{font-size:12px;font-weight:300;line-height:1.95;color:var(--white-dim);max-width:52ch;margin:18px auto 0}
 .btn-cta{display:inline-flex;align-items:center;gap:10px;margin-top:24px;border:1px solid var(--gold);background:transparent;color:var(--white);padding:16px 34px;font-size:9px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;text-decoration:none;transition:background .25s,color .25s}
 .btn-cta:hover{background:var(--gold);color:var(--black)}
 
@@ -727,9 +728,10 @@ function renderProposta(d, app){
       (pr.validade ? '<p class="lead" style="margin-top:18px;font-size:11px">Proposta válida por '+pr.validade+'.</p>' : '') +
       '</section>';
   }
-  var wa = "https://wa.me/" + CONTACT_WA + "?text=" + encodeURIComponent("Olá! Vi a proposta ("+(d.cliente||"")+") e quero avançar.");
-  html += '<section class="cta-wrap"><p class="eyebrow">Próximo passo</p><h2>'+(pr.cta||"Se existe potencial, existe valor.")+'</h2>' +
-    '<a class="btn-cta" href="'+wa+'" target="_blank" rel="noopener">Falar connosco</a></section>';
+  var fecho = pr.fecho || "Obrigado pelo vosso tempo. Se fizer sentido para os dois lados, será um gosto avançar, construir aqui uma parceria de longo prazo e fazer bons negócios juntos.";
+  html += '<section class="cta-wrap"><p class="eyebrow">Obrigado</p>' +
+    '<h2>'+(pr.cta||"Se existe potencial, existe valor.")+'</h2>' +
+    '<p class="fecho">'+fecho+'</p></section>';
 
   box.innerHTML = html;
   app.appendChild(box);
