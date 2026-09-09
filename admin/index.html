@@ -172,7 +172,33 @@ label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
 .lib-folder .lf-meta{font-size:10px;color:var(--dim);margin-top:3px}
 .lib-folder .lf-menu{position:absolute;top:7px;right:7px;width:28px;height:24px;border-radius:6px;border:1px solid transparent;background:rgba(11,11,10,.62);color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;letter-spacing:1px;backdrop-filter:blur(4px)}
 .lib-folder .lf-menu:hover,.lib-folder .lf-menu.open{background:var(--panel2);border-color:var(--edge2)}
+.lib-folder{cursor:pointer}
 .lib-empty{color:var(--faint);font-size:11px;padding:16px 2px;text-align:center}
+
+/* visualizador de pasta (modal) */
+.modal.folder{max-width:860px;padding:0;max-height:90vh;display:flex;flex-direction:column}
+.fv-head{padding:18px 22px 14px;border-bottom:1px solid var(--edge)}
+.fv-head .fv-t{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
+.fv-head h4{font-size:17px;padding-right:20px;margin:0}
+.fv-head .fv-sub{font-size:11px;color:var(--dim);margin-top:3px}
+.fv-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 22px;border-bottom:1px solid var(--edge);background:var(--panel)}
+.fv-bar .sp{flex:1}
+.fv-bar button{font-size:11px;font-weight:600;background:var(--panel2);border:1px solid var(--edge2);color:var(--ink);padding:7px 12px;border-radius:6px}
+.fv-bar button:hover{border-color:var(--gold)}
+.fv-bar button.on{background:var(--gold-lo);border-color:var(--gold);color:var(--gold)}
+.fv-bar button.go{background:var(--gold);border-color:var(--gold);color:#0C0D0E}
+.fv-bar button:disabled{opacity:.45}
+.fv-grid{overflow-y:auto;padding:16px 22px 22px;display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;align-content:start}
+.fv-tile{position:relative;border:1px solid var(--edge2);border-radius:9px;overflow:hidden;background:#0a0a0a;cursor:pointer}
+.fv-tile img,.fv-tile video{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.fv-tile .fv-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;pointer-events:none;text-shadow:0 1px 6px rgba(0,0,0,.7)}
+.fv-tile .fv-cap{font-size:9.5px;color:var(--dim);padding:6px 7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fv-tile .fv-ck{position:absolute;top:6px;left:6px;width:19px;height:19px;border-radius:5px;border:1.5px solid rgba(255,255,255,.7);background:rgba(11,11,10,.5);display:flex;align-items:center;justify-content:center;color:#0C0D0E;font-size:12px;font-weight:800}
+.fv-tile.sel{border-color:var(--gold)}
+.fv-tile.sel .fv-ck{background:var(--gold);border-color:var(--gold)}
+.fv-tile:not(.sel) .fv-ck{color:transparent}
+.fv-grid.only .fv-tile:not(.sel){display:none}
+.fv-prog{font-size:11px;color:var(--dim)}
 .tag{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--edge2);border-radius:3px;padding:2px 6px;color:var(--dim)}
 .tag.exp{border-color:var(--neg);color:var(--neg)}
 
@@ -334,6 +360,24 @@ function fallbackCopy(u, code){
   ta.remove();
 }
 function closeMenu(){ var p = $("#actpop"); if(p){ if(p._cleanup) p._cleanup(); p.remove(); } }
+function loadJSZip(){
+  if(window.JSZip) return Promise.resolve(window.JSZip);
+  return new Promise(function(res, rej){
+    var s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
+    s.onload = function(){ res(window.JSZip); }; s.onerror = rej;
+    document.head.appendChild(s);
+  });
+}
+function saveBlob(blob, name){
+  var u = URL.createObjectURL(blob), a = document.createElement("a");
+  a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(u); }, 4000);
+}
+function isVidUrl(u){ return /\.(mp4|webm|mov|m4v)(\?|$)/i.test(u || ""); }
+function fileName(url){
+  try{ return decodeURIComponent(url.split("?")[0].split("/").pop()) || "ficheiro"; }catch(e){ return "ficheiro"; }
+}
 function openMenu(anchor, items){
   closeMenu();
   var pop = el("div","pop"); pop.id = "actpop";
@@ -851,12 +895,15 @@ function libFolderCard(f){
   bodyEl.appendChild(Object.assign(el("div","lf-meta"), { textContent: f.count + " ficheiro" + (f.count===1?"":"s") + " · " + fmtBytes(f.bytes) }));
   c.appendChild(bodyEl);
 
+  c.title = "Duplo clique para abrir";
+  c.addEventListener("dblclick", function(){ folderModal(f); });
+
   var mb = el("button","lf-menu","&#8942;"); mb.setAttribute("aria-label","Ações");
   mb.onclick = function(e){
     e.stopPropagation();
     var items = [
       { head: f.name.split("/").pop() },
-      { label: "Abrir pasta", href: folderLink(f) },
+      { label: "Abrir pasta", onClick: function(){ folderModal(f); } },
       { label: "Copiar link de download", onClick: function(){
           var u = folderLink(f);
           if(navigator.clipboard) navigator.clipboard.writeText(u).then(function(){ toast("Link da pasta copiado"); });
@@ -875,6 +922,88 @@ function libFolderCard(f){
   };
   c.appendChild(mb);
   return c;
+}
+
+/* visualizador de pasta — modal com seleção + zip */
+function folderModal(f){
+  var files = (f.files || []).map(function(x){ return { url: x.url.charAt(0) === "/" ? location.origin + x.url : x.url, tipo: x.tipo }; });
+  var sel = new Set();
+  modal(function(box, close){
+    box.classList.remove("lg"); box.classList.add("folder");
+    box.innerHTML =
+      '<div class="fv-head"><div class="fv-t">Pasta · ' + (f.cloud === "r2" ? "R2" : "Cloudinary") + '</div>'
+      +   '<h4>' + esc(f.name.split("/").pop()) + '</h4>'
+      +   '<div class="fv-sub">' + f.name + ' · ' + files.length + ' ficheiro' + (files.length===1?"":"s") + ' · ' + fmtBytes(f.bytes) + '</div></div>'
+      + '<div class="fv-bar">'
+      +   '<button id="fv-all">Selecionar tudo</button>'
+      +   '<button id="fv-none" disabled>Limpar</button>'
+      +   '<button id="fv-only" disabled>Ver só selecionadas</button>'
+      +   '<span class="sp"></span>'
+      +   '<span class="fv-prog" id="fv-prog"></span>'
+      +   '<button class="go" id="fv-zip" disabled>Descarregar (.zip)</button>'
+      + '</div>'
+      + '<div class="fv-grid" id="fv-grid"></div>';
+
+    var grid = box.querySelector("#fv-grid");
+    var bAll = box.querySelector("#fv-all"), bNone = box.querySelector("#fv-none"),
+        bOnly = box.querySelector("#fv-only"), bZip = box.querySelector("#fv-zip"),
+        prog = box.querySelector("#fv-prog");
+
+    files.forEach(function(file, i){
+      var t = el("figure","fv-tile"); t.dataset.i = i;
+      var v = file.tipo === "video" || isVidUrl(file.url);
+      t.innerHTML = '<div class="fv-ck">&#10003;</div>'
+        + (v ? '<video src="'+esc(file.url)+'#t=0.1" muted preload="metadata"></video><div class="fv-play">&#9654;</div>'
+             : '<img src="'+esc(file.url)+'" loading="lazy" alt="">')
+        + '<div class="fv-cap">'+esc(fileName(file.url))+'</div>';
+      t.onclick = function(){ toggle(i, t); };
+      grid.appendChild(t);
+    });
+
+    function refresh(){
+      var n = sel.size;
+      bZip.disabled = !n; bNone.disabled = !n; bOnly.disabled = !n;
+      bZip.textContent = n ? "Descarregar " + n + " (.zip)" : "Descarregar (.zip)";
+      bAll.classList.toggle("on", n === files.length && n > 0);
+    }
+    function toggle(i, t){
+      if(sel.has(i)){ sel.delete(i); t.classList.remove("sel"); }
+      else { sel.add(i); t.classList.add("sel"); }
+      refresh();
+    }
+    bAll.onclick = function(){
+      var fill = sel.size !== files.length;
+      sel.clear();
+      grid.querySelectorAll(".fv-tile").forEach(function(t, i){
+        if(fill){ sel.add(i); t.classList.add("sel"); } else t.classList.remove("sel");
+      });
+      refresh();
+    };
+    bNone.onclick = function(){ sel.clear(); grid.querySelectorAll(".fv-tile").forEach(function(t){ t.classList.remove("sel"); }); grid.classList.remove("only"); bOnly.classList.remove("on"); refresh(); };
+    bOnly.onclick = function(){ grid.classList.toggle("only"); bOnly.classList.toggle("on", grid.classList.contains("only")); };
+    bZip.onclick = function(){
+      var list = files.filter(function(_, i){ return sel.has(i); });
+      if(!list.length) return;
+      bZip.disabled = true; prog.textContent = "a preparar…";
+      loadJSZip().then(function(JSZip){
+        var zip = new JSZip(), done = 0, fail = 0;
+        return Promise.all(list.map(function(file, k){
+          return fetch(file.url).then(function(r){ if(!r.ok) throw 0; return r.blob(); })
+            .then(function(bl){ zip.file(String(k+1).padStart(2,"0") + "-" + fileName(file.url), bl); })
+            .catch(function(){ fail++; })
+            .then(function(){ done++; prog.textContent = "a preparar… " + done + "/" + list.length; });
+        })).then(function(){
+          prog.textContent = "a comprimir…";
+          return zip.generateAsync({ type:"blob" });
+        }).then(function(blob){
+          saveBlob(blob, f.name.split("/").pop() + ".zip");
+          prog.textContent = fail ? (fail + " falharam") : "";
+          bZip.disabled = false;
+        });
+      }).catch(function(){ prog.textContent = "erro ao preparar o zip"; bZip.disabled = false; });
+    };
+    refresh();
+  });
 }
 function startFolderUpload(files, nameHint){
   // 1 pergunta: nome + tipo
