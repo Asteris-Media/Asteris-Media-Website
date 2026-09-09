@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Acesso — Asteris</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#C9A166; --gold-soft:rgba(201,161,102,.22);
+  --black:#0B0B0A; --panel:#151412;
+  --white:#F0EAE0; --white-dim:rgba(240,234,224,.5); --white-faint:rgba(240,234,224,.32);
+  --neg:#FF5B4C;
+  --serif:"Cormorant Garamond",Georgia,serif; --sans:"Montserrat",system-ui,sans-serif;
+  --pad:clamp(20px,5vw,56px);
+}
+body{background:var(--black);color:var(--white);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--pad)}
+::selection{background:var(--gold);color:var(--black)}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+[hidden]{display:none!important}
+
+.wrap{width:100%;max-width:440px;text-align:center}
+.mark{width:30px;height:30px;margin:0 auto 26px}
+.brand{font-size:10px;font-weight:500;letter-spacing:.42em;text-transform:uppercase;color:var(--white-dim);margin-bottom:10px}
+h1{font-family:var(--serif);font-weight:300;font-size:clamp(1.7rem,4vw,2.3rem);line-height:1.15;margin-bottom:8px}
+.sub{font-size:12px;font-weight:300;color:var(--white-dim);margin-bottom:34px;max-width:34ch;margin-left:auto;margin-right:auto}
+
+/* escolha */
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--panel);border:1px solid var(--gold-soft);color:var(--white);padding:18px 18px;cursor:pointer;transition:border-color .2s,transform .12s,background .2s;font-family:var(--sans)}
+.choice:hover{border-color:var(--gold);transform:translateX(3px)}
+.choice .ic{font-size:17px;color:var(--gold);width:22px;text-align:center;flex-shrink:0}
+.choice .tx{display:flex;flex-direction:column;gap:2px}
+.choice .tx b{font-weight:500;font-size:13px;letter-spacing:.02em}
+.choice .tx span{font-size:10.5px;font-weight:300;color:var(--white-dim)}
+
+/* campo de codigo */
+.gate{margin-top:6px}
+.gate .back{background:none;border:none;color:var(--white-dim);font-family:var(--sans);font-size:9px;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;padding:6px 0;margin-bottom:16px}
+.gate .back:hover{color:var(--gold)}
+.gate .label{font-size:9px;font-weight:600;letter-spacing:.26em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
+.gate form{display:flex;flex-direction:column;gap:10px}
+.gate input{background:#0C0C0B;border:1px solid var(--gold-soft);color:var(--white);font-family:var(--serif);font-size:1.6rem;letter-spacing:.35em;text-align:center;text-transform:uppercase;padding:16px 12px;width:100%}
+.gate input::placeholder{color:var(--white-faint);letter-spacing:.35em}
+.gate input:focus{border-color:var(--gold);outline:none}
+.gate button.go{background:var(--gold);color:var(--black);border:none;padding:14px;font-family:var(--sans);font-size:9px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;cursor:pointer;transition:opacity .2s}
+.gate button.go:hover{opacity:.88}
+.err{color:var(--neg);font-size:11px;margin-top:10px;min-height:1.2em}
+
+.foot{margin-top:40px;font-size:8.5px;letter-spacing:.06em;color:var(--white-faint)}
+.foot a{color:var(--white-dim);text-decoration:none;border-bottom:1px solid var(--gold-soft)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <svg class="mark" viewBox="0 0 40 40" fill="none"><path d="M20 3L36 37H29.5L20 15.5L10.5 37H4L20 3Z" fill="#C9A166"/><path d="M13.7 27H26.3" stroke="#0B0B0A" stroke-width="2.4"/></svg>
+  <div class="brand">Asteris</div>
+
+  <div id="menu">
+    <h1>Área de acesso</h1>
+    <p class="sub">Escolhe o que vieste fazer e insere o teu código.</p>
+    <div class="choices">
+      <button class="choice" data-k="selecao">
+        <span class="ic">&#9635;</span>
+        <span class="tx"><b>Seleção de material</b><span>Escolher as fotos e vídeos da versão final</span></span>
+      </button>
+      <button class="choice" data-k="entrega">
+        <span class="ic">&#8595;</span>
+        <span class="tx"><b>Entrega de trabalho</b><span>Descarregar o material concluído</span></span>
+      </button>
+      <button class="choice" data-k="portfolio">
+        <span class="ic">&#9673;</span>
+        <span class="tx"><b>Portfólio</b><span>Galeria privada partilhada contigo</span></span>
+      </button>
+    </div>
+  </div>
+
+  <div id="gate" class="gate" hidden>
+    <button class="back" type="button" id="back">&#8592; voltar</button>
+    <div class="label" id="gate-label"></div>
+    <form id="gate-form">
+      <input id="code" name="code" inputmode="text" autocomplete="off" autocapitalize="characters"
+             spellcheck="false" maxlength="16" placeholder="CÓDIGO" aria-label="Código de acesso">
+      <button class="go" type="submit">Entrar</button>
+    </form>
+    <div class="err" id="err" role="alert"></div>
+  </div>
+
+  <div class="foot">Problemas com o código? <a href="https://wa.me/351933829767" target="_blank" rel="noopener">Fala connosco</a></div>
+</div>
+
+<script>
+var LABELS = {
+  selecao:   "Seleção de material",
+  entrega:   "Entrega de trabalho",
+  portfolio: "Portfólio privado"
+};
+var $ = function(s){ return document.querySelector(s); };
+var menu = $("#menu"), gate = $("#gate"), input = $("#code"), err = $("#err");
+
+document.querySelectorAll(".choice").forEach(function(b){
+  b.addEventListener("click", function(){
+    $("#gate-label").textContent = LABELS[b.dataset.k] || "Acesso";
+    menu.hidden = true; gate.hidden = false;
+    input.focus();
+  });
+});
+$("#back").addEventListener("click", function(){
+  gate.hidden = true; menu.hidden = false; err.textContent = ""; input.value = "";
+});
+
+$("#gate-form").addEventListener("submit", function(e){
+  e.preventDefault();
+  err.textContent = "";
+  var code = input.value.trim().replace(/[^a-z0-9_-]/gi, "");
+  if(code.length < 4){ err.textContent = "Código incompleto."; return; }
+  // o código é que manda: abre /<codigo>, o portal deteta se é seleção, entrega ou portfólio
+  window.location.href = "/" + encodeURIComponent(code);
+});
+
+// atalho: acesso.html?c=CODIGO entra directo
+var pre = new URLSearchParams(location.search).get("c");
+if(pre){ input.value = pre; }
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "type": "galeria",
+  "anon": true,
+  "titulo": "Seleção de trabalho",
+  "intro": "Uma amostra do que fazemos. Vídeo e fotografia para marcas que vivem da imagem.",
+  "capa": "/assets/clientes/villas.mp4",
+  "itens": [
+    { "tipo": "video", "nome": "reel-01", "src": "/assets/clientes/villas.mp4" },
+    { "tipo": "video", "nome": "reel-02", "src": "/assets/clientes/fasano.mp4" },
+    { "tipo": "video", "nome": "reel-03", "src": "/assets/clientes/anya.mp4" },
+    { "tipo": "foto", "nome": "still-01", "src": "https://res.cloudinary.com/demo/image/upload/w_1600/sample.jpg", "thumb": "https://res.cloudinary.com/demo/image/upload/w_600/sample.jpg" },
+    { "tipo": "foto", "nome": "still-02", "src": "https://res.cloudinary.com/demo/image/upload/w_1600/couple.jpg", "thumb": "https://res.cloudinary.com/demo/image/upload/w_600/couple.jpg" }
+  ]
+}

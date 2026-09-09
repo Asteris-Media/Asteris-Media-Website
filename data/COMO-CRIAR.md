@@ -5,6 +5,15 @@ O nome do ficheiro é o código de acesso.
 
     data/H46DJ.json   ->   asteris.pt/H46DJ
 
+Duas formas de o cliente entrar:
+- link directo: `asteris.pt/H46DJ`
+- página de acesso: `asteris.pt/acesso` -> escolhe Seleção / Entrega / Portfólio -> insere o código
+
+## Página anónima (portfólio ou entrega discreta)
+
+Põe `"anon": true` no JSON: esconde o nome do cliente e o rótulo do tipo, fica só a marca Asteris.
+Para portfólio privado, deixa também sem `cliente` e sem `expira`. Ver exemplo `PF2K9X.json`.
+
 Regras do código:
 - 4 a ~10 caracteres, letras e números (podes usar `-` ou `_`)
 - **usa códigos longos e aleatórios** para entregas privadas (ex.: `k7m2p9xq`). É a única fecho da porta: quem não tem o link não encontra a página.

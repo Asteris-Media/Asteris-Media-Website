@@ -196,18 +196,20 @@ function expired(d){
 }
 
 function render(d){
-  document.title = "Asteris — " + (d.cliente || "");
+  document.title = d.cliente ? ("Asteris — " + d.cliente) : "Asteris";
   if(expired(d)){ fail("Este link expirou em " + d.expira + ". Fala connosco para o reabrirmos."); return; }
   $("#loading").classList.add("hidden");
   var app = $("#app"); app.classList.remove("hidden"); app.innerHTML = "";
 
+  // modo anónimo: sem nome de cliente nem rótulo de tipo (portfolio / entrega discreta)
+  var anon = d.anon === true || !d.cliente;
   var head = el("div","phead");
   head.innerHTML =
     (d.capa ? '<div class="bg"><img src="'+d.capa+'" alt=""></div>' : '') +
     '<div class="in">' +
       '<div class="pbrand">Asteris</div>' +
-      '<div class="peyebrow">'+({galeria:"Galeria",triagem:"Seleção",proposta:"Proposta"}[d.type]||"")+'</div>' +
-      '<div class="pclient">'+(d.cliente||"")+'</div>' +
+      (anon ? '' : '<div class="peyebrow">'+({galeria:"Galeria",triagem:"Seleção",proposta:"Proposta"}[d.type]||"")+'</div>') +
+      (d.cliente ? '<div class="pclient">'+d.cliente+'</div>' : '') +
       (d.titulo ? '<div class="ptitle">'+d.titulo+'</div>' : '') +
       (d.intro ? '<div class="pintro">'+d.intro+'</div>' : '') +
       '<div class="pmeta">' +
