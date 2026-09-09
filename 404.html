@@ -392,7 +392,7 @@ function renderGaleria(d, app, triagem){
     a.href = d.downloadTudo; a.setAttribute("download","");
     wrap.appendChild(a);
   }
-  var msg = triagem ? (d.instrucoes || "") + (d.minimo ? "  ·  mínimo "+d.minimo : "")
+  var msg = triagem ? (d.instrucoes || "")
           : (entrega ? "Clica na foto para ver inteira, ou em Selecionar para a marcar." : "");
   if(msg){ wrap.appendChild(el("p","selmsg", msg)); }
 
@@ -551,10 +551,6 @@ function doneDl(btn){ btn.disabled = false; refreshBar(); }
 
 function saveSelection(d){
   var chosen = [...SEL].map(function(i){ return ITEMS[i].nome || ("item-"+(i+1)); });
-  if(d.minimo && chosen.length < d.minimo){
-    alert("Escolhe pelo menos " + d.minimo + " (tens " + chosen.length + ").");
-    return;
-  }
   var payload = { codigo: code, cliente: d.cliente, total: ITEMS.length, escolhidas: chosen.length, lista: chosen.join(", ") };
   var btn = $("#save"); btn.disabled = true; btn.textContent = "A enviar…";
   var fid = d.formspree || TRIAGEM_FORMSPREE;

@@ -65,8 +65,7 @@ Serve para mostrar trabalho que não queres público no site. Partilhas o link s
   "intro": "Explica o que tem de fazer.",
   "capa": "/assets/...",
   "expira": "2026-09-30",
-  "minimo": 10,                       // opcional. nº mínimo de peças
-  "instrucoes": "Toca no círculo de cada foto.",
+  "instrucoes": "Clica em Selecionar em cada foto que queres.",
   "formspree": "xxxxxxx",             // ID Formspree p/ receberes a lista por email. vazio = abre o email do cliente
   "itens": [ ... igual à galeria ... ]
 }
