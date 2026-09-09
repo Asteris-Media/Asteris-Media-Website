@@ -24,7 +24,10 @@ input,select,textarea{font-family:var(--sans);font-size:13px;background:var(--pa
 input:focus,select,textarea:focus{outline:1px solid var(--gold);border-color:var(--gold)}
 textarea{resize:vertical;min-height:64px;line-height:1.6}
 label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin:0 0 5px}
-.wrap{max-width:940px;margin:0 auto;padding:26px 20px 90px}
+.wrap{max-width:940px;margin:0 auto;padding:26px 20px 30px}
+#app.wrap{display:flex;flex-direction:column;min-height:100vh;padding-bottom:0}
+#app > #view{flex:1 0 auto}
+#app.editing .adm-foot{display:none}
 .row{display:flex;gap:12px;flex-wrap:wrap}
 .row > *{flex:1;min-width:180px}
 .mono{font-family:var(--mono)}
@@ -264,12 +267,13 @@ label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
 [hidden]{display:none!important}
 
 /* rodapé (igual ao do site) */
-.adm-foot{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:44px;padding-top:18px;border-top:1px solid var(--edge)}
+.adm-foot{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:44px;padding:18px 0 24px;border-top:1px solid var(--edge)}
 .adm-foot .af-brand{display:flex;align-items:center;gap:9px;font-size:10px;font-weight:500;letter-spacing:.32em;text-transform:uppercase;color:var(--faint)}
 .adm-foot .af-brand img{height:14px;width:auto;opacity:.7}
 .adm-foot .af-copy{font-size:8.5px;color:var(--faint);letter-spacing:.06em}
-.adm-foot .af-logs{font-size:11px;color:var(--dim);text-decoration:underline;text-underline-offset:3px;background:none;border:0;cursor:pointer}
-.adm-foot .af-logs:hover{color:var(--gold)}
+.adm-foot .af-end{display:flex;align-items:center;gap:10px}
+.adm-foot .af-logs{font-family:inherit;font-size:8.5px;letter-spacing:.06em;color:var(--faint);background:none;border:0;padding:0;cursor:pointer;text-decoration:none}
+.adm-foot .af-logs:hover{color:var(--dim)}
 .adm-foot .af-cross{color:var(--gold);opacity:.55}
 
 /* registo de atividade */
@@ -313,9 +317,8 @@ label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
   <div id="view"></div>
   <footer class="adm-foot">
     <span class="af-brand"><img src="/assets/logos/asteris.png" alt="">Asteris</span>
-    <button class="af-logs" id="btnLogs">Logs</button>
     <span class="af-copy">&copy; <span id="year">2026</span> Asteris. Todos os direitos reservados.</span>
-    <span class="af-cross">&#10022;</span>
+    <span class="af-end"><button class="af-logs" id="btnLogs">logs</button><span class="af-cross">&#10022;</span></span>
   </footer>
 </div>
 
@@ -505,6 +508,7 @@ function boot(){
 
 function logView(){
   closeMenu();
+  $("#app").classList.remove("editing");
   var v = $("#view"); v.innerHTML = "";
   var back = el("button","btn ghost","← voltar"); back.onclick = listView; v.appendChild(back);
   v.appendChild(Object.assign(el("div","dash-h"), { textContent: "Registo de atividade" }));
@@ -559,6 +563,7 @@ function setExpira(code, novaData){
 
 function listView(){
   closeMenu();
+  $("#app").classList.remove("editing");
   var v = $("#view"); v.innerHTML = "";
   v.appendChild(navBar("links"));
   var head = el("div"); head.style.cssText = "display:flex;justify-content:space-between;align-items:center;margin-bottom:16px";
@@ -903,6 +908,7 @@ function allFolders(lib){
 }
 function libraryView(){
   closeMenu();
+  $("#app").classList.remove("editing");
   var v = $("#view"); v.innerHTML = "";
   v.appendChild(navBar("biblioteca"));
 
@@ -1323,6 +1329,7 @@ var CUR = null; // { code, data, isNew }
 
 function editView(code){
   closeMenu();
+  $("#app").classList.add("editing");
   var v = $("#view"); v.innerHTML = "";
   var back = el("button","btn ghost","← voltar"); back.onclick = listView;
   v.appendChild(back);
