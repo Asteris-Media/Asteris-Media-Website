@@ -47,6 +47,9 @@ Se a data em `"expira"` já passou, a página mostra "link expirou" sozinha.
 - `thumb` = versão pequena para a grelha (opcional; se não puseres usa o `src`)
 - `download` = link para o cliente descarregar o original (opcional; sem ele não aparece botão)
 
+Numa galeria de **entrega** (tem `cliente`, não é anónima) o cliente pode marcar peças e há uma
+barra central em baixo com **Selecionar tudo** e **Descarregar**. Para desligar isso: `"selecao": false`.
+
 ## 2. Galeria privada de portfólio
 
 Igual à galeria, `"type": "galeria"`, mas **sem `expira`** e sem `download`.

@@ -76,6 +76,7 @@ a{color:inherit}
 .selbar .count{font-family:var(--serif);font-size:16px;color:var(--gold)}
 .selbar .count small{color:var(--white-faint);font-family:var(--sans);font-size:9px;letter-spacing:.1em;text-transform:uppercase;margin-left:8px}
 .selbar .actions{display:flex;gap:8px;flex-wrap:wrap}
+.selbar.centro{justify-content:center}
 .btn{border:1px solid var(--gold-soft);background:transparent;color:var(--white);padding:11px 18px;font-family:var(--sans);font-size:8.5px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:background .2s,color .2s,border-color .2s}
 .btn:hover{border-color:var(--gold)}
 .btn.gold{background:var(--gold);color:var(--black);border-color:var(--gold)}
@@ -335,21 +336,24 @@ function render(d){
 }
 
 /* ---------------- GALERIA + TRIAGEM ---------------- */
-var ITEMS = [], SEL = new Set();
+var ITEMS = [], SEL = new Set(), MODO = "";  // MODO: "triagem" | "entrega" | ""
 
 function renderGaleria(d, app, triagem){
   ITEMS = d.itens || [];
+  var anon = d.anon === true || !d.cliente;
+  var entrega = !triagem && d.type === "galeria" && !anon && d.selecao !== false;
+  var picking = triagem || entrega;
+  MODO = triagem ? "triagem" : (entrega ? "entrega" : "");
   var wrap = el("div","wrap");
 
-  if(!triagem && d.downloadTudo){
+  if(entrega && d.downloadTudo){
     var a = el("a","btn gold dlall","Descarregar tudo (.zip)");
     a.href = d.downloadTudo; a.setAttribute("download","");
     wrap.appendChild(a);
   }
-  if(triagem && d.instrucoes){
-    var p = el("p","selmsg", d.instrucoes + (d.minimo ? "  ·  mínimo "+d.minimo : ""));
-    wrap.appendChild(p);
-  }
+  var msg = triagem ? (d.instrucoes || "") + (d.minimo ? "  ·  mínimo "+d.minimo : "")
+          : (entrega ? "Toca no círculo para escolher, ou usa Selecionar tudo em baixo." : "");
+  if(msg){ wrap.appendChild(el("p","selmsg", msg)); }
 
   var grid = el("div","collage");
   ITEMS.forEach(function(it, i){
@@ -357,22 +361,31 @@ function renderGaleria(d, app, triagem){
     var media = it.tipo === "video"
       ? '<span class="vtag">&#9654;</span><video src="'+(it.src)+'" muted loop playsinline preload="metadata"></video>'
       : '<img src="'+(it.thumb||it.src)+'" alt="'+(it.nome||"")+'" loading="lazy">';
-    t.innerHTML = media + (triagem ? '<span class="pick">&#10003;</span>' : '');
+    t.innerHTML = media + (picking ? '<span class="pick">&#10003;</span>' : '');
     grid.appendChild(t);
   });
   wrap.appendChild(grid);
   app.appendChild(wrap);
 
-  if(triagem){
-    var bar = el("div","selbar");
-    bar.innerHTML =
-      '<span class="count"><span id="sc">0</span><small>selecionadas</small></span>' +
-      '<span class="actions">' +
-        '<button class="btn" id="only">Ver selecionadas</button>' +
-        '<button class="btn gold" id="save" disabled>Guardar seleção</button>' +
-      '</span>';
+  if(picking){
+    var bar = el("div","selbar" + (entrega ? " centro" : ""));
+    if(triagem){
+      bar.innerHTML =
+        '<span class="count"><span id="sc">0</span><small>selecionadas</small></span>' +
+        '<span class="actions">' +
+          '<button class="btn" id="all">Selecionar tudo</button>' +
+          '<button class="btn" id="only">Ver selecionadas</button>' +
+          '<button class="btn gold" id="save" disabled>Guardar seleção</button>' +
+        '</span>';
+    } else {
+      bar.innerHTML =
+        '<span class="actions">' +
+          '<button class="btn" id="all">Selecionar tudo</button>' +
+          '<button class="btn gold" id="dl" disabled>Descarregar</button>' +
+        '</span>';
+    }
     app.appendChild(bar);
-    document.body.style.paddingBottom = "72px";
+    document.body.style.paddingBottom = "76px";
   }
   app.appendChild(footer(d));
 
@@ -380,11 +393,23 @@ function renderGaleria(d, app, triagem){
   grid.addEventListener("click", function(e){
     var t = e.target.closest(".tile"); if(!t) return;
     var i = +t.dataset.i;
-    if(triagem && e.target.closest(".pick")){ toggle(i, t); return; }
+    if(picking && e.target.closest(".pick")){ toggle(i, t); return; }
     openLb(i);
   });
   playInView(grid);
 
+  if(picking){
+    var allBtn = $("#all"), allOn = false;
+    allBtn.addEventListener("click", function(){
+      allOn = !allOn;
+      grid.querySelectorAll(".tile").forEach(function(t){
+        var i = +t.dataset.i;
+        if(allOn){ SEL.add(i); t.classList.add("on"); } else { SEL.delete(i); t.classList.remove("on"); }
+      });
+      allBtn.textContent = allOn ? "Limpar seleção" : "Selecionar tudo";
+      refreshBar();
+    });
+  }
   if(triagem){
     var onlyBtn = $("#only"), showAll = true;
     onlyBtn.addEventListener("click", function(){
@@ -396,13 +421,38 @@ function renderGaleria(d, app, triagem){
     });
     $("#save").addEventListener("click", function(){ saveSelection(d); });
   }
+  if(entrega){
+    $("#dl").addEventListener("click", baixarSelecionadas);
+  }
+}
+
+function refreshBar(){
+  if(MODO === "triagem"){ $("#sc").textContent = SEL.size; $("#save").disabled = SEL.size === 0; }
+  if(MODO === "entrega"){
+    var b = $("#dl");
+    b.disabled = SEL.size === 0;
+    b.textContent = SEL.size ? "Descarregar (" + SEL.size + ")" : "Descarregar";
+  }
 }
 
 function toggle(i, tile){
   if(SEL.has(i)){ SEL.delete(i); tile.classList.remove("on"); }
   else { SEL.add(i); tile.classList.add("on"); }
-  $("#sc").textContent = SEL.size;
-  $("#save").disabled = SEL.size === 0;
+  refreshBar();
+}
+
+function baixarSelecionadas(){
+  var lista = [...SEL].map(function(i){ return ITEMS[i]; });
+  var btn = $("#dl"); btn.disabled = true;
+  lista.forEach(function(it, k){
+    setTimeout(function(){
+      var url = it.download || it.src;
+      var a = document.createElement("a");
+      a.href = url; a.download = (it.nome || "asteris-"+(k+1));
+      document.body.appendChild(a); a.click(); a.remove();
+      if(k === lista.length - 1){ btn.disabled = false; refreshBar(); }
+    }, k * 700);
+  });
 }
 
 function saveSelection(d){
