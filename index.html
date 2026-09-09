@@ -169,9 +169,19 @@ section.block{padding:clamp(64px,9vw,120px) var(--pad)}
 .imgview .iv-cap{font-family:var(--sans);font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:var(--white-dim)}
 .zoom{position:fixed;inset:0;z-index:120;background:rgba(5,5,4,.95);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:clamp(12px,4vw,54px);opacity:0;pointer-events:none;transition:opacity .25s}
 .zoom.open{opacity:1;pointer-events:auto}
-.zoom-media{max-width:94vw;max-height:90vh;object-fit:contain;border:1px solid var(--gold-soft);background:#000}
-.zoom-close{position:absolute;top:16px;right:20px;background:none;border:1px solid var(--gold-soft);color:var(--white);width:34px;height:34px;cursor:pointer;font-size:15px;transition:background .2s,color .2s}
+.zoom-media{max-width:94vw;max-height:90vh;object-fit:contain;border:1px solid var(--gold-soft);background:#000;display:block}
+.zoom-close{position:absolute;top:16px;right:20px;background:none;border:1px solid var(--gold-soft);color:var(--white);width:34px;height:34px;cursor:pointer;font-size:15px;transition:background .2s,color .2s;z-index:3}
 .zoom-close:hover{background:var(--gold);color:var(--black)}
+.zoom-vwrap{position:relative;display:inline-flex;line-height:0}
+.zoom-vwrap video{cursor:pointer}
+video.zoom-media::-webkit-media-controls,video.zoom-media::-webkit-media-controls-enclosure,video.zoom-media::-webkit-media-controls-panel{display:none!important;-webkit-appearance:none}
+.zoom-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:72px;height:72px;border-radius:50%;border:1px solid var(--gold);background:rgba(11,11,10,.5);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);color:var(--gold);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s,color .2s,opacity .3s}
+.zoom-play:hover{background:var(--gold);color:var(--black)}
+.zoom-play svg{width:26px;height:26px;display:block}
+.zoom-play .ic-pause{display:none}
+.zoom-play.playing{background:rgba(11,11,10,.32);border-color:var(--gold-soft)}
+.zoom-play.playing .ic-play{display:none}
+.zoom-play.playing .ic-pause{display:block}
 
 /* CONTACTO */
 .sec-contact{background:var(--black);display:grid;grid-template-columns:1fr 1fr;gap:clamp(40px,7vw,80px);align-items:start}
@@ -648,9 +658,10 @@ function openGallery(i){
   gcollage.innerHTML = p.items.map(function(it, k){
     if(it.type === "video"){
       return '<figure data-k="'+k+'"><span class="vtag">&#9654;</span>'
-        + '<video src="'+it.src+'" muted loop playsinline preload="metadata"></video></figure>';
+        + '<video src="'+it.src+'" muted loop playsinline preload="metadata" disablepictureinpicture'
+        + ' controlslist="nodownload noplaybackrate noremoteplayback" oncontextmenu="return false" draggable="false"></video></figure>';
     }
-    return '<figure data-k="'+k+'"><img src="'+it.src+'" alt="Trabalho para '+p.client+'" loading="lazy"></figure>';
+    return '<figure data-k="'+k+'"><img src="'+it.src+'" alt="Trabalho para '+p.client+'" loading="lazy" oncontextmenu="return false" draggable="false"></figure>';
   }).join("");
   gallery.dataset.client = i;
   lastFocus = document.activeElement;
@@ -690,9 +701,26 @@ var zoomOpen = false;
 function openZoom(k){
   var p = PORTFOLIO[+gallery.dataset.client];
   var it = p.items[k];
-  zoomWrap.innerHTML = it.type === "video"
-    ? '<video class="zoom-media" src="'+it.src+'" controls autoplay playsinline></video>'
-    : '<img class="zoom-media" src="'+it.src.replace(/w_\d+/,"w_1800")+'" alt="Trabalho para '+p.client+'">';
+  if(it.type === "video"){
+    zoomWrap.innerHTML =
+      '<div class="zoom-vwrap">'
+      + '<video class="zoom-media" src="'+it.src+'" playsinline loop preload="auto"'
+      +   ' disablepictureinpicture controlslist="nodownload noplaybackrate noremoteplayback"'
+      +   ' oncontextmenu="return false" draggable="false"></video>'
+      + '<button class="zoom-play" type="button" aria-label="Reproduzir">'
+      +   '<svg class="ic-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>'
+      +   '<svg class="ic-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>'
+      + '</button>'
+      + '</div>';
+    var v = zoomWrap.querySelector("video"), pb = zoomWrap.querySelector(".zoom-play");
+    var toggle = function(){ if(v.paused) v.play(); else v.pause(); };
+    pb.addEventListener("click", toggle);
+    v.addEventListener("click", toggle);
+    v.addEventListener("play", function(){ pb.classList.add("playing"); pb.setAttribute("aria-label","Pausa"); });
+    v.addEventListener("pause", function(){ pb.classList.remove("playing"); pb.setAttribute("aria-label","Reproduzir"); });
+  } else {
+    zoomWrap.innerHTML = '<img class="zoom-media" src="'+it.src.replace(/w_\d+/,"w_1800")+'" alt="Trabalho para '+p.client+'" oncontextmenu="return false" draggable="false">';
+  }
   zoom.classList.add("open"); zoomOpen = true;
   document.getElementById("zoom-close").focus();
 }
