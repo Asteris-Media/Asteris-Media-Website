@@ -4,10 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex,nofollow">
-<title>Acesso — Asteris</title>
+<title data-i18n="AC-TITLE">Acesso — Asteris</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="assets/i18n.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -75,33 +76,38 @@ h1{font-family:var(--serif);font-weight:300;font-size:clamp(1.7rem,4vw,2.3rem);l
   .home-link{top:14px;left:14px}
 }
 .home-link:hover{color:var(--gold);border-color:var(--gold)}
+.lang-switch{display:flex;gap:1px}
+.lang-switch button{background:none;border:none;color:var(--white-faint);font-family:var(--sans);font-size:9px;font-weight:600;letter-spacing:.12em;padding:5px 7px;cursor:pointer;transition:color .2s}
+.lang-switch button:hover{color:var(--white-dim)}
+.lang-switch button[aria-current="true"]{color:var(--gold)}
+@media(max-width:560px){.site-footer .lang-switch{order:3;width:100%;justify-content:center}}
 </style>
 </head>
 <body>
-<a class="home-link" href="/">&#8592; Voltar ao site</a>
+<a class="home-link" href="/" data-i18n="AC-HOME">&#8592; Voltar ao site</a>
 <div class="wrap">
   <img class="mark" src="assets/logos/asteris.png" alt="Asteris">
   <div class="brand">Asteris</div>
 
   <div id="menu">
-    <h1>Área de acesso</h1>
-    <p class="sub">Escolhe o que vieste fazer e insere o teu código.</p>
+    <h1 data-i18n="AC-H1">Área de acesso</h1>
+    <p class="sub" data-i18n="AC-SUB">Escolhe o que vieste fazer e insere o teu código.</p>
     <div class="choices">
       <button class="choice" data-k="selecao">
         <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
-        <span class="tx"><b>Seleção de material</b><span>Escolher as fotos e vídeos da versão final</span></span>
+        <span class="tx"><b data-i18n="AC-SELECAO-T">Seleção de material</b><span data-i18n="AC-SELECAO-D">Escolher as fotos e vídeos da versão final</span></span>
       </button>
       <button class="choice" data-k="entrega">
         <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg></span>
-        <span class="tx"><b>Entrega de trabalho</b><span>Descarregar o material concluído</span></span>
+        <span class="tx"><b data-i18n="AC-ENTREGA-T">Entrega de trabalho</b><span data-i18n="AC-ENTREGA-D">Descarregar o material concluído</span></span>
       </button>
       <button class="choice" data-k="portfolio">
         <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg></span>
-        <span class="tx"><b>Portfólio</b><span>Galeria privada partilhada contigo</span></span>
+        <span class="tx"><b data-i18n="AC-PORTFOLIO-T">Portfólio</b><span data-i18n="AC-PORTFOLIO-D">Galeria privada partilhada contigo</span></span>
       </button>
       <button class="choice" data-k="proposta">
         <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v5h5"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg></span>
-        <span class="tx"><b>Proposta</b><span>Ver a proposta que preparámos para ti</span></span>
+        <span class="tx"><b data-i18n="AC-PROPOSTA-T">Proposta</b><span data-i18n="AC-PROPOSTA-D">Ver a proposta que preparámos para ti</span></span>
       </button>
     </div>
   </div>
@@ -110,29 +116,30 @@ h1{font-family:var(--serif);font-weight:300;font-size:clamp(1.7rem,4vw,2.3rem);l
     <div class="label" id="gate-label"></div>
     <form id="gate-form">
       <input id="code" name="code" inputmode="text" autocomplete="off" autocapitalize="characters"
-             spellcheck="false" maxlength="16" placeholder="CÓDIGO" aria-label="Código de acesso">
-      <button class="go" type="submit">Entrar</button>
+             spellcheck="false" maxlength="16" placeholder="CÓDIGO" data-i18n-ph="AC-INPUT" data-i18n-aria="AC-INPUT-ARIA" aria-label="Código de acesso">
+      <button class="go" type="submit" data-i18n="AC-ENTRAR">Entrar</button>
     </form>
-    <button class="gate-back" type="button" id="gate-back">&#8592; Voltar</button>
+    <button class="gate-back" type="button" id="gate-back" data-i18n="AC-VOLTAR">&#8592; Voltar</button>
     <div class="err" id="err" role="alert"></div>
   </div>
 
-  <div class="foot">Problemas com o código? <a href="https://wa.me/351933829767" target="_blank" rel="noopener">Fala connosco</a></div>
+  <div class="foot"><span data-i18n="AC-FOOT-PRE">Problemas com o código? </span><a href="https://wa.me/351933829767" target="_blank" rel="noopener" data-i18n="AC-FOOT-LINK">Fala connosco</a></div>
 </div>
 
 <footer class="site-footer">
   <a class="sf-brand" href="/"><img src="assets/logos/asteris.png" alt="" aria-hidden="true">Asteris</a>
-  <span class="sf-copy">&copy; 2026 Asteris. Todos os direitos reservados.</span>
+  <div class="lang-switch" data-lang-switch aria-label="Idioma / Language">
+    <button type="button" data-lang-btn="pt">PT</button>
+    <button type="button" data-lang-btn="en">EN</button>
+    <button type="button" data-lang-btn="es">ES</button>
+    <button type="button" data-lang-btn="fr">FR</button>
+  </div>
+  <span class="sf-copy" data-i18n="AC-FOOT-COPY">&copy; 2026 Asteris. Todos os direitos reservados.</span>
   <span class="sf-cross">&#10022;</span>
 </footer>
 
 <script>
-var LABELS = {
-  selecao:   "Seleção de material",
-  entrega:   "Entrega de trabalho",
-  portfolio: "Portfólio privado",
-  proposta:  "Proposta"
-};
+function gateLabel(k){ return I18N.t("AC-LBL-" + String(k || "").toUpperCase()) || I18N.t("AC-LBL-FALLBACK"); }
 var $ = function(s){ return document.querySelector(s); };
 var menu = $("#menu"), gate = $("#gate"), input = $("#code"), err = $("#err");
 var homeLink = $(".home-link");
@@ -143,7 +150,8 @@ function toMenu(){
 }
 document.querySelectorAll(".choice").forEach(function(b){
   b.addEventListener("click", function(){
-    $("#gate-label").textContent = LABELS[b.dataset.k] || "Acesso";
+    gate.dataset.k = b.dataset.k;
+    $("#gate-label").textContent = gateLabel(b.dataset.k);
     menu.hidden = true; gate.hidden = false;
     homeLink.hidden = true;   // no menu de código o "voltar" fica por baixo do Entrar
     input.focus();
@@ -155,7 +163,7 @@ $("#gate-form").addEventListener("submit", function(e){
   e.preventDefault();
   err.textContent = "";
   var code = input.value.trim().replace(/[^a-z0-9_-]/gi, "");
-  if(code.length < 4){ err.textContent = "Código incompleto."; return; }
+  if(code.length < 4){ err.textContent = I18N.t("AC-ERR-INCOMPLETO"); return; }
   // o código é que manda: abre /<codigo>, o portal deteta se é seleção, entrega ou portfólio
   window.location.href = "/" + encodeURIComponent(code);
 });
@@ -163,6 +171,11 @@ $("#gate-form").addEventListener("submit", function(e){
 // atalho: acesso.html?c=CODIGO entra directo
 var pre = new URLSearchParams(location.search).get("c");
 if(pre){ input.value = pre; }
+
+// ao trocar de língua com o ecrã do código aberto, atualiza o rótulo
+I18N.onChange(function(){
+  if(!gate.hidden && gate.dataset.k) $("#gate-label").textContent = gateLabel(gate.dataset.k);
+});
 </script>
 </body>
 </html>

@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="/assets/i18n.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -208,6 +209,10 @@ footer.pfoot .pf-brand svg,footer.pfoot .pf-brand img{width:auto;height:15px;opa
 #notfound .mark{height:38px;width:auto}
 footer.pfoot .pf-copy{font-size:8.5px;color:rgba(240,234,224,.28);letter-spacing:.06em}
 footer.pfoot .pf-cross{color:var(--gold);font-size:15px;opacity:.55}
+.lang-switch{display:flex;gap:1px}
+.lang-switch button{background:none;border:none;color:var(--white-faint);font-family:var(--sans);font-size:9px;font-weight:600;letter-spacing:.12em;padding:5px 7px;cursor:pointer;transition:color .2s}
+.lang-switch button:hover{color:var(--white-dim)}
+.lang-switch button[aria-current="true"]{color:var(--gold)}
 </style>
 </head>
 <body>
@@ -216,22 +221,22 @@ footer.pfoot .pf-cross{color:var(--gold);font-size:15px;opacity:.55}
 
 <div id="notfound" class="hidden">
   <img class="mark" src="/assets/logos/asteris.png" alt="Asteris">
-  <h1>Nada aqui.</h1>
-  <p id="nf-msg">Este link não existe ou já expirou. Se recebeste um código de acesso, confirma que está completo.</p>
-  <a class="home" href="/">Asteris</a>
+  <h1 data-i18n="PT-NF-H1">Nada aqui.</h1>
+  <p id="nf-msg" data-i18n="PT-NF-MSG">Este link não existe ou já expirou. Se recebeste um código de acesso, confirma que está completo.</p>
+  <a class="home" href="/" data-i18n="PT-NF-HOME">Asteris</a>
 </div>
 
 <div id="app" class="hidden"></div>
 
 <!-- lightbox -->
 <div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Ver peça">
-  <div class="lb-top"><span class="lb-name" id="lb-name"></span><button class="lb-x" id="lb-x" aria-label="Fechar">&#10005;</button></div>
+  <div class="lb-top"><span class="lb-name" id="lb-name"></span><button class="lb-x" id="lb-x" data-i18n-aria="PT-LB-FECHAR" aria-label="Fechar">&#10005;</button></div>
   <div class="lb-stage">
-    <button class="lb-nav prev" id="lb-prev" aria-label="Anterior">&#8249;</button>
+    <button class="lb-nav prev" id="lb-prev" data-i18n-aria="PT-LB-ANT" aria-label="Anterior">&#8249;</button>
     <div id="lb-wrap"></div>
-    <button class="lb-nav next" id="lb-next" aria-label="Seguinte">&#8250;</button>
+    <button class="lb-nav next" id="lb-next" data-i18n-aria="PT-LB-SEG" aria-label="Seguinte">&#8250;</button>
   </div>
-  <div class="lb-bottom"><span class="lb-count" id="lb-count"></span><a class="btn" id="lb-dl" download>Descarregar</a></div>
+  <div class="lb-bottom"><span class="lb-count" id="lb-count"></span><a class="btn" id="lb-dl" data-i18n="PT-LB-DL" download>Descarregar</a></div>
 </div>
 
 <script>
@@ -245,6 +250,7 @@ var TRIAGEM_FORMSPREE = "";                       // ID Formspree p/ receber as 
 
 var $ = function(s,r){ return (r||document).querySelector(s); };
 var el = function(tag,cls,html){ var e=document.createElement(tag); if(cls)e.className=cls; if(html!=null)e.innerHTML=html; return e; };
+var T = function(k,v){ return window.I18N ? window.I18N.t(k,v) : k; };
 
 /* --- biblioteca de ícones para os planos das propostas ---
    uso no JSON:  "icone": "diamante"   (ver lista completa em  asteris.pt/PROPOSTA?icons=1  ou COMO-CRIAR.md) */
@@ -344,7 +350,7 @@ if(new URLSearchParams(location.search).get("icons")){
   fetch(repoBase + "data/" + encodeURIComponent(code) + ".json", { cache:"no-store" })
     .then(function(r){ if(!r.ok) throw 0; return r.json(); })
     .then(render)
-    .catch(function(){ fail("Este link não existe. Confirma o código."); });
+    .catch(function(){ fail(T("PT-NF-MSG2")); });
 }
 
 function expired(d){
@@ -355,7 +361,7 @@ function expired(d){
 
 function render(d){
   document.title = d.cliente ? ("Asteris — " + d.cliente) : "Asteris";
-  if(expired(d)){ fail("Este link expirou em " + d.expira + ". Fala connosco para o reabrirmos."); return; }
+  if(expired(d)){ fail(T("PT-NF-EXPIROU",{data:d.expira})); return; }
   $("#loading").classList.add("hidden");
   var app = $("#app"); app.classList.remove("hidden"); app.innerHTML = "";
 
@@ -391,16 +397,16 @@ function render(d){
       '<div class="pcol">' +
       (isProp ? badgeHTML : '') +
       (isProp ? '' : '<div class="pbrand">Asteris</div>') +
-      (anon || isProp ? '' : '<div class="peyebrow">'+({galeria:"Galeria",triagem:"Seleção",proposta:"Proposta"}[d.type]||"")+'</div>') +
+      (anon || isProp ? '' : '<div class="peyebrow">'+({galeria:T("PT-EYE-GALERIA"),triagem:T("PT-EYE-TRIAGEM"),proposta:T("PT-EYE-PROPOSTA")}[d.type]||"")+'</div>') +
       (mosaic
         ? (d.titulo ? '<div class="pclient">'+d.titulo+'</div>' : '') + (d.cliente ? '<div class="ptitle">'+d.cliente+'</div>' : '')
         : (d.cliente ? '<div class="pclient">'+d.cliente+'</div>' : '') + (d.titulo ? '<div class="ptitle">'+d.titulo+'</div>' : '')
       ) +
       (d.intro ? '<div class="pintro">'+d.intro+'</div>' : '') +
       '<div class="pmeta">' +
-        (d.itens ? '<span class="chip">'+d.itens.length+' peças</span>' : '') +
-        ((d.type === "proposta" && d.proposta && d.proposta.validade) ? '<span class="chip warn">Válida por '+d.proposta.validade+'</span>' : '') +
-        (d.expira ? '<span class="chip warn">'+(d.type === "proposta" ? "Até " : "Disponível até ")+d.expira+'</span>' : '') +
+        (d.itens ? '<span class="chip">'+T("PT-CHIP-PECAS",{n:d.itens.length})+'</span>' : '') +
+        ((d.type === "proposta" && d.proposta && d.proposta.validade) ? '<span class="chip warn">'+T("PT-CHIP-VALIDA",{x:d.proposta.validade})+'</span>' : '') +
+        (d.expira ? '<span class="chip warn">'+T(d.type === "proposta" ? "PT-CHIP-ATE" : "PT-CHIP-DISPONIVEL",{data:d.expira})+'</span>' : '') +
       '</div>' +
       '</div>' +
     '</div>';
@@ -415,11 +421,11 @@ var ITEMS = [], SEL = new Set(), MODO = "";  // MODO: "triagem" | "entrega" | ""
 var IC_ADD = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
 var IC_X   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 function selBtn(on){
-  return '<button class="selbtn" type="button">' + (on ? IC_X + "Remover" : IC_ADD + "Selecionar") + '</button>';
+  return '<button class="selbtn" type="button">' + (on ? IC_X + T("PT-SEL-REMOVE") : IC_ADD + T("PT-SEL-ADD")) + '</button>';
 }
 function setTileBtn(tile, on){
   var b = tile.querySelector(".selbtn");
-  if(b) b.innerHTML = on ? IC_X + "Remover" : IC_ADD + "Selecionar";
+  if(b) b.innerHTML = on ? IC_X + T("PT-SEL-REMOVE") : IC_ADD + T("PT-SEL-ADD");
 }
 
 function renderGaleria(d, app, triagem){
@@ -431,12 +437,12 @@ function renderGaleria(d, app, triagem){
   var wrap = el("div","wrap");
 
   if(entrega && d.downloadTudo){
-    var a = el("a","btn gold dlall","Descarregar tudo (.zip)");
+    var a = el("a","btn gold dlall",T("PT-DL-TUDO"));
     a.href = d.downloadTudo; a.setAttribute("download","");
     wrap.appendChild(a);
   }
   var msg = triagem ? (d.instrucoes || "")
-          : (entrega ? "Clica na foto para ver inteira, ou em Selecionar para a marcar." : "");
+          : (entrega ? T("PT-MSG-ENTREGA") : "");
   if(msg){ wrap.appendChild(el("p","selmsg", msg)); }
 
   var grid = el("div","collage");
@@ -456,17 +462,17 @@ function renderGaleria(d, app, triagem){
     var bar = el("div","selbar" + (entrega ? " centro" : ""));
     if(triagem){
       bar.innerHTML =
-        '<span class="count"><span id="sc">0</span><small>selecionadas</small></span>' +
+        '<span class="count"><span id="sc">0</span><small>'+T("PT-BAR-SELECIONADAS")+'</small></span>' +
         '<span class="actions">' +
-          '<button class="btn" id="all">Selecionar tudo</button>' +
-          '<button class="btn" id="only">Ver selecionadas</button>' +
-          '<button class="btn gold" id="save" disabled>Guardar seleção</button>' +
+          '<button class="btn" id="all">'+T("PT-BTN-ALL")+'</button>' +
+          '<button class="btn" id="only">'+T("PT-BTN-ONLY")+'</button>' +
+          '<button class="btn gold" id="save" disabled>'+T("PT-BTN-SAVE")+'</button>' +
         '</span>';
     } else {
       bar.innerHTML =
         '<span class="actions">' +
-          '<button class="btn" id="all">Selecionar tudo</button>' +
-          '<button class="btn gold" id="dl" disabled>Descarregar</button>' +
+          '<button class="btn" id="all">'+T("PT-BTN-ALL")+'</button>' +
+          '<button class="btn gold" id="dl" disabled>'+T("PT-BTN-DL")+'</button>' +
         '</span>';
     }
     app.appendChild(bar);
@@ -491,7 +497,7 @@ function renderGaleria(d, app, triagem){
         if(allOn){ SEL.add(i); t.classList.add("on"); } else { SEL.delete(i); t.classList.remove("on"); }
         setTileBtn(t, allOn);
       });
-      allBtn.textContent = allOn ? "Limpar seleção" : "Selecionar tudo";
+      allBtn.textContent = allOn ? T("PT-BTN-ALL-CLEAR") : T("PT-BTN-ALL");
       refreshBar();
     });
   }
@@ -500,7 +506,7 @@ function renderGaleria(d, app, triagem){
     onlyBtn.addEventListener("click", function(){
       focus = !focus;
       grid.classList.toggle("focus-sel", focus);
-      onlyBtn.textContent = focus ? "Ver todas" : "Ver selecionadas";
+      onlyBtn.textContent = focus ? T("PT-BTN-ONLY-BACK") : T("PT-BTN-ONLY");
     });
     $("#save").addEventListener("click", function(){ saveSelection(d); });
   }
@@ -514,7 +520,7 @@ function refreshBar(){
   if(MODO === "entrega"){
     var b = $("#dl");
     b.disabled = SEL.size === 0;
-    b.textContent = SEL.size ? "Descarregar (" + SEL.size + ")" : "Descarregar";
+    b.textContent = SEL.size ? T("PT-BTN-DL-N",{n:SEL.size}) : T("PT-BTN-DL");
   }
 }
 
@@ -557,16 +563,16 @@ function baixarSelecionadas(d){
   // 1 peça: download direto
   if(lista.length === 1){
     var it0 = lista[0], url0 = it0.download || it0.src;
-    btn.textContent = "A descarregar…";
+    btn.textContent = T("PT-DL-1");
     fetch(url0, { mode: "cors" }).then(function(r){ if(!r.ok) throw new Error(r.status); return r.blob(); })
       .then(function(b){ saveBlob(b, (it0.nome || base) + extOf(url0, it0.tipo)); doneDl(btn); })
-      .catch(function(){ doneDl(btn); alert("Não foi possível descarregar esta peça agora. Tenta outra vez daqui a pouco; se continuar, avisa a Asteris."); });
+      .catch(function(){ doneDl(btn); alert(T("PT-DL-ERR1")); });
     return;
   }
 
   // várias: junta tudo num .zip (resiliente — uma peça que falhe não quebra o resto)
   var done = 0, falhas = 0;
-  btn.textContent = "A preparar… 0/" + lista.length;
+  btn.textContent = T("PT-DL-PREP",{done:0,total:lista.length});
   loadJSZip().then(function(JSZip){
     var zip = new JSZip();
     return Promise.all(lista.map(function(it, k){
@@ -579,20 +585,20 @@ function baixarSelecionadas(d){
       }).catch(function(){
         falhas++;
       }).then(function(){
-        done++; btn.textContent = "A preparar… " + done + "/" + lista.length;
+        done++; btn.textContent = T("PT-DL-PREP",{done:done,total:lista.length});
       });
     })).then(function(){
       if(done - falhas <= 0) throw new Error("nada");
-      btn.textContent = "A comprimir…";
+      btn.textContent = T("PT-DL-ZIP");
       return zip.generateAsync({ type: "blob" });
     }).then(function(zipBlob){
       saveBlob(zipBlob, base + ".zip");
       doneDl(btn);
-      if(falhas) alert(falhas + " ficheiro(s) não puderam ser descarregados e ficaram de fora do .zip. Avisa a Asteris.");
+      if(falhas) alert(T("PT-DL-ERR-PARCIAL",{n:falhas}));
     });
   }).catch(function(){
     doneDl(btn);
-    alert("Não foi possível preparar o download agora. Tenta outra vez daqui a pouco ou descarrega peça a peça; se continuar, avisa a Asteris.");
+    alert(T("PT-DL-ERR-TUDO"));
   });
 }
 function doneDl(btn){ btn.disabled = false; refreshBar(); }
@@ -600,7 +606,7 @@ function doneDl(btn){ btn.disabled = false; refreshBar(); }
 function saveSelection(d){
   var chosen = [...SEL].map(function(i){ return ITEMS[i].nome || ("item-"+(i+1)); });
   var payload = { codigo: code, cliente: d.cliente, total: ITEMS.length, escolhidas: chosen.length, lista: chosen.join(", ") };
-  var btn = $("#save"); btn.disabled = true; btn.textContent = "A enviar…";
+  var btn = $("#save"); btn.disabled = true; btn.textContent = T("PT-SEND");
   var fid = d.formspree || TRIAGEM_FORMSPREE;
   if(fid){
     fetch("https://formspree.io/f/" + fid, {
@@ -617,9 +623,9 @@ function saveSelection(d){
   function done(ok){
     var bar = $(".selbar");
     bar.innerHTML = ok
-      ? '<span class="count" style="color:var(--gold)">Seleção enviada &#10003;<small>recebemos '+chosen.length+' peças</small></span>'
-      : '<span class="count" style="color:#FF5B4C">Não deu para enviar<small>tenta outra vez ou fala connosco</small></span>';
-    if(!ok){ btn.disabled = false; btn.textContent = "Guardar seleção"; }
+      ? '<span class="count" style="color:var(--gold)">'+T("PT-SENT-OK")+'<small>'+T("PT-SENT-OK-SUB",{n:chosen.length})+'</small></span>'
+      : '<span class="count" style="color:#FF5B4C">'+T("PT-SENT-FAIL")+'<small>'+T("PT-SENT-FAIL-SUB")+'</small></span>';
+    if(!ok){ btn.disabled = false; btn.textContent = T("PT-BTN-SAVE"); }
   }
 }
 
@@ -670,7 +676,7 @@ function protToast(){
   var t = $("#prot-toast");
   if(!t){
     t = el("div"); t.id = "prot-toast";
-    t.textContent = "Conteúdo protegido da Asteris.";
+    t.textContent = T("PT-PROT");
     document.body.appendChild(t);
   }
   t.classList.add("show");
@@ -700,19 +706,19 @@ function playInView(grid){
 /* ---------------- PROPOSTA (secções flexíveis) ---------------- */
 function legacyToSecoes(pr){
   var s = [];
-  if(pr.ondeEstao) s.push({ tipo:"texto", eyebrow:"Onde estão hoje", paragrafos:[pr.ondeEstao] });
-  if(pr.oQueVimos && pr.oQueVimos.length) s.push({ tipo:"texto", eyebrow:"O que identificámos", bullets:pr.oQueVimos });
-  if(pr.ondePodemChegar) s.push({ tipo:"texto", eyebrow:"Onde podem chegar", paragrafos:[pr.ondePodemChegar] });
-  if(pr.conceitos && pr.conceitos.length) s.push({ tipo:"cards", eyebrow:"Conceitos", modo:"carrossel",
+  if(pr.ondeEstao) s.push({ tipo:"texto", eyebrow:T("PT-PROP-EYE-ONDE"), paragrafos:[pr.ondeEstao] });
+  if(pr.oQueVimos && pr.oQueVimos.length) s.push({ tipo:"texto", eyebrow:T("PT-PROP-EYE-VIMOS"), bullets:pr.oQueVimos });
+  if(pr.ondePodemChegar) s.push({ tipo:"texto", eyebrow:T("PT-PROP-EYE-CHEGAR"), paragrafos:[pr.ondePodemChegar] });
+  if(pr.conceitos && pr.conceitos.length) s.push({ tipo:"cards", eyebrow:T("PT-PROP-EYE-CONCEITOS"), modo:"carrossel",
     cards: pr.conceitos.map(function(c){ return { img:c.img, titulo:c.titulo, resumo:c.desc }; }) });
-  if(pr.moodboard && pr.moodboard.length) s.push({ tipo:"galeria", eyebrow:"Moodboard", modo:"colagem",
+  if(pr.moodboard && pr.moodboard.length) s.push({ tipo:"galeria", eyebrow:T("PT-PROP-EYE-MOOD"), modo:"colagem",
     itens: pr.moodboard.map(function(u){ return { src:u, tipo:"foto" }; }) });
-  if(pr.referencias && pr.referencias.length) s.push({ tipo:"cards", eyebrow:"Referências", modo:"carrossel",
+  if(pr.referencias && pr.referencias.length) s.push({ tipo:"cards", eyebrow:T("PT-PROP-EYE-REF"), modo:"carrossel",
     cards: pr.referencias.map(function(r){ return { img:r.img, resumo:r.nota }; }) });
-  if(pr.planos && pr.planos.length) s.push({ tipo:"cards", eyebrow:"Investimento", modo:"grelha", colunas:pr.planos.length,
+  if(pr.planos && pr.planos.length) s.push({ tipo:"cards", eyebrow:T("PT-PROP-EYE-INVEST"), modo:"grelha", colunas:pr.planos.length,
     cards: pr.planos.map(function(p){ return { titulo:p.nome, icone:p.icone, preco:p.preco, resumo:p.resumo, linhas:p.inclui, destaque:p.destaque }; }) });
-  var fecho = pr.fecho || "Obrigado pelo vosso tempo. Se fizer sentido para os dois lados, será um gosto avançar, construir aqui uma parceria de longo prazo e fazer bons negócios juntos.";
-  s.push({ tipo:"texto", classe:"cta-wrap", eyebrow:"Obrigado", titulo: pr.cta || "Se existe potencial, existe valor.", paragrafos:[fecho], fechoStyle:true });
+  var fecho = pr.fecho || T("PT-PROP-FECHO");
+  s.push({ tipo:"texto", classe:"cta-wrap", eyebrow:T("PT-PROP-EYE-OBRIGADO"), titulo: pr.cta || T("PT-PROP-CTA"), paragrafos:[fecho], fechoStyle:true });
   return s;
 }
 
@@ -744,7 +750,7 @@ function secCardsHTML(s){
     var acc = c.cor ? ' style="--acc:'+c.cor+'"' : '';
     return '<div class="plan'+(c.destaque?" hot":"")+(c.img?" has-bg":"")+'"'+acc+'>' +
       (c.img ? '<div class="p-bg"><img src="'+c.img+'" alt=""></div>' : '') +
-      (c.destaque ? '<span class="p-flag">'+(c.flag||"Recomendado")+'</span>' : '') +
+      (c.destaque ? '<span class="p-flag">'+(c.flag||T("PT-PROP-FLAG"))+'</span>' : '') +
       (c.titulo ? '<span class="p-name">'+(c.icone?svgIcon(c.icone,"p-ico"):"")+'<span>'+c.titulo+'</span></span>' : '') +
       (c.preco ? '<span class="p-price">'+c.preco+'</span>' : '') +
       (c.resumo ? '<p class="p-resumo">'+c.resumo+'</p>' : '') +
@@ -835,10 +841,32 @@ function footer(d){
   var f = el("footer","pfoot");
   f.innerHTML =
     '<a class="pf-brand" href="/"><img src="/assets/logos/asteris.png" alt="" aria-hidden="true">Asteris</a>' +
-    '<span class="pf-copy">&copy; ' + new Date().getFullYear() + ' Asteris. Todos os direitos reservados.</span>' +
+    '<span class="lang-switch" data-lang-switch aria-label="Idioma / Language">' +
+      '<button type="button" data-lang-btn="pt">PT</button>' +
+      '<button type="button" data-lang-btn="en">EN</button>' +
+      '<button type="button" data-lang-btn="es">ES</button>' +
+      '<button type="button" data-lang-btn="fr">FR</button>' +
+    '</span>' +
+    '<span class="pf-copy">' + T("PT-FOOT-COPY",{ano:new Date().getFullYear()}) + '</span>' +
     '<span class="pf-cross">&#10022;</span>';
+  markLangSwitch(f);
   return f;
 }
+
+/* o portal constrói o conteúdo uma vez a partir do JSON; trocar de língua recarrega */
+function markLangSwitch(root){
+  root.querySelectorAll("[data-lang-btn]").forEach(function(b){
+    b.setAttribute("aria-current", b.getAttribute("data-lang-btn") === window.I18N.lang() ? "true" : "false");
+  });
+}
+document.addEventListener("click", function(e){
+  var b = e.target.closest("[data-lang-switch] [data-lang-btn]");
+  if(!b) return;
+  var l = b.getAttribute("data-lang-btn");
+  if(l === window.I18N.lang()) return;
+  window.I18N.setLang(l);
+  location.reload();
+});
 </script>
 </body>
 </html>

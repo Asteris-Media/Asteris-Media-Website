@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /$
+Allow: /index.html
+Disallow: /sistemas
+Disallow: /sistemas.html
+Disallow: /acesso
+Disallow: /admin
+Disallow: /exemplos
+Disallow: /api/
+Disallow: /data/

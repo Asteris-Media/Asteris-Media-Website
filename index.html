@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="assets/i18n.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -211,6 +212,10 @@ footer{background:var(--black);border-top:1px solid rgba(255,255,255,.07);paddin
 .footer-left svg,.footer-left img{width:auto;height:15px;opacity:.7;flex-shrink:0}
 .footer-copy{font-size:8.5px;color:rgba(240,234,224,.28);letter-spacing:.06em}
 .footer-cross{color:var(--gold);font-size:15px;opacity:.55}
+.lang-switch{display:flex;gap:1px}
+.lang-switch button{background:none;border:none;color:rgba(240,234,224,.4);font-family:var(--sans);font-size:9px;font-weight:600;letter-spacing:.12em;padding:5px 7px;cursor:pointer;transition:color .2s}
+.lang-switch button:hover{color:var(--white-dim)}
+.lang-switch button[aria-current="true"]{color:var(--gold)}
 </style>
 </head>
 <body>
@@ -219,9 +224,9 @@ footer{background:var(--black);border-top:1px solid rgba(255,255,255,.07);paddin
   <img class="logo-mark" src="assets/logos/asteris.png" alt="" aria-hidden="true">
   <span class="logo-id">
     <span class="logo-word">Asteris</span>
-    <span class="logo-tag">Conteúdo &amp; Marketing</span>
+    <span class="logo-tag" data-i18n="LOGO-TAG">Conteúdo &amp; Marketing</span>
   </span>
-  <a class="btn-acesso" href="/acesso">Acesso</a>
+  <a class="btn-acesso" href="/acesso" data-i18n="NAV-ACESSO">Acesso</a>
 </header>
 
 <!-- HERO -->
@@ -232,32 +237,32 @@ footer{background:var(--black);border-top:1px solid rgba(255,255,255,.07);paddin
            disablepictureinpicture aria-hidden="true"></video>
   </div>
   <div class="hero-left">
-    <h1 class="hero-title">Quando a apresentação do produto falha,<br> até a excelência é percebida como desperdício.</h1>
+    <h1 class="hero-title" data-i18n="HERO-H1">Quando a apresentação do produto falha,<br> até a excelência é percebida como desperdício.</h1>
     <div class="hero-sub">
-      <p>Seu crescimento começa naquilo que as pessoas percebem. Não é sobre o que você entrega, é sobre a forma como o seu cliente o vê.</p>
-      <p>Transformamos marcas, produtos e profissionais através de posicionamento, estratégia e produção audiovisual, criando uma presença capaz de comunicar valor com clareza, construir autoridade e gerar desejo.</p>
-      <p>Porque quando a percepção muda, a forma como o mercado responde também muda.</p>
+      <p data-i18n="HERO-P1">Seu crescimento começa naquilo que as pessoas percebem. Não é sobre o que você entrega, é sobre a forma como o seu cliente o vê.</p>
+      <p data-i18n="HERO-P2">Transformamos marcas, produtos e profissionais através de posicionamento, estratégia e produção audiovisual, criando uma presença capaz de comunicar valor com clareza, construir autoridade e gerar desejo.</p>
+      <p data-i18n="HERO-P3">Porque quando a percepção muda, a forma como o mercado responde também muda.</p>
     </div>
-    <a class="btn-wa" data-wa="Olá! Vim pelo site e gostava de uma análise da minha presença digital.">
+    <a class="btn-wa" data-wakey="HERO-WA">
       <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144l-2.494.654l.666-2.433l-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931a6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646c-.182-.065-.315-.099-.445.099c-.133.197-.513.646-.627.775c-.114.133-.232.148-.43.05c-.197-.1-.836-.308-1.592-.985c-.59-.525-.985-1.175-1.103-1.372c-.114-.198-.011-.304.088-.403c.087-.088.197-.232.296-.346c.1-.114.133-.198.198-.33c.065-.134.034-.248-.015-.347c-.05-.099-.445-1.076-.612-1.47c-.16-.389-.323-.335-.445-.34c-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992c.47.205.84.326 1.129.418c.475.152.904.129 1.246.08c.38-.058 1.171-.48 1.338-.943c.164-.464.164-.86.114-.943c-.049-.084-.182-.133-.38-.232"/></svg>
-      Solicitar análise
+      <span data-i18n="HERO-BTN">Solicitar análise</span>
     </a>
   </div>
 </section>
 
 <!-- POSICIONAMENTO (enunciado) + RESULTADOS — UMA SÓ SECÇÃO -->
 <section class="block sec-work">
-  <p class="eyebrow">Posicionamento</p>
+  <p class="eyebrow" data-i18n="POS-EYEBROW">Posicionamento</p>
   <div class="divider">&#10022;</div>
-  <h2>Qualidade sem posicionamento vira potencial descartado.</h2>
+  <h2 data-i18n="POS-H2">Qualidade sem posicionamento vira potencial descartado.</h2>
   <div class="desc-group">
-    <p class="lead-q">O que muda quando uma marca começa a ser percebida pelo seu verdadeiro valor?</p>
-    <p>A diferença pode parecer visual no primeiro momento, mas raramente termina aí.</p>
-    <p>Uma comunicação desalinhada pode fazer uma empresa parecer menor, mais barata ou menos confiável do que realmente é. Uma comunicação estratégica faz o contrário: organiza a percepção, evidencia diferenciais e cria motivos para que o público pare, considere e avance.</p>
-    <p>É por isso que não trabalhamos apenas com imagens, vídeos ou conteúdo isolado.</p>
-    <p class="accent">Trabalhamos na relação entre marca, percepção e resultado.</p>
-    <p>Cada projeto parte do entendimento do negócio, do público e do posicionamento desejado para transformar essa estratégia em uma presença visual consistente, uma narrativa mais convincente e conteúdos capazes de sustentar essa percepção em todos os pontos de contacto.</p>
-    <p class="closer">Os resultados abaixo são exemplos concretos dessa transformação.</p>
+    <p class="lead-q" data-i18n="POS-LEADQ">O que muda quando uma marca começa a ser percebida pelo seu verdadeiro valor?</p>
+    <p data-i18n="POS-P1">A diferença pode parecer visual no primeiro momento, mas raramente termina aí.</p>
+    <p data-i18n="POS-P2">Uma comunicação desalinhada pode fazer uma empresa parecer menor, mais barata ou menos confiável do que realmente é. Uma comunicação estratégica faz o contrário: organiza a percepção, evidencia diferenciais e cria motivos para que o público pare, considere e avance.</p>
+    <p data-i18n="POS-P3">É por isso que não trabalhamos apenas com imagens, vídeos ou conteúdo isolado.</p>
+    <p class="accent" data-i18n="POS-P4">Trabalhamos na relação entre marca, percepção e resultado.</p>
+    <p data-i18n="POS-P5">Cada projeto parte do entendimento do negócio, do público e do posicionamento desejado para transformar essa estratégia em uma presença visual consistente, uma narrativa mais convincente e conteúdos capazes de sustentar essa percepção em todos os pontos de contacto.</p>
+    <p class="closer" data-i18n="POS-CLOSER">Os resultados abaixo são exemplos concretos dessa transformação.</p>
   </div>
 
   <div class="cards" id="cards"><!-- injetado por JS a partir de RESULTS --></div>
@@ -271,21 +276,21 @@ footer{background:var(--black);border-top:1px solid rgba(255,255,255,.07);paddin
 <!-- CONTACTO -->
 <section class="block sec-contact" id="contacto">
   <div>
-    <p class="eyebrow">Vamos conversar?</p>
-    <p class="contact-title">Se existe potencial, existe valor.</p>
-    <p class="contact-note">Toda marca tem algo a dizer. O desafio é fazer com que as pessoas certas percebam.</p>
-    <a class="btn-wa" data-wa="Olá! Vim pelo site e gostava de falar sobre um projeto.">
+    <p class="eyebrow" data-i18n="CONT-EYEBROW">Vamos conversar?</p>
+    <p class="contact-title" data-i18n="CONT-TITLE">Se existe potencial, existe valor.</p>
+    <p class="contact-note" data-i18n="CONT-NOTE">Toda marca tem algo a dizer. O desafio é fazer com que as pessoas certas percebam.</p>
+    <a class="btn-wa" data-wakey="CONT-WA">
       <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144l-2.494.654l.666-2.433l-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931a6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646c-.182-.065-.315-.099-.445.099c-.133.197-.513.646-.627.775c-.114.133-.232.148-.43.05c-.197-.1-.836-.308-1.592-.985c-.59-.525-.985-1.175-1.103-1.372c-.114-.198-.011-.304.088-.403c.087-.088.197-.232.296-.346c.1-.114.133-.198.198-.33c.065-.134.034-.248-.015-.347c-.05-.099-.445-1.076-.612-1.47c-.16-.389-.323-.335-.445-.34c-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992c.47.205.84.326 1.129.418c.475.152.904.129 1.246.08c.38-.058 1.171-.48 1.338-.943c.164-.464.164-.86.114-.943c-.049-.084-.182-.133-.38-.232"/></svg>
-      Solicitar análise
+      <span data-i18n="CONT-BTN">Solicitar análise</span>
     </a>
   </div>
   <form id="contact-form" method="POST" novalidate>
-    <input class="field" type="text" name="nome" placeholder="Nome" required autocomplete="name">
-    <input class="field" type="email" name="email" placeholder="Email" required autocomplete="email">
-    <input class="field" type="text" name="empresa" placeholder="Empresa" autocomplete="organization">
-    <textarea class="field" name="mensagem" placeholder="Mensagem" required></textarea>
+    <input class="field" type="text" name="nome" placeholder="Nome" data-i18n-ph="FORM-NOME" required autocomplete="name">
+    <input class="field" type="email" name="email" placeholder="Email" data-i18n-ph="FORM-EMAIL" required autocomplete="email">
+    <input class="field" type="text" name="empresa" placeholder="Empresa" data-i18n-ph="FORM-EMPRESA" autocomplete="organization">
+    <textarea class="field" name="mensagem" placeholder="Mensagem" data-i18n-ph="FORM-MENSAGEM" required></textarea>
     <input type="hidden" name="_subject" value="Novo contacto — site Asteris">
-    <button class="btn-submit" type="submit">Enviar mensagem</button>
+    <button class="btn-submit" type="submit" data-i18n="FORM-SUBMIT">Enviar mensagem</button>
     <p class="form-msg" id="form-msg" role="status" aria-live="polite"></p>
   </form>
 </section>
@@ -295,13 +300,19 @@ footer{background:var(--black);border-top:1px solid rgba(255,255,255,.07);paddin
     <img src="assets/logos/asteris.png" alt="" aria-hidden="true">
     Asteris
   </div>
-  <span class="footer-copy">&copy; <span id="year">2026</span> Asteris. Todos os direitos reservados.</span>
+  <div class="lang-switch" data-lang-switch aria-label="Idioma / Language">
+    <button type="button" data-lang-btn="pt">PT</button>
+    <button type="button" data-lang-btn="en">EN</button>
+    <button type="button" data-lang-btn="es">ES</button>
+    <button type="button" data-lang-btn="fr">FR</button>
+  </div>
+  <span class="footer-copy" id="footcopy">&copy; 2026 Asteris. Todos os direitos reservados.</span>
   <span class="footer-cross">&#10022;</span>
 </footer>
 
 <!-- PÁGINA DO CLIENTE (colagem) -->
 <div class="gallery" id="gallery" role="dialog" aria-modal="true" aria-label="Galeria do cliente">
-  <button class="gallery-back" id="gallery-back">&#8249; Voltar</button>
+  <button class="gallery-back" id="gallery-back" data-i18n="GAL-VOLTAR">&#8249; Voltar</button>
   <header class="gallery-head">
     <span class="gh-bg" id="gh-bg" aria-hidden="true"></span>
     <span class="gallery-mark">&#10022;</span>
@@ -349,82 +360,27 @@ function VID(id, w){ return "https://res.cloudinary.com/"+CONFIG.cloudName+"/vid
 /* ============================================================
    RESULTADOS — 1 objeto por card (metricas contam ao aparecer).
    ============================================================ */
-/* cada métrica: {label, antes, depois, euro?}  (o contador anima "depois" a partir de "antes") */
-/* fallback caso um card não defina notasAntes/notasDepois */
-const NOTAS_ANTES = [
-  "Feed sem linha visual, cada publicação parece de outra marca",
-  "Fotos de telemóvel e gráficos gritantes a competir com memes",
-  "Perfil que não transmite confiança antes do primeiro contacto"
-];
-const NOTAS_DEPOIS = [
-  "Identidade visual consistente em cada publicação",
-  "Trabalho e detalhes apresentados com acabamento premium",
-  "Posicionamento que sustenta um preço mais alto"
-];
+/* cada métrica: {k (chave i18n do rótulo), antes, depois, euro?} — texto vem do i18n */
 const RESULTS = [
-  { name:"StandMarte — Stand de automóveis",
-    antes:"assets/cards/standmarte-antes.jpg", depois:"assets/cards/standmarte-depois.jpg",
-    notasAntes:[
-      "Feed a misturar promoções berrantes, memes e bons-dias",
-      "Fotos de entrega tiradas de telemóvel, sem cuidado",
-      "Destaques com miniaturas confusas, sem leitura"
-    ],
-    notasDepois:[
-      "Cada publicação com a mesma linguagem, escura e cuidada",
-      "Sessões de produto e de entrega com nível de revista",
-      "Perfil que passa confiança antes de a pessoa ligar"
-    ],
-    metrics:[ {label:"Contactos qualificados / mês", antes:22,    depois:51},
-              {label:"Visitas ao stand / mês",       antes:34,    depois:68},
-              {label:"Faturação / mês",              antes:41000, depois:63000, euro:true} ] },
+  { id:"RES-1", antes:"assets/cards/standmarte-antes.jpg", depois:"assets/cards/standmarte-depois.jpg",
+    metrics:[ {k:"RES-1-M-1", antes:22,    depois:51},
+              {k:"RES-1-M-2", antes:34,    depois:68},
+              {k:"RES-1-M-3", antes:41000, depois:63000, euro:true} ] },
 
-  { name:"Casa Fácil — Imobiliária",
-    antes:"assets/cards/casafacil-antes.jpg", depois:"assets/cards/casafacil-depois.jpg",
-    notasAntes:[
-      "Anúncios cobertos de stickers e cores berrantes",
-      "Sem identidade, cada post parece de uma marca diferente",
-      "Imóveis fotografados sem qualquer preparação"
-    ],
-    notasDepois:[
-      "Cada imóvel apresentado com o mesmo padrão editorial",
-      "Marca que passa seriedade a quem vai investir",
-      "Feed que dá vontade de marcar a visita"
-    ],
-    metrics:[ {label:"Pedidos de visita / mês", antes:18,    depois:44},
-              {label:"Angariações / mês",       antes:4,     depois:9},
-              {label:"Alcance mensal",          antes:12000, depois:47000} ] },
+  { id:"RES-2", antes:"assets/cards/casafacil-antes.jpg", depois:"assets/cards/casafacil-depois.jpg",
+    metrics:[ {k:"RES-2-M-1", antes:18,    depois:44},
+              {k:"RES-2-M-2", antes:4,     depois:9},
+              {k:"RES-2-M-3", antes:12000, depois:47000} ] },
 
-  { name:"Click Momentos — Foto e vídeo",
-    antes:"assets/cards/click-antes.jpg", depois:"assets/cards/click-depois.jpg",
-    notasAntes:[
-      "Portfólio perdido entre memes e mensagens de bom dia",
-      "Sem prova social nem depoimentos à vista",
-      "Preço puxado para baixo pela apresentação amadora"
-    ],
-    notasDepois:[
-      "Trabalho em destaque, com histórias e bastidores",
-      "Depoimentos de clientes integrados no feed",
-      "Posicionamento que sustenta um valor mais alto"
-    ],
-    metrics:[ {label:"Pedidos de orçamento / mês", antes:12,   depois:33},
-              {label:"Reservas fechadas / mês",    antes:3,    depois:8},
-              {label:"Valor médio por trabalho",   antes:650,  depois:1150, euro:true} ] },
+  { id:"RES-3", antes:"assets/cards/click-antes.jpg", depois:"assets/cards/click-depois.jpg",
+    metrics:[ {k:"RES-3-M-1", antes:12,   depois:33},
+              {k:"RES-3-M-2", antes:3,    depois:8},
+              {k:"RES-3-M-3", antes:650,  depois:1150, euro:true} ] },
 
-  { name:"Sorriso Perfeito — Clínica dentária",
-    antes:"assets/cards/sorriso-antes.jpg", depois:"assets/cards/sorriso-depois.jpg",
-    notasAntes:[
-      "Promoções de branqueamento a competir com low-cost",
-      "Memes e coffee posts a diluir a autoridade da clínica",
-      "Antes/depois sem enquadramento profissional"
-    ],
-    notasDepois:[
-      "Comunicação de clínica de referência, não de desconto",
-      "Resultados reais apresentados com rigor",
-      "Perfil que justifica o valor do tratamento"
-    ],
-    metrics:[ {label:"Marcações / mês",           antes:45,    depois:96},
-              {label:"Primeiras consultas / mês", antes:14,    depois:31},
-              {label:"Faturação / mês",           antes:14000, depois:23500, euro:true} ] }
+  { id:"RES-4", antes:"assets/cards/sorriso-antes.jpg", depois:"assets/cards/sorriso-depois.jpg",
+    metrics:[ {k:"RES-4-M-1", antes:45,    depois:96},
+              {k:"RES-4-M-2", antes:14,    depois:31},
+              {k:"RES-4-M-3", antes:14000, depois:23500, euro:true} ] }
 ];
 
 /* ============================================================
@@ -476,25 +432,39 @@ var PORTFOLIO = CLIENTS.map(function(c){
   };
 });
 
-/* ---------- WhatsApp + ano ---------- */
-document.querySelectorAll("[data-wa]").forEach(function(a){
-  a.href = "https://wa.me/"+CONFIG.whatsapp+"?text="+encodeURIComponent(a.dataset.wa);
-  a.target = "_blank"; a.rel = "noopener";
-});
-document.getElementById("year").textContent = new Date().getFullYear();
+/* ---------- WhatsApp + rodapé (reaplicados ao trocar de língua) ---------- */
+function wireWA(){
+  document.querySelectorAll("[data-wakey]").forEach(function(a){
+    a.href = "https://wa.me/"+CONFIG.whatsapp+"?text="+encodeURIComponent(I18N.t(a.dataset.wakey));
+    a.target = "_blank"; a.rel = "noopener";
+  });
+}
+function renderFoot(){
+  var fc = document.getElementById("footcopy");
+  if(fc) fc.textContent = I18N.t("FOOT-COPY", { ano: new Date().getFullYear() });
+}
+wireWA(); renderFoot();
 
 /* ---------- Carrossel contínuo (loop modular, sem restart visível) ---------- */
 var track = document.getElementById("car-track");
 var clientes = document.querySelector(".clientes");
 function itemHTML(p, i){
-  return '<div class="car-item" role="button" tabindex="0" data-i="'+i+'" aria-label="Ver galeria — '+p.client+'">'
+  return '<div class="car-item" role="button" tabindex="0" data-i="'+i+'" aria-label="'+I18N.t("CAR-ARIA",{cliente:p.client})+'">'
     + '<video class="bg-video" src="'+p.bg+'" loop muted playsinline preload="metadata"></video>'
     + '<span class="overlay"></span>'
     + (p.logo
         ? '<img class="c-logo" src="'+p.logo+'" alt="'+p.client+'">'
         : '<span class="c-title">'+p.client+'</span>')
-    + '<span class="c-cta">Ver galeria</span>'
+    + '<span class="c-cta">'+I18N.t("CAR-CTA")+'</span>'
     + '</div>';
+}
+function relabelCarousel(){
+  var idx = 0;
+  track.querySelectorAll(".car-item").forEach(function(it){
+    var p = PORTFOLIO[idx % PORTFOLIO.length]; idx++;
+    it.setAttribute("aria-label", I18N.t("CAR-ARIA",{cliente:p.client}));
+    var cta = it.querySelector(".c-cta"); if(cta) cta.textContent = I18N.t("CAR-CTA");
+  });
 }
 /* 3 cópias: sempre há painéis a preencher a faixa, mesmo em ecrãs largos */
 var oneSet = PORTFOLIO.map(itemHTML).join("");
@@ -577,53 +547,56 @@ track.addEventListener("keydown", function(e){
 });
 
 /* ---------- Resultados + contadores ---------- */
+var _NUM_LOC = { pt:"pt-PT", en:"en-GB", es:"es-ES", fr:"fr-FR" };
 function fmtNum(n, euro){
-  var s = Math.round(n).toLocaleString("pt-PT");
+  var s = Math.round(n).toLocaleString(_NUM_LOC[I18N.lang()] || "pt-PT");
   return euro ? "€" + s : s;
 }
-document.getElementById("cards").innerHTML = RESULTS.map(function(r){
-  var rows = r.metrics.map(function(m){
-    return '<div class="metric"><span class="m-lbl">'+m.label+'</span>'
-      + '<span class="m-cmp">'
-      +   '<span class="m-antes">'+fmtNum(m.antes, m.euro)+'</span>'
-      +   '<span class="m-arrow">&rarr;</span>'
-      +   '<span class="m-depois" data-from="'+m.antes+'" data-to="'+m.depois+'" data-euro="'+(m.euro?1:0)+'">'+fmtNum(m.antes, m.euro)+'</span>'
-      + '</span></div>';
+var ICO_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 14V2M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"/></svg>';
+var ICO_V = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 10v12M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/></svg>';
+function renderResults(){
+  var box = document.getElementById("cards");
+  box.innerHTML = RESULTS.map(function(r){
+    var rows = r.metrics.map(function(m){
+      return '<div class="metric"><span class="m-lbl">'+I18N.t(m.k)+'</span>'
+        + '<span class="m-cmp">'
+        +   '<span class="m-antes">'+fmtNum(m.antes, m.euro)+'</span>'
+        +   '<span class="m-arrow">&rarr;</span>'
+        +   '<span class="m-depois" data-from="'+m.antes+'" data-to="'+m.depois+'" data-euro="'+(m.euro?1:0)+'">'+fmtNum(m.antes, m.euro)+'</span>'
+        + '</span></div>';
+    }).join("");
+    var notesHTML = function(list, good){
+      return '<div class="cmp-notes">' + list.map(function(n){
+        return '<div class="cmp-note '+(good?"good":"bad")+'">'+(good?ICO_V:ICO_X)+'<span>'+n+'</span></div>';
+      }).join("") + '</div>';
+    };
+    var nA = [1,2,3].map(function(k){ return I18N.t(r.id+"-ANTES-"+k); });
+    var nD = [1,2,3].map(function(k){ return I18N.t(r.id+"-DEPOIS-"+k); });
+    return '<article class="card">'
+      + '<div class="card-cmp">'
+      +   '<div class="cmp-box"><span class="tag">'+I18N.t("RES-TAG-ANTES")+'</span><span class="ph"><img src="'+r.antes+'" alt="" loading="lazy"></span>'+notesHTML(nA,false)+'</div>'
+      +   '<span class="cmp-arrow">&rarr;</span>'
+      +   '<div class="cmp-box is-depois"><span class="tag">'+I18N.t("RES-TAG-DEPOIS")+'</span><span class="ph"><img src="'+r.depois+'" alt="" loading="lazy"></span>'+notesHTML(nD,true)+'</div>'
+      + '</div>'
+      + '<div class="card-metrics">'+rows+'</div>'
+      + '</article>';
   }).join("");
-  var ICO_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 14V2M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"/></svg>';
-  var ICO_V = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 10v12M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/></svg>';
-  var notesHTML = function(list, good){
-    return '<div class="cmp-notes">' + (list||[]).map(function(n){
-      return '<div class="cmp-note '+(good?"good":"bad")+'">'+(good?ICO_V:ICO_X)+'<span>'+n+'</span></div>';
-    }).join("") + '</div>';
-  };
-  var nA = r.notasAntes || NOTAS_ANTES, nD = r.notasDepois || NOTAS_DEPOIS;
-  return '<article class="card">'
-    + '<div class="card-cmp">'
-    +   '<div class="cmp-box"><span class="tag">Antes</span><span class="ph"><img src="'+r.antes+'" alt="" loading="lazy"></span>'+notesHTML(nA,false)+'</div>'
-    +   '<span class="cmp-arrow">&rarr;</span>'
-    +   '<div class="cmp-box is-depois"><span class="tag">Depois</span><span class="ph"><img src="'+r.depois+'" alt="" loading="lazy"></span>'+notesHTML(nD,true)+'</div>'
-    + '</div>'
-    + '<div class="card-metrics">'+rows+'</div>'
-    + '</article>';
-}).join("");
+  eqNotes();
+  countersOnView();
+}
 
 /* todas as notas antes/depois com a mesma altura -> colunas e cards alinhados */
-(function equalizeNotes(){
-  var wrap = document.getElementById("cards");
-  function eq(){
-    var notes = wrap.querySelectorAll(".cmp-note");
-    if(!notes.length) return;
-    for(var i = 0; i < notes.length; i++) notes[i].style.minHeight = "";
-    var max = 0;
-    for(var j = 0; j < notes.length; j++) max = Math.max(max, notes[j].offsetHeight);
-    for(var k = 0; k < notes.length; k++) notes[k].style.minHeight = max + "px";
-  }
-  eq();
-  window.addEventListener("load", eq);
-  if(document.fonts && document.fonts.ready) document.fonts.ready.then(eq);
-  var t; window.addEventListener("resize", function(){ clearTimeout(t); t = setTimeout(eq, 150); });
-})();
+function eqNotes(){
+  var notes = document.querySelectorAll("#cards .cmp-note");
+  if(!notes.length) return;
+  for(var i = 0; i < notes.length; i++) notes[i].style.minHeight = "";
+  var max = 0;
+  for(var j = 0; j < notes.length; j++) max = Math.max(max, notes[j].offsetHeight);
+  for(var k = 0; k < notes.length; k++) notes[k].style.minHeight = max + "px";
+}
+window.addEventListener("load", eqNotes);
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(eqNotes);
+var _eqT; window.addEventListener("resize", function(){ clearTimeout(_eqT); _eqT = setTimeout(eqNotes, 150); });
 
 /* visualização grande dos feeds antes/depois */
 (function feedImgView(){
@@ -633,14 +606,14 @@ document.getElementById("cards").innerHTML = RESULTS.map(function(r){
   document.getElementById("cards").addEventListener("click", function(e){
     var ph = e.target.closest(".cmp-box .ph"); if(!ph) return;
     var box = ph.closest(".cmp-box");
-    open(ph.querySelector("img").src, box.classList.contains("is-depois") ? "Depois" : "Antes");
+    open(ph.querySelector("img").src, I18N.t(box.classList.contains("is-depois") ? "RES-TAG-DEPOIS" : "RES-TAG-ANTES"));
   });
   document.getElementById("iv-x").addEventListener("click", close);
   ov.addEventListener("click", function(e){ if(e.target === ov) close(); });
   document.addEventListener("keydown", function(e){ if(e.key === "Escape" && ov.classList.contains("open")) close(); });
 })();
 
-(function countersOnView(){
+function countersOnView(){
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   function run(el){
     var from = +el.dataset.from, to = +el.dataset.to, euro = el.dataset.euro === "1";
@@ -666,7 +639,7 @@ document.getElementById("cards").innerHTML = RESULTS.map(function(r){
     });
   }, { threshold: .35 });
   cards.forEach(function(c){ io.observe(c); });
-})();
+}
 
 /* ---------- Página do cliente (colagem) ---------- */
 var gallery = document.getElementById("gallery");
@@ -775,16 +748,30 @@ window.addEventListener("popstate", function(){
 var form = document.getElementById("contact-form");
 var msg = document.getElementById("form-msg");
 if(CONFIG.formspreeId) form.action = "https://formspree.io/f/" + CONFIG.formspreeId;
+function syncSubject(){
+  var s = form.elements._subject; if(s) s.value = I18N.t("FORM-SUBJECT");
+}
+syncSubject();
 form.addEventListener("submit", async function(e){
   e.preventDefault();
-  if(!CONFIG.formspreeId){ msg.textContent = "Formulário ainda não configurado — use o botão de WhatsApp por agora."; return; }
-  if(!form.checkValidity()){ msg.textContent = "Preencha nome, email e mensagem."; return; }
-  msg.textContent = "A enviar…";
+  if(!CONFIG.formspreeId){ msg.textContent = I18N.t("FORM-SEM-CONF"); return; }
+  if(!form.checkValidity()){ msg.textContent = I18N.t("FORM-ERR-VALIDA"); return; }
+  msg.textContent = I18N.t("FORM-SENDING");
   try{
     var r = await fetch(form.action, { method:"POST", body:new FormData(form), headers:{ Accept:"application/json" } });
-    if(r.ok){ form.reset(); msg.textContent = "Mensagem enviada. Respondemos em até 24 horas."; }
-    else { msg.textContent = "Não foi possível enviar. Tente pelo WhatsApp."; }
-  }catch(_){ msg.textContent = "Sem ligação. Tente pelo WhatsApp."; }
+    if(r.ok){ form.reset(); msg.textContent = I18N.t("FORM-OK"); }
+    else { msg.textContent = I18N.t("FORM-ERR-ENVIO"); }
+  }catch(_){ msg.textContent = I18N.t("FORM-ERR-REDE"); }
+});
+
+/* ---------- i18n: primeira aplicação + ao trocar de língua ---------- */
+renderResults();
+I18N.onChange(function(){
+  wireWA();
+  renderFoot();
+  syncSubject();
+  relabelCarousel();
+  renderResults();
 });
 </script>
 </body>
