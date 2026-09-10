@@ -363,7 +363,7 @@ label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
 .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:90;background:rgba(16,16,16,.8);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);border:1px solid var(--edge2);color:var(--ink);font-size:12px;padding:10px 16px;border-radius:4px;box-shadow:0 10px 30px rgba(0,0,0,.6);opacity:0;transition:opacity .2s}
 .toast.on{opacity:1}
 .err{color:var(--neg);font-size:11px;margin-top:8px;min-height:1em}
-.login-remember{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--dim);text-transform:none;letter-spacing:0;margin:12px 0 14px;justify-content:center;cursor:pointer}
+.login-remember{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--dim);text-transform:none;letter-spacing:0;margin:14px 0 0;justify-content:center;cursor:pointer}
 .login-remember input{width:auto}
 
 /* login */
@@ -372,8 +372,9 @@ label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
 #login svg,#login img{width:auto;height:38px;margin-bottom:18px}
 #login h1{font-size:13px;letter-spacing:.28em;text-transform:uppercase;color:var(--dim);margin-bottom:22px}
 #login .pw-wrap{position:relative;margin-bottom:10px}
-#login input{text-align:center}
-#login .pw-wrap input{text-align:center;letter-spacing:.15em;padding-right:40px;margin:0;display:block}
+#login input{text-align:center;letter-spacing:0}
+#login input::placeholder{text-align:center;letter-spacing:0;opacity:.6}
+#login .pw-wrap input{text-align:center;padding-right:40px;margin:0;display:block}
 #login .pw-eye{position:absolute;top:50%;right:6px;transform:translateY(-50%);width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:none;border:0;color:var(--faint);padding:0}
 #login .pw-eye:hover{color:var(--ink)}
 #login .pw-eye.on{color:var(--ink)}
@@ -528,8 +529,8 @@ label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
       </button>
       </div>
-      <label class="login-remember"><input type="checkbox" id="remember"> Lembrar-me neste dispositivo</label>
       <button class="btn gold" style="width:100%" type="submit">Entrar</button>
+      <label class="login-remember"><input type="checkbox" id="remember"> Lembrar-me neste dispositivo</label>
       <div class="err" id="loginErr"></div>
     </form>
   </div>
