@@ -109,6 +109,11 @@ label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
 .side-nav button svg{width:15px;height:15px;flex-shrink:0;opacity:.85}
 .side-nav button.on svg{opacity:1}
 .side-nav button .cnt{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--faint)}
+.side-nav button .badge{margin-left:auto;min-width:18px;height:18px;padding:0 5px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;font-weight:700;line-height:1;box-sizing:border-box}
+.side-nav button .badge.red{background:#FF6B5C;color:#000}
+.side-nav button .badge.amber{background:#E7B84B;color:#000}
+.side-nav button .badge.mut{background:var(--panel2);color:var(--dim);border:1px solid var(--edge2)}
+.side-nav button.on .badge.mut{background:var(--panel);color:var(--ink)}
 .side-create svg{width:14px;height:14px;flex-shrink:0}
 .side-foot{margin-top:auto;height:65px;padding:0 16px;border-top:1px solid var(--edge);display:flex;align-items:center;gap:10px}
 .side-foot .who{flex:1;font-size:11px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -875,6 +880,15 @@ function wireNotifs(){
 }
 var NOTIF_KEY = "asteris_notif_dismissed";
 var _lastNotifKeys = [];
+function setNavBadge(view, count, level){
+  document.querySelectorAll('#nav button[data-v="' + view + '"]').forEach(function(b){
+    var old = b.querySelector(".badge"); if(old) old.remove();
+    if(!count) return;
+    var s = el("span","badge " + (level || "mut"));
+    s.textContent = count > 99 ? "99+" : count;
+    b.appendChild(s);
+  });
+}
 function notifDismissed(){ try{ return JSON.parse(localStorage.getItem(NOTIF_KEY) || "{}"); }catch(e){ return {}; } }
 function daysUntil(dateStr){
   if(!dateStr) return null;
@@ -925,6 +939,21 @@ function refreshNotifs(){
     $("#bellDot").hidden = !n.length;
     $("#bellDot").style.background = urgent ? "var(--neg)" : "var(--c0)";
     $("#notifClear").disabled = !n.length;
+
+    /* contadores por área no menu da esquerda */
+    var NAV_AREA = { lk:"links", tk:"tarefas", kt:"contratos", ag:"calendario" };
+    var byArea = {};
+    n.forEach(function(it){
+      var a = NAV_AREA[it.key.split(":")[0]];
+      if(!a) return;
+      if(!byArea[a]) byArea[a] = { n:0, urgent:false };
+      byArea[a].n++;
+      if(it.lvl === "urgent") byArea[a].urgent = true;
+    });
+    ["links","tarefas","contratos","calendario"].forEach(function(a){
+      var info = byArea[a];
+      setNavBadge(a, info ? info.n : 0, (info && info.urgent) ? "red" : "amber");
+    });
 
     var body = $("#notifBody");
     if(!n.length){ body.innerHTML = '<div class="notif-empty">Tudo em dia.</div>'; return; }
