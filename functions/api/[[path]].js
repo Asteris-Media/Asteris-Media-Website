@@ -22,8 +22,8 @@ async function hmac(secret, msg) {
   const key = await crypto.subtle.importKey("raw", enc.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   return b64u(await crypto.subtle.sign("HMAC", key, enc.encode(msg)));
 }
-async function makeToken(secret, user) {
-  const payload = b64u(enc.encode(JSON.stringify({ exp: Date.now() + 1000 * 60 * 60 * 24 * 14, u: user || "Admin" })));
+async function makeToken(secret, user, days) {
+  const payload = b64u(enc.encode(JSON.stringify({ exp: Date.now() + 1000 * 60 * 60 * 24 * (days || 14), u: user || "Admin" })));
   return payload + "." + (await hmac(secret, payload));
 }
 async function checkToken(secret, token) {
@@ -37,18 +37,27 @@ async function checkToken(secret, token) {
   return { ok: false };
 }
 // devolve o nome do utilizador se a password bater, senão null
-function userForPw(env, pw) {
-  if (!pw) return null;
-  if (env.ADMIN_PW && pw === env.ADMIN_PW) return "Admin";
+// ADMIN_USERS aceita "Nome:senha" ou "Nome:email:senha" (separados por vírgula)
+function parseUsers(env) {
+  const list = [];
+  if (env.ADMIN_PW) list.push({ name: "Admin", email: "", pw: env.ADMIN_PW });
   for (const pair of String(env.ADMIN_USERS || "").split(",")) {
-    const i = pair.lastIndexOf(":");
-    if (i < 1) continue;
-    const name = pair.slice(0, i).trim();
-    const p = pair.slice(i + 1).trim();
-    if (p && pw === p) return name || "Admin";
+    const parts = pair.split(":").map(s => s.trim());
+    if (parts.length >= 3) list.push({ name: parts[0] || "Admin", email: parts[1].toLowerCase(), pw: parts.slice(2).join(":") });
+    else if (parts.length === 2 && parts[1]) list.push({ name: parts[0] || "Admin", email: "", pw: parts[1] });
+  }
+  return list;
+}
+// devolve o nome se a senha bater; se vier email, tem de corresponder (a menos que a conta não tenha email definido)
+function userForLogin(env, email, pw) {
+  if (!pw) return null;
+  email = String(email || "").trim().toLowerCase();
+  for (const u of parseUsers(env)) {
+    if (u.pw && pw === u.pw && (!u.email || !email || u.email === email)) return u.name;
   }
   return null;
 }
+function userForPw(env, pw) { return userForLogin(env, "", pw); }
 // registo de atividade (KV "activitylog", array topo=mais recente, máx 400)
 async function logAction(env, user, action, extra) {
   try {
@@ -64,8 +73,8 @@ function getCookie(req, name) {
   return m ? decodeURIComponent(m[1]) : null;
 }
 const COOKIE = "as_sess";
-function setCookie(token) {
-  return `${COOKIE}=${encodeURIComponent(token)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${60 * 60 * 24 * 14}`;
+function setCookie(token, days) {
+  return `${COOKIE}=${encodeURIComponent(token)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${60 * 60 * 24 * (days || 14)}`;
 }
 function clearCookie() {
   return `${COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`;
@@ -99,12 +108,13 @@ export async function onRequest(context) {
 
   // ---- auth ----
   if (seg[0] === "login" && method === "POST") {
-    const { pw } = await request.json().catch(() => ({}));
-    const user = userForPw(env, pw);
-    if (!user) return json({ error: "Password errada" }, 401);
-    const token = await makeToken(SECRET, user);
+    const body = await request.json().catch(() => ({}));
+    const user = userForLogin(env, body.email, body.pw);
+    if (!user) return json({ error: "Email ou password errados" }, 401);
+    const days = body.remember ? 60 : 14;
+    const token = await makeToken(SECRET, user, days);
     await logAction(env, user, "entrou");
-    return json({ ok: true, user }, 200, { "set-cookie": setCookie(token) });
+    return json({ ok: true, user }, 200, { "set-cookie": setCookie(token, days) });
   }
   if (seg[0] === "logout") {
     const t = await checkToken(SECRET, getCookie(request, COOKIE));
@@ -505,6 +515,55 @@ if(b) b.onclick=function(){
       await env.ASTERIS_KV.delete(key);
       await saveIndex(env, (await loadIndex(env)).filter(x => x.code !== code));
       await logAction(env, ME, "apagou a página " + code, { code });
+      return json({ ok: true });
+    }
+    return json({ error: "método" }, 405);
+  }
+
+  // ---- coleções genéricas (clientes, tarefas, contratos, agenda, notas, prospeccao) ----
+  // Cada registo pode ter scope:"privado" + owner (nome). GET só devolve partilhados + os privados de ME.
+  // GET  /api/col/<nome>            -> { items:[...] }
+  // PUT  /api/col/<nome>/<id>       -> upsert
+  // DELETE /api/col/<nome>/<id>     -> apaga
+  if (seg[0] === "col") {
+    const COLS = ["clientes", "tarefas", "contratos", "agenda", "notas", "prospeccao", "workspaces"];
+    const name = (seg[1] || "").toLowerCase();
+    if (!COLS.includes(name)) return json({ error: "coleção desconhecida" }, 404);
+    const kvKey = "col:" + name;
+    const readAll = async () => { const raw = await env.ASTERIS_KV.get(kvKey); return raw ? JSON.parse(raw) : []; };
+    const canSee = (x) => x.scope !== "privado" || x.owner === ME;
+
+    if (!seg[2]) {
+      if (method === "GET") return json({ items: (await readAll()).filter(canSee) });
+      return json({ error: "método" }, 405);
+    }
+    const id = seg[2].replace(/[^A-Za-z0-9_-]/g, "").slice(0, 40);
+    if (!id) return json({ error: "id inválido" }, 400);
+
+    if (method === "PUT") {
+      const body = await request.json().catch(() => null);
+      if (!body || typeof body !== "object") return json({ error: "json inválido" }, 400);
+      const logMsg = typeof body._log === "string" ? body._log.slice(0, 180) : null;
+      delete body._log;
+      const list = await readAll();
+      const i = list.findIndex(x => x.id === id);
+      const prev = i >= 0 ? list[i] : null;
+      if (prev && prev.scope === "privado" && prev.owner && prev.owner !== ME) return json({ error: "sem acesso" }, 403);
+      const now = new Date().toISOString();
+      const rec = { ...(prev || {}), ...body, id, atualizado: now };
+      if (rec.scope === "privado") rec.owner = (prev && prev.owner) || ME;
+      else { rec.scope = "partilhado"; delete rec.owner; }
+      if (i >= 0) list[i] = rec; else { rec.criado = now; list.unshift(rec); }
+      await env.ASTERIS_KV.put(kvKey, JSON.stringify(list.slice(0, 500)));
+      await logAction(env, ME, logMsg || ((i >= 0 ? "editou" : "criou") + " " + name.replace(/s$/, "") + " " + id));
+      return json({ ok: true, item: rec });
+    }
+    if (method === "DELETE") {
+      const list = await readAll();
+      const prev = list.find(x => x.id === id);
+      if (prev && prev.scope === "privado" && prev.owner && prev.owner !== ME) return json({ error: "sem acesso" }, 403);
+      await env.ASTERIS_KV.put(kvKey, JSON.stringify(list.filter(x => x.id !== id)));
+      await logAction(env, ME, "apagou " + name.replace(/s$/, "") + " " + id);
       return json({ ok: true });
     }
     return json({ error: "método" }, 405);

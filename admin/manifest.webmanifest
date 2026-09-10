@@ -1,0 +1,15 @@
+{
+  "name": "Asteris Systems",
+  "short_name": "Asteris",
+  "description": "Painel de operação da Asteris",
+  "start_url": "/admin/",
+  "scope": "/admin/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [
+    { "src": "/assets/logos/asteris.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/logos/asteris.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
