@@ -844,6 +844,7 @@ function boot(){
   wireNotifs();
   openView("painel");
   refreshNotifs();
+  maybeRunLimpezasDiario();
 }
 function closeNav(){ $("#app").classList.remove("nav-open"); $("#sideScrim").hidden = true; }
 
@@ -1589,7 +1590,7 @@ function loadLib(force){
 }
 function allFolders(lib){
   if(!lib) return [];
-  return [].concat((lib.r2 && lib.r2.folders) || [], (lib.cloudinary && lib.cloudinary.folders) || []);
+  return [].concat((lib.r2 && lib.r2.folders) || [], (lib.ffmpeglab && lib.ffmpeglab.folders) || [], (lib.cloudinary && lib.cloudinary.folders) || []);
 }
 function libraryView(){
   closeMenu();
@@ -1598,8 +1599,9 @@ function libraryView(){
 
   var head = el("div","view-head");
   head.innerHTML = '<div class="vh-sub">Ficheiros nas duas nuvens</div>';
+  var cl = el("button","btn ghost", "Limpar expirados"); cl.onclick = function(){ runLimpezas(true); };
   var nf = el("button","btn gold", ICO_PLUS + "Nova pasta"); nf.onclick = function(){ newFolderModal(); };
-  head.appendChild(nf); v.appendChild(head);
+  head.appendChild(cl); head.appendChild(nf); v.appendChild(head);
 
   var drop = el("div","lib-drop");
   drop.innerHTML = '<b>Arrasta ficheiros para aqui</b><button id="lib-pickfolder" style="color:var(--ink);background:none;border:0;text-decoration:underline">escolher uma pasta</button> · <button id="lib-pickfiles" style="color:var(--ink);background:none;border:0;text-decoration:underline">escolher ficheiros</button>';
@@ -1635,6 +1637,7 @@ function libraryView(){
     if(!lib){ body.innerHTML = '<div class="lib-empty">Nenhuma nuvem ligada.</div>'; return; }
     var clouds = [
       { key:"r2", label:"R2 · Entregas", data: lib.r2 },
+      { key:"ffmpeglab", label:"FFmpegLab · Entregas grandes", data: lib.ffmpeglab },
       { key:"cloudinary", label:"Cloudinary · Portfólio + Seleção", data: lib.cloudinary }
     ];
     function show(key){
@@ -1778,6 +1781,8 @@ function deleteFolder(f){
       };
       if(f.cloud === "r2"){
         api("DELETE","media/r2-folder/"+f.name.split("/").map(encodeURIComponent).join("/")).then(done);
+      } else if(f.cloud === "ffmpeglab"){
+        api("DELETE","media/ffmpeglab-folder/"+f.name.split("/").map(encodeURIComponent).join("/")).then(done);
       } else {
         api("DELETE","media/files", { cloud:"cloudinary", publicIds:(f.files||[]).map(function(x){ return { publicId:x.publicId, resourceType:x.resourceType }; }) }).then(done);
       }
@@ -1975,6 +1980,7 @@ function newFolderModal(){
       + '</div>'
       + '<button type="button" class="np-fromlib" id="nf-pick">' + ICO_PLUS + ' Escolher ficheiros</button>'
       + '<div id="nf-count" style="font-size:12.5px;color:var(--dim);margin-top:6px"></div>'
+      + '<div class="field" style="margin-top:12px"><label>Apagar sozinho depois de quantos dias (opcional)</label><input id="nf-dias" type="number" min="1" max="365" placeholder="deixa vazio para nunca apagar"></div>'
       + '<div class="err" id="nf-err"></div>'
       + '<div id="nf-prog" style="font-size:12.5px;color:var(--dim);margin-top:8px"></div>'
       + '<div class="mrow"><button class="btn ghost" id="nf-x">Cancelar</button><button class="btn gold" id="nf-ok">Criar pasta</button></div>';
@@ -1991,14 +1997,17 @@ function newFolderModal(){
       var name = box.querySelector("#nf-name").value.trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
       if(!name){ box.querySelector("#nf-err").textContent = "Dá um nome à pasta."; return; }
       if(!picked.length){ box.querySelector("#nf-err").textContent = "Escolhe pelo menos um ficheiro."; return; }
-      var dest = kind === "entregas" ? "r2" : "cloudinary";
+      var dest = kind === "entregas" ? destForEntrega(picked) : "cloudinary";
+      var fallback = dest === "ffmpeglab" ? "r2" : "";
+      var dias = parseInt(box.querySelector("#nf-dias").value, 10) || 0;
       var folder = kind + "/" + name;
       var ok = box.querySelector("#nf-ok"); ok.disabled = true;
       var prog = box.querySelector("#nf-prog");
-      uploadFiles(picked, folder, dest, function(n, total){ prog.textContent = "a enviar " + n + " / " + total + "…"; }).then(function(res){
+      uploadFiles(picked, folder, dest, function(n, total){ prog.textContent = "a enviar " + n + " / " + total + "…"; }, fallback).then(function(res){
         close();
         toast(res.ok + " enviados · pasta \"" + name + "\" criada" + (res.fail ? " · " + res.fail + " falharam" : ""));
-        logNote("criou a pasta \"" + folder + "\" (" + (dest === "r2" ? "R2" : "Cloudinary") + ")");
+        logNote("criou a pasta \"" + folder + "\" (" + cloudLabel(dest) + ")");
+        if(dias) api("POST","limpezas",{ folder: folder, cloud: dest, dias: dias });
         LIB_CACHE = null; libraryView();
       });
     };
@@ -2014,6 +2023,7 @@ function startFolderUpload(files, nameHint){
       + '<label style="margin-top:12px">Para que é</label><div class="radio-row" id="fu-kind">'
       +   '<label data-k="entregas">Entrega</label><label data-k="selecao">Seleção</label><label data-k="portfolio">Portfólio</label>'
       + '</div>'
+      + '<div class="field" style="margin-top:12px"><label>Apagar sozinho depois de quantos dias (opcional)</label><input id="fu-dias" type="number" min="1" max="365" placeholder="deixa vazio para nunca apagar"></div>'
       + '<div class="err" id="fu-err"></div>'
       + '<div id="fu-prog" style="font-size:12.5px;color:var(--dim);margin-top:10px"></div>'
       + '<div class="mrow"><button class="btn ghost" id="fu-cancel">Cancelar</button><button class="btn gold" id="fu-ok">Enviar</button></div>';
@@ -2026,36 +2036,81 @@ function startFolderUpload(files, nameHint){
     box.querySelector("#fu-ok").onclick = function(){
       var name = box.querySelector("#fu-name").value.trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
       if(!name){ box.querySelector("#fu-err").textContent = "Dá um nome à pasta."; return; }
-      var dest = kind === "entregas" ? "r2" : "cloudinary";
+      var dest = kind === "entregas" ? destForEntrega(files) : "cloudinary";
+      var fallback = dest === "ffmpeglab" ? "r2" : "";
+      var dias = parseInt(box.querySelector("#fu-dias").value, 10) || 0;
       var folder = kind + "/" + name;
       var ok = box.querySelector("#fu-ok"); ok.disabled = true;
       var prog = box.querySelector("#fu-prog");
-      uploadFiles(files, folder, dest, function(n, total){ prog.textContent = "a enviar " + n + " / " + total + "…"; })
+      uploadFiles(files, folder, dest, function(n, total){ prog.textContent = "a enviar " + n + " / " + total + "…"; }, fallback)
         .then(function(res){
           prog.textContent = "";
           close();
           toast(res.ok + " enviados" + (res.fail ? " · " + res.fail + " falharam" : ""));
-          logNote("enviou " + res.ok + " ficheiro(s) para \"" + folder + "\" (" + (dest === "r2" ? "R2" : "Cloudinary") + ")");
+          logNote("enviou " + res.ok + " ficheiro(s) para \"" + folder + "\" (" + cloudLabel(dest) + ")");
+          if(dias) api("POST","limpezas",{ folder: folder, cloud: dest, dias: dias });
           LIB_CACHE = null; libraryView();
         });
     };
     box.querySelector("#fu-name").focus();
   }, { cls: "lg" });
 }
-function uploadFiles(files, folder, dest, onProgress){
+/* entregas grandes vão para o FFmpegLab (50GB grátis), o resto fica no R2 */
+var FFMPEGLAB_LIMIAR = 10 * 1024 * 1024 * 1024; // 10GB
+function destForEntrega(files){
+  var total = 0;
+  for(var i = 0; i < files.length; i++) total += files[i].size || 0;
+  return total > FFMPEGLAB_LIMIAR ? "ffmpeglab" : "r2";
+}
+function cloudLabel(dest){ return dest === "r2" ? "R2" : dest === "ffmpeglab" ? "FFmpegLab" : "Cloudinary"; }
+/* varre as pastas agendadas (ver "apagar sozinho depois de X dias") e apaga as vencidas.
+   `manual`=true mostra um toast do resultado (botão "Limpar expirados"); senão corre em silêncio
+   (chamado no arranque, uma vez por dia, como um cron pobre já que as Pages Functions não têm agendador). */
+function runLimpezas(manual){
+  api("POST","limpezas/run").then(function(r){
+    if(!r.ok){ if(manual) toast((r.j && r.j.error) || "Não foi possível limpar"); return; }
+    var n = (r.j.apagadas || []).length;
+    if(manual) toast(n ? n + " pasta(s) vencida(s) apagada(s)" : "Nada vencido para apagar");
+    if(n){ LIB_CACHE = null; if(VIEW === "biblioteca") libraryView(); }
+  });
+}
+function maybeRunLimpezasDiario(){
+  try{
+    var last = localStorage.getItem("asteris_limpezas_last");
+    var today = new Date().toISOString().slice(0, 10);
+    if(last === today) return;
+    localStorage.setItem("asteris_limpezas_last", today);
+  }catch(e){}
+  runLimpezas(false);
+}
+/* `fallbackDest`: se o envio para `dest` falhar (nuvem em baixo, sem espaço, etc.),
+   tenta uma vez essa outra nuvem antes de desistir do ficheiro — é o "backup" pedido. */
+function uploadFiles(files, folder, dest, onProgress, fallbackDest){
   return new Promise(function(resolve){
     var ok = 0, fail = 0, i = 0;
+    function attempt(file, useDest, isRetry){
+      var fd = new FormData();
+      fd.append("file", file);
+      fd.append("folder", folder);
+      fd.append("dest", useDest);
+      return fetch("/api/upload", { method:"POST", body:fd })
+        .then(function(x){ return x.json(); })
+        .then(function(j){
+          if(j.url) return true;
+          if(!isRetry && fallbackDest && fallbackDest !== useDest) return attempt(file, fallbackDest, true);
+          return false;
+        })
+        .catch(function(){
+          if(!isRetry && fallbackDest && fallbackDest !== useDest) return attempt(file, fallbackDest, true);
+          return false;
+        });
+    }
     function next(){
       if(i >= files.length){ resolve({ ok: ok, fail: fail }); return; }
-      var fd = new FormData();
-      fd.append("file", files[i]);
-      fd.append("folder", folder);
-      fd.append("dest", dest);
-      fetch("/api/upload", { method:"POST", body:fd })
-        .then(function(x){ return x.json(); })
-        .then(function(j){ if(j.url) ok++; else fail++; })
-        .catch(function(){ fail++; })
-        .then(function(){ i++; onProgress && onProgress(i, files.length); next(); });
+      attempt(files[i], dest, false).then(function(success){
+        if(success) ok++; else fail++;
+        i++; onProgress && onProgress(i, files.length); next();
+      });
     }
     next();
   });
@@ -2069,7 +2124,7 @@ function pickFolderModal(){
       if(!fs.length){ wrap.innerHTML = '<div class="lib-empty">Sem pastas. Envia ficheiros na aba Biblioteca primeiro.</div>'; return; }
       wrap.innerHTML = "";
       fs.forEach(function(f){
-        var b = el("button","np-fromlib", "" + f.name + "  ·  " + f.count + " ficheiros  ·  " + (f.cloud === "r2" ? "R2" : "Cloudinary"));
+        var b = el("button","np-fromlib", "" + f.name + "  ·  " + f.count + " ficheiros  ·  " + cloudLabel(f.cloud));
         b.style.marginTop = "6px";
         b.onclick = function(){ close(f); };
         wrap.appendChild(b);

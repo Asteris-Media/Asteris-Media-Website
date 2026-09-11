@@ -7,6 +7,13 @@
 //   CLOUDINARY_CLOUD  -> ex. bv9q81il            (opcional, p/ upload)
 //   CLOUDINARY_KEY    -> api key da Cloudinary   (opcional)
 //   CLOUDINARY_SECRET -> api secret da Cloudinary (opcional, secret)
+//   FFMPEGLAB_S3_ENDPOINT    -> ex. https://s3.ffmpeglab.com (opcional, storage extra p/ entregas grandes)
+//   FFMPEGLAB_S3_BUCKET      -> nome do bucket
+//   FFMPEGLAB_S3_ACCESS_KEY  -> access key S3
+//   FFMPEGLAB_S3_SECRET_KEY  -> secret key S3 (secret)
+//   FFMPEGLAB_S3_REGION      -> opcional, por defeito "auto"
+//   FFMPEGLAB_PUBLIC_BASE    -> opcional: se o bucket serve ficheiros por um domínio público direto,
+//                               poupa o proxy (ex. https://cdn.ffmpeglab.com/<bucket>)
 
 const enc = new TextEncoder();
 const CT_JSON = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" };
@@ -36,6 +43,86 @@ async function checkToken(secret, token) {
   } catch {}
   return { ok: false };
 }
+// ============================ S3 (FFmpegLab / qualquer S3-compatível) ============================
+// Assinatura AWS SigV4 feita à mão (sem SDK) — o runtime das Pages Functions não tem npm/bundler aqui.
+function hex(buf) { return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join(""); }
+async function sha256Hex(strOrBuf) { return hex(await crypto.subtle.digest("SHA-256", typeof strOrBuf === "string" ? enc.encode(strOrBuf) : strOrBuf)); }
+async function s3Hmac(keyBuf, msg) {
+  const key = await crypto.subtle.importKey("raw", keyBuf, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  return crypto.subtle.sign("HMAC", key, enc.encode(msg));
+}
+function s3Conf(env) {
+  const endpoint = String(env.FFMPEGLAB_S3_ENDPOINT || "").replace(/\/+$/, "");
+  const bucket = env.FFMPEGLAB_S3_BUCKET, accessKey = env.FFMPEGLAB_S3_ACCESS_KEY, secretKey = env.FFMPEGLAB_S3_SECRET_KEY;
+  const region = env.FFMPEGLAB_S3_REGION || "auto";
+  return (endpoint && bucket && accessKey && secretKey) ? { endpoint, bucket, accessKey, secretKey, region } : null;
+}
+// devolve { url, headers } prontos para fetch(). `query` já vem ordenada e codificada (ver s3Query).
+// `payloadHash` = hash SHA-256 hex do corpo, ou "UNSIGNED-PAYLOAD" para streams grandes (upload).
+async function s3Sign(conf, method, key, { query = "", payloadHash = "UNSIGNED-PAYLOAD", extraHeaders = {} } = {}) {
+  const u = new URL(conf.endpoint);
+  const canonicalUri = "/" + conf.bucket + (key ? "/" + key.split("/").map(encodeURIComponent).join("/") : "");
+  const now = new Date();
+  const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
+  const dateStamp = amzDate.slice(0, 8);
+  const headersObj = Object.assign({ host: u.host, "x-amz-date": amzDate, "x-amz-content-sha256": payloadHash }, extraHeaders);
+  const entries = Object.keys(headersObj).map(k => [k.toLowerCase(), String(headersObj[k]).trim().replace(/\s+/g, " ")]).sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0);
+  const canonicalHeaders = entries.map(([k, v]) => k + ":" + v + "\n").join("");
+  const signedHeaders = entries.map(([k]) => k).join(";");
+  const canonicalRequest = [method, canonicalUri, query, canonicalHeaders, signedHeaders, payloadHash].join("\n");
+  const credentialScope = `${dateStamp}/${conf.region}/s3/aws4_request`;
+  const stringToSign = ["AWS4-HMAC-SHA256", amzDate, credentialScope, await sha256Hex(canonicalRequest)].join("\n");
+  let k = enc.encode("AWS4" + conf.secretKey);
+  for (const part of [dateStamp, conf.region, "s3", "aws4_request"]) k = await s3Hmac(k, part);
+  const signature = hex(await s3Hmac(k, stringToSign));
+  const authorization = `AWS4-HMAC-SHA256 Credential=${conf.accessKey}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
+  const fetchHeaders = {};
+  for (const [k2, v2] of Object.entries(headersObj)) fetchHeaders[k2] = v2;
+  fetchHeaders.authorization = authorization;
+  return { url: conf.endpoint + canonicalUri + (query ? "?" + query : ""), headers: fetchHeaders };
+}
+function s3Query(params) {
+  return Object.keys(params).sort().map(k => encodeURIComponent(k) + "=" + encodeURIComponent(params[k])).join("&");
+}
+async function s3Put(conf, key, stream, contentType) {
+  const { url, headers } = await s3Sign(conf, "PUT", key, { extraHeaders: contentType ? { "content-type": contentType } : {} });
+  const r = await fetch(url, { method: "PUT", headers, body: stream });
+  if (!r.ok) throw new Error("s3 put " + r.status + " " + (await r.text().catch(() => "")).slice(0, 200));
+  return true;
+}
+async function s3Delete(conf, key) {
+  const { url, headers } = await s3Sign(conf, "DELETE", key, { payloadHash: await sha256Hex("") });
+  const r = await fetch(url, { method: "DELETE", headers });
+  return r.ok || r.status === 204 || r.status === 404;
+}
+async function s3Get(conf, key) {
+  const { url, headers } = await s3Sign(conf, "GET", key, { payloadHash: await sha256Hex("") });
+  return fetch(url, { headers });
+}
+// lista todos os objetos com um prefixo (pagina com continuation-token); parse simples de XML (S3 devolve XML plano)
+async function s3List(conf, prefix) {
+  const out = [];
+  let token = "";
+  do {
+    const params = { "list-type": "2", "max-keys": "1000" };
+    if (prefix) params.prefix = prefix;
+    if (token) params["continuation-token"] = token;
+    const { url, headers } = await s3Sign(conf, "GET", "", { query: s3Query(params), payloadHash: await sha256Hex("") });
+    const r = await fetch(url, { headers });
+    if (!r.ok) throw new Error("s3 list " + r.status);
+    const xml = await r.text();
+    for (const m of xml.matchAll(/<Contents>([\s\S]*?)<\/Contents>/g)) {
+      const block = m[1];
+      const key = (block.match(/<Key>([\s\S]*?)<\/Key>/) || [, ""])[1];
+      const size = +(block.match(/<Size>([\s\S]*?)<\/Size>/) || [, "0"])[1];
+      if (key) out.push({ key, size });
+    }
+    const trunc = /<IsTruncated>true<\/IsTruncated>/.test(xml);
+    token = trunc ? (xml.match(/<NextContinuationToken>([\s\S]*?)<\/NextContinuationToken>/) || [, ""])[1] : "";
+  } while (token);
+  return out;
+}
+
 // devolve o nome do utilizador se a password bater, senão null
 // ADMIN_USERS aceita "Nome:senha" ou "Nome:email:senha" (separados por vírgula)
 function parseUsers(env) {
@@ -138,10 +225,27 @@ export async function onRequest(context) {
     return new Response(obj.body, { headers: h });
   }
 
+  // ---- servir ficheiro do FFmpegLab (S3) — mesma lógica do R2 acima ----
+  if (seg[0] === "ffmpeglab" && method === "GET") {
+    const conf = s3Conf(env);
+    if (!conf) return json({ error: "FFmpegLab não ligado" }, 501);
+    const key = seg.slice(1).map(decodeURIComponent).join("/");
+    if (env.FFMPEGLAB_PUBLIC_BASE) return Response.redirect(env.FFMPEGLAB_PUBLIC_BASE.replace(/\/+$/, "") + "/" + key.split("/").map(encodeURIComponent).join("/"), 302);
+    const r = await s3Get(conf, key);
+    if (!r.ok) return json({ error: "não existe" }, 404);
+    const h = new Headers(r.headers);
+    h.set("cache-control", "public, max-age=31536000, immutable");
+    h.set("access-control-allow-origin", "*");
+    const dl = url.searchParams.get("dl");
+    if (dl) h.set("content-disposition", `attachment; filename="${dl.replace(/[^a-z0-9.\-_ ]/gi, "_")}"`);
+    return new Response(r.body, { headers: h });
+  }
+
   // ---- página de acesso a uma pasta (PÚBLICA, obscura — o link partilhável da biblioteca) ----
   if (seg[0] === "media" && seg[1] === "view" && method === "GET") {
     const folder = (url.searchParams.get("f") || "").replace(/[^a-z0-9/_-]/gi, "");
-    const cloud = url.searchParams.get("c") === "cloudinary" ? "cloudinary" : "r2";
+    const cloudParam = url.searchParams.get("c");
+    const cloud = cloudParam === "cloudinary" ? "cloudinary" : cloudParam === "ffmpeglab" ? "ffmpeglab" : "r2";
     if (!folder) return new Response("pasta em falta", { status: 400 });
     const isVidU = (s) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(s || "");
     let files = [];
@@ -157,6 +261,14 @@ export async function onRequest(context) {
             cursor = r.truncated ? r.cursor : null;
           } while (cursor);
           if (!files.length) diag = `Sem ficheiros com o prefixo "${folder}/" no R2.`;
+        }
+      } else if (cloud === "ffmpeglab") {
+        const conf = s3Conf(env);
+        if (!conf) diag = "FFmpegLab não ligado.";
+        else {
+          const objs = await s3List(conf, folder + "/");
+          for (const o of objs) files.push({ url: "/api/ffmpeglab/" + o.key.split("/").map(encodeURIComponent).join("/"), name: o.key.split("/").pop(), bytes: o.size || 0 });
+          if (!files.length) diag = `Sem ficheiros com o prefixo "${folder}/" no FFmpegLab.`;
         }
       } else {
         if (!(env.CLOUDINARY_CLOUD && env.CLOUDINARY_KEY && env.CLOUDINARY_SECRET)) diag = "Cloudinary não ligado.";
@@ -344,7 +456,23 @@ if(b) b.onclick=function(){
     const tagsRaw = await env.ASTERIS_KV.get("mediatags");
     const TAGS = tagsRaw ? JSON.parse(tagsRaw) : {};
     const tagOf = (name) => TAGS[name] || (/entrega/i.test(name) ? "entrega" : /selec/i.test(name) ? "selecao" : /portf/i.test(name) ? "portfolio" : "");
-    const out = { r2: { bound: !!env.ASTERIS_R2, folders: [] }, cloudinary: { configured: !!(env.CLOUDINARY_CLOUD && env.CLOUDINARY_KEY && env.CLOUDINARY_SECRET), folders: [] } };
+    const out = { r2: { bound: !!env.ASTERIS_R2, folders: [] }, cloudinary: { configured: !!(env.CLOUDINARY_CLOUD && env.CLOUDINARY_KEY && env.CLOUDINARY_SECRET), folders: [] }, ffmpeglab: { configured: !!s3Conf(env), folders: [] } };
+
+    if (out.ffmpeglab.configured) {
+      try {
+        const conf = s3Conf(env);
+        const objs = await s3List(conf, "");
+        const map = {};
+        for (const o of objs) {
+          const parts = o.key.split("/");
+          const folder = parts.length > 1 ? parts.slice(0, -1).join("/") : "(raiz)";
+          const f = map[folder] || (map[folder] = { name: folder, cloud: "ffmpeglab", tag: tagOf(folder), count: 0, bytes: 0, files: [] });
+          f.count++; f.bytes += o.size || 0;
+          f.files.push({ url: "/api/ffmpeglab/" + o.key.split("/").map(encodeURIComponent).join("/"), key: o.key, tipo: isVidExt(o.key) ? "video" : "foto", bytes: o.size || 0 });
+        }
+        out.ffmpeglab.folders = Object.values(map).sort((a, b) => a.name.localeCompare(b.name));
+      } catch (e) { out.ffmpeglab.error = String(e).slice(0, 120); }
+    }
 
     if (env.ASTERIS_R2) {
       try {
@@ -392,6 +520,9 @@ if(b) b.onclick=function(){
     let n = 0, erros = [];
     if (b.cloud === "r2" && env.ASTERIS_R2) {
       for (const k of (b.keys || [])) { try { await env.ASTERIS_R2.delete(k); n++; } catch (e) { erros.push(k); } }
+    } else if (b.cloud === "ffmpeglab" && s3Conf(env)) {
+      const conf = s3Conf(env);
+      for (const k of (b.keys || [])) { try { await s3Delete(conf, k); n++; } catch (e) { erros.push(k); } }
     } else if (b.cloud === "cloudinary" && env.CLOUDINARY_CLOUD && env.CLOUDINARY_KEY && env.CLOUDINARY_SECRET) {
       const auth = btoa(`${env.CLOUDINARY_KEY}:${env.CLOUDINARY_SECRET}`);
       const byRt = {};
@@ -422,6 +553,19 @@ if(b) b.onclick=function(){
       cursor = r.truncated ? r.cursor : null;
     } while (cursor);
     await logAction(env, ME, "apagou a pasta \"" + prefix + "\" do R2 (" + n + " ficheiros)");
+    return json({ ok: true, apagados: n });
+  }
+
+  // ---- apagar uma pasta inteira do FFmpegLab (S3) ----
+  if (seg[0] === "media" && seg[1] === "ffmpeglab-folder" && method === "DELETE") {
+    const conf = s3Conf(env);
+    if (!conf) return json({ error: "FFmpegLab não ligado" }, 501);
+    const prefix = decodeURIComponent(seg.slice(2).join("/"));
+    if (!prefix || prefix === "(raiz)") return json({ error: "pasta inválida" }, 400);
+    const objs = await s3List(conf, prefix + "/");
+    let n = 0;
+    for (const o of objs) { if (await s3Delete(conf, o.key)) n++; }
+    await logAction(env, ME, "apagou a pasta \"" + prefix + "\" do FFmpegLab (" + n + " ficheiros)");
     return json({ ok: true, apagados: n });
   }
 
@@ -571,6 +715,67 @@ if(b) b.onclick=function(){
 
   // ---- upload de ficheiro ----
   // dest="r2" (entregas)  |  dest="cloudinary" (portfólio, seleção)  |  sem dest = o que estiver ligado
+  // ---- limpeza automática: marca uma pasta (R2 ou FFmpegLab) para apagar sozinha ao fim de X dias ----
+  // GET  /api/limpezas          -> lista o que está agendado
+  // POST /api/limpezas          -> { folder, cloud, dias }  agenda/atualiza
+  // DELETE /api/limpezas/<id>   -> cancela o agendamento (sem apagar o ficheiro)
+  // POST /api/limpezas/run      -> varre e apaga o que já venceu (chamado pelo próprio admin, sem cron externo)
+  if (seg[0] === "limpezas" && !seg[1] && method === "GET") {
+    const raw = await env.ASTERIS_KV.get("col:limpezas");
+    return json({ items: raw ? JSON.parse(raw) : [] });
+  }
+  if (seg[0] === "limpezas" && !seg[1] && method === "POST") {
+    const b = await request.json().catch(() => ({}));
+    const folder = String(b.folder || "").replace(/^\/+|\/+$/g, "");
+    const cloud = b.cloud === "ffmpeglab" ? "ffmpeglab" : "r2";
+    const dias = Math.max(1, Math.min(365, parseInt(b.dias, 10) || 30));
+    if (!folder) return json({ error: "pasta em falta" }, 400);
+    const raw = await env.ASTERIS_KV.get("col:limpezas");
+    const list = raw ? JSON.parse(raw) : [];
+    const apagarEm = new Date(Date.now() + dias * 86400000).toISOString().slice(0, 10);
+    const i = list.findIndex(x => x.folder === folder && x.cloud === cloud);
+    const rec = { id: (i >= 0 ? list[i].id : (folder + ":" + cloud)), folder, cloud, dias, apagarEm, criadoEm: (i >= 0 ? list[i].criadoEm : new Date().toISOString()) };
+    if (i >= 0) list[i] = rec; else list.push(rec);
+    await env.ASTERIS_KV.put("col:limpezas", JSON.stringify(list));
+    await logAction(env, ME, "agendou apagar \"" + folder + "\" em " + dias + " dias (" + apagarEm + ")");
+    return json({ ok: true, item: rec });
+  }
+  if (seg[0] === "limpezas" && seg[1] && method === "DELETE") {
+    const raw = await env.ASTERIS_KV.get("col:limpezas");
+    const list = (raw ? JSON.parse(raw) : []).filter(x => x.id !== seg[1]);
+    await env.ASTERIS_KV.put("col:limpezas", JSON.stringify(list));
+    return json({ ok: true });
+  }
+  if (seg[0] === "limpezas" && seg[1] === "run" && method === "POST") {
+    const raw = await env.ASTERIS_KV.get("col:limpezas");
+    const list = raw ? JSON.parse(raw) : [];
+    const today = new Date().toISOString().slice(0, 10);
+    const vencidas = list.filter(x => x.apagarEm <= today);
+    const restantes = list.filter(x => x.apagarEm > today);
+    const apagadas = [];
+    for (const it of vencidas) {
+      try {
+        let n = 0;
+        if (it.cloud === "r2" && env.ASTERIS_R2) {
+          let cursor;
+          do {
+            const r = await env.ASTERIS_R2.list({ cursor, prefix: it.folder + "/", limit: 1000 });
+            for (const o of r.objects) { await env.ASTERIS_R2.delete(o.key); n++; }
+            cursor = r.truncated ? r.cursor : null;
+          } while (cursor);
+        } else if (it.cloud === "ffmpeglab" && s3Conf(env)) {
+          const conf = s3Conf(env);
+          const objs = await s3List(conf, it.folder + "/");
+          for (const o of objs) { if (await s3Delete(conf, o.key)) n++; }
+        }
+        apagadas.push({ folder: it.folder, cloud: it.cloud, ficheiros: n });
+      } catch (e) { restantes.push(it); }
+    }
+    await env.ASTERIS_KV.put("col:limpezas", JSON.stringify(restantes));
+    if (apagadas.length) await logAction(env, ME, "limpeza automática apagou " + apagadas.length + " pasta(s) vencida(s)", { detail: apagadas.map(a => a.folder).join(", ") });
+    return json({ ok: true, apagadas, restantes: restantes.length });
+  }
+
   if (seg[0] === "upload" && method === "POST") {
     const form = await request.formData().catch(() => null);
     const file = form && form.get("file");
@@ -579,8 +784,22 @@ if(b) b.onclick=function(){
     const dest = (form.get("dest") || "").toString().toLowerCase();
 
     const cloudOK = !!(env.CLOUDINARY_CLOUD && env.CLOUDINARY_KEY && env.CLOUDINARY_SECRET);
+    const s3conf = s3Conf(env);
+    const useFFmpeglab = dest === "ffmpeglab";
     const useR2 = dest === "r2" || (!dest && env.ASTERIS_R2);
     const useCloud = dest === "cloudinary" || (!dest && !env.ASTERIS_R2 && cloudOK);
+
+    if (useFFmpeglab) {
+      if (!s3conf) return json({ error: "FFmpegLab ainda não está ligado" }, 501);
+      const orig = (file.name || "ficheiro").replace(/[^a-z0-9.\-_]/gi, "-");
+      const ext = (orig.match(/\.[a-z0-9]{2,5}$/i) || [""])[0].toLowerCase();
+      const rand = [...crypto.getRandomValues(new Uint8Array(6))].map(b => b.toString(16).padStart(2, "0")).join("");
+      const key = `${folder}/${Date.now().toString(36)}-${rand}${ext}`;
+      try { await s3Put(s3conf, key, file.stream(), file.type || "application/octet-stream"); }
+      catch (e) { return json({ error: "upload para o FFmpegLab falhou: " + String(e).slice(0, 200) }, 502); }
+      const base = env.FFMPEGLAB_PUBLIC_BASE || "";
+      return json({ ok: true, via: "ffmpeglab", key, url: base ? `${base.replace(/\/+$/, "")}/${key}` : `/api/ffmpeglab/${key}` });
+    }
 
     if (useR2) {
       if (!env.ASTERIS_R2) return json({ error: "R2 ainda não está ligado" }, 501);
