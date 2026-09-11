@@ -194,6 +194,13 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
 .cc-files a:hover{color:var(--ink);border-color:var(--ink)}
 .radio-row label svg{width:13px;height:13px;vertical-align:-2px;margin-right:5px}
 .scope-tabs button svg{width:12px;height:12px;vertical-align:-2px;margin-right:4px}
+.pag-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+@media(max-width:640px){.pag-sum{grid-template-columns:1fr}}
+.pag-card{background:var(--panel);border:1px solid var(--edge);border-radius:4px;padding:16px 18px}
+.pag-card.bad{border-color:rgba(255,107,92,.4)}
+.pag-card .pc-l{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:9px}
+.pag-card .pc-v{font-size:20px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.pag-card.bad .pc-v{color:#FF7A6B}
 
 /* -- barra inferior comum a TODOS os cartões -- */
 .cbar{display:flex;align-items:center;gap:8px;min-height:26px}
@@ -565,6 +572,7 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
       <button data-v="clientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>Clientes</button>
       <button data-v="tarefas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 17 2 2 4-4M3 7l2 2 4-4"/><path d="M13 6h8M13 12h8M13 18h8"/></svg>Tarefas</button>
       <button data-v="contratos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h11a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4"/><path d="M19 17V5a2 2 0 0 0-2-2H5"/></svg>Contratos</button>
+      <button data-v="pagamentos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>Pagamentos</button>
       <button data-v="prospeccao"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/></svg>Prospecção</button>
       <button data-v="notas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M8 7h8M8 11h8M8 15h5"/></svg>Notas</button>
       <button data-v="calendario"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Calendário</button>
@@ -816,7 +824,7 @@ function loadSearchIndex(force){
   if(SEARCH_CACHE && !force) return Promise.resolve(SEARCH_CACHE);
   return Promise.all([
     api("GET","pages").then(function(r){ return (r.j && r.j.pages) || []; }),
-    col("clientes"), col("tarefas"), col("contratos"), col("agenda")
+    col("clientes"), col("tarefas"), col("contratos"), col("agenda"), col("pagamentos")
   ]).then(function(x){
     var out = [];
     x[0].forEach(function(p){ out.push({ g:"Links", label:(p.cliente || p.titulo || p.code), sub:p.code + " · " + (p.type||""), open:function(){ editView(p.code); } }); });
@@ -824,6 +832,7 @@ function loadSearchIndex(force){
     x[2].forEach(function(t){ out.push({ g:"Tarefas", label:t.titulo || "—", sub:(t.cliente || "") + (t.prazo ? " · " + t.prazo : ""), open:function(){ openView("tarefas"); setTimeout(function(){ tarefaForm(t); }, 60); } }); });
     x[3].forEach(function(k){ out.push({ g:"Contratos", label:k.titulo || k.cliente || "Contrato", sub:k.cliente || "", open:function(){ openView("contratos"); setTimeout(function(){ contratoForm(k); }, 60); } }); });
     x[4].forEach(function(a){ out.push({ g:"Calendário", label:a.titulo || "—", sub:fmtDate(a.data) + (a.hora ? " " + a.hora : ""), open:function(){ openView("calendario"); setTimeout(function(){ agendaForm(a); }, 60); } }); });
+    (x[5] || []).forEach(function(g){ out.push({ g:"Pagamentos", label:(g.descricao || g.cliente || "Pagamento"), sub:(g.cliente ? g.cliente + " · " : "") + fmtMoney(g.valor), open:function(){ openView("pagamentos"); setTimeout(function(){ pagamentoForm(g); }, 60); } }); });
     SEARCH_CACHE = out;
     return out;
   });
@@ -905,7 +914,7 @@ function daysUntil(dateStr){
 function refreshNotifs(){
   Promise.all([
     api("GET","pages").then(function(r){ return (r.j && r.j.pages) || []; }),
-    col("tarefas"), col("contratos"), col("agenda")
+    col("tarefas"), col("contratos"), col("agenda"), col("pagamentos")
   ]).then(function(x){
     var n = [];
     x[0].forEach(function(p){
@@ -931,6 +940,14 @@ function refreshNotifs(){
       var d = daysUntil(a.data);
       if(d != null && d >= 0 && d <= 2) n.push({ key:"ag:"+a.id+":"+d, lvl:"warn", t:(d===0?"Hoje":d===1?"Amanhã":"Em 2 dias") + (a.hora ? " · " + a.hora : ""), sub:a.titulo + (a.cliente ? " · " + a.cliente : ""), sort:d - 10, open:function(){ openView("calendario"); } });
     });
+    (x[4] || []).forEach(function(g){
+      if(g.pago || g.estado === "pago") return;
+      var d = daysUntil(g.vencimento);
+      if(d == null) return;
+      var quem = g.cliente || g.descricao || "";
+      if(d < 0) n.push({ key:"pg:"+g.id+":over", lvl:"urgent", t:"Pagamento em atraso · " + fmtMoney(g.valor), sub:quem + " · vencia " + fmtDate(g.vencimento), sort:d, open:function(){ openView("pagamentos"); } });
+      else if(d <= 5) n.push({ key:"pg:"+g.id+":soon", lvl:"warn", t:"Cobrança a vencer · " + fmtMoney(g.valor), sub:quem + " · " + fmtDate(g.vencimento), sort:d, open:function(){ openView("pagamentos"); } });
+    });
     var dis = notifDismissed();
     n = n.filter(function(it){ return !dis[it.key]; });
     n.sort(function(a, b){ return a.sort - b.sort; });
@@ -942,7 +959,7 @@ function refreshNotifs(){
     $("#notifClear").disabled = !n.length;
 
     /* contadores por área no menu da esquerda */
-    var NAV_AREA = { lk:"links", tk:"tarefas", kt:"contratos", ag:"calendario" };
+    var NAV_AREA = { lk:"links", tk:"tarefas", kt:"contratos", ag:"calendario", pg:"pagamentos" };
     var byArea = {};
     n.forEach(function(it){
       var a = NAV_AREA[it.key.split(":")[0]];
@@ -951,7 +968,7 @@ function refreshNotifs(){
       byArea[a].n++;
       if(it.lvl === "urgent") byArea[a].urgent = true;
     });
-    ["links","tarefas","contratos","calendario"].forEach(function(a){
+    ["links","tarefas","contratos","calendario","pagamentos"].forEach(function(a){
       var info = byArea[a];
       setNavBadge(a, info ? info.n : 0, (info && info.urgent) ? "red" : "amber");
     });
@@ -992,7 +1009,8 @@ var ICN = {
   ficheiro:   _si('<path d="M4 6a2 2 0 0 1 2-2h4l2 3h6a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/>'),
   privado:    _si('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>'),
   partilhado: _si('<circle cx="9" cy="9" r="3"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M16 8.5a3 3 0 0 1 0 5.4"/><path d="M18 20a5.5 5.5 0 0 0-3.5-5.1"/>'),
-  link:       ICO_LINK
+  link:       ICO_LINK,
+  euro:       _si('<path d="M17 6.5A6 6 0 1 0 17 17.5"/><path d="M4 10h9M4 14h9"/>')
 };
 var TAG_ICONS = [
   ["lampada","Ideia", _si('<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.7.6 1 1.5 1 2.5h6c0-1 .3-1.9 1-2.5A6 6 0 0 0 12 3z"/>')],
@@ -1035,7 +1053,7 @@ function cbar(leftHtml, rightHtml){
 var VIEW = null;
 var VIEW_TITLES = { painel:"Painel", links:"Links", proposta:"Propostas", portfolio:"Portfólio",
   entrega:"Entregas", selecao:"Seleções", workspaces:"Workspaces", clientes:"Clientes", tarefas:"Tarefas", contratos:"Contratos",
-  prospeccao:"Prospecção", notas:"Notas", calendario:"Calendário", biblioteca:"Biblioteca", log:"Registo de atividade" };
+  pagamentos:"Pagamentos", prospeccao:"Prospecção", notas:"Notas", calendario:"Calendário", biblioteca:"Biblioteca", log:"Registo de atividade" };
 function openView(v){
   closeMenu();
   $("#app").classList.remove("editing");
@@ -1049,7 +1067,7 @@ function openView(v){
     proposta: function(){ catView("proposta"); }, portfolio: function(){ catView("portfolio"); },
     entrega: function(){ catView("entrega"); }, selecao: function(){ catView("selecao"); },
     clientes: clientesView, tarefas: tarefasView, contratos: contratosView, calendario: calendarioView,
-    prospeccao: prospeccaoView, notas: notasView, workspaces: workspacesView,
+    pagamentos: pagamentosView, prospeccao: prospeccaoView, notas: notasView, workspaces: workspacesView,
     biblioteca: libraryView, log: logView
   }[v] || painelView)();
 }
@@ -2903,6 +2921,207 @@ function prospectForm(p){
     };
     box.querySelector("#pr-nome").focus();
   });
+}
+
+/* ============================ PAGAMENTOS ============================ */
+function fmtMoney(n){
+  var v = Number(n);
+  if(!isFinite(v)) return "—";
+  try{ return v.toLocaleString("pt-PT", { style:"currency", currency:"EUR", maximumFractionDigits: (v % 1 ? 2 : 0) }); }
+  catch(e){ return v.toFixed(2) + " EUR"; }
+}
+/* "1 900 EUR / mês" -> 1900 */
+function parseValor(s){
+  var m = String(s || "").replace(/\s/g,"").replace(",",".").match(/-?\d+(\.\d+)?/);
+  return m ? parseFloat(m[0]) : null;
+}
+function pagEstado(p){
+  if(p.pago || p.estado === "pago") return "pago";
+  var d = daysUntil(p.vencimento);
+  if(d != null && d < 0) return "atraso";
+  return "pendente";
+}
+var PAG_LBL = { pago:"Pago", pendente:"Pendente", atraso:"Em atraso" };
+var PAG_CHIP = { pago:"chip ok", pendente:"chip", atraso:"chip bad" };
+
+function pagamentosView(){
+  var v = $("#view"); v.innerHTML = "";
+  var head = el("div","view-head");
+  head.appendChild(scopeTabs(pagamentosView));
+  var wrapBtn = el("div"); wrapBtn.style.cssText = "display:flex;gap:8px;flex-wrap:wrap";
+  var gen = el("button","btn ghost", ICO_PLUS + "Plano de contrato"); gen.onclick = function(){ pagPlanoModal(); };
+  var add = el("button","btn gold", ICO_PLUS + "Pagamento"); add.onclick = function(){ pagamentoForm(); };
+  wrapBtn.appendChild(gen); wrapBtn.appendChild(add);
+  head.appendChild(wrapBtn); v.appendChild(head);
+
+  var sum = el("div","pag-sum"); v.appendChild(sum);
+  var chips = el("div","filter-row"); v.appendChild(chips);
+  var list = el("div","card-list"); list.innerHTML = '<div class="wide-empty">a carregar…</div>'; v.appendChild(list);
+
+  col("pagamentos").then(function(items){
+    items = items.filter(scopeMatch);
+    var tot = { pago:0, pendente:0, atraso:0 };
+    items.forEach(function(p){ var e = pagEstado(p); tot[e] += Number(p.valor) || 0; });
+    sum.innerHTML = ""
+      + '<div class="pag-card"><div class="pc-l">Recebido</div><div class="pc-v">' + fmtMoney(tot.pago) + '</div></div>'
+      + '<div class="pag-card"><div class="pc-l">Pendente</div><div class="pc-v">' + fmtMoney(tot.pendente) + '</div></div>'
+      + '<div class="pag-card' + (tot.atraso ? ' bad' : '') + '"><div class="pc-l">Em atraso</div><div class="pc-v">' + fmtMoney(tot.atraso) + '</div></div>';
+
+    var counts = { todos:items.length, pendente:0, pago:0, atraso:0 };
+    items.forEach(function(p){ counts[pagEstado(p)]++; });
+    var cur = pagamentosView._f || "todos";
+    chips.innerHTML = "";
+    [["todos","Todos"],["pendente","Pendentes"],["atraso","Em atraso"],["pago","Pagos"]].forEach(function(f){
+      var c = el("span","chip" + (cur === f[0] ? " on" : ""), f[1] + " · " + (counts[f[0]] || 0));
+      c.onclick = function(){ pagamentosView._f = f[0]; pagamentosView(); };
+      chips.appendChild(c);
+    });
+
+    var show = cur === "todos" ? items : items.filter(function(p){ return pagEstado(p) === cur; });
+    show.sort(function(a,b){ return (a.vencimento || "9999").localeCompare(b.vencimento || "9999"); });
+    list.innerHTML = "";
+    if(!show.length){ list.appendChild(el("div","wide-empty","Nada aqui. Cria um pagamento ou gera o plano de um contrato.")); return; }
+    show.forEach(function(p){
+      var est = pagEstado(p);
+      var row = el("div","lcard");
+      var sub = [p.cliente, p.contratoTitulo].filter(Boolean).join(" · ");
+      row.innerHTML =
+        '<div class="lc-lead"><span class="itag">' + ICN.euro + '</span></div>'
+        + '<div class="lc-nm">' + esc(p.descricao || p.cliente || "Pagamento") + '</div>'
+        + '<div class="lc-sub">' + esc(sub) + '</div>'
+        + '<div class="lc-aside">'
+        +   '<span class="lc-when"><b>' + fmtMoney(p.valor) + '</b>' + (est === "pago" && p.dataPagamento ? "pago " + fmtDateShort(p.dataPagamento) : (p.vencimento ? "vence " + fmtDateShort(p.vencimento) : "")) + '</span>'
+        +   '<button class="menu-btn" aria-label="Ações">&#8942;</button>'
+        + '</div>'
+        + cbar('', '<span class="' + PAG_CHIP[est] + '"><span>' + PAG_LBL[est] + '</span></span>'
+            + (est !== "pago" && p.vencimento ? dateChip(p.vencimento, 5) : '')
+            + scopeChip(p.scope));
+      var mb = row.querySelector(".menu-btn");
+      mb.onclick = function(e){ e.stopPropagation(); pagRowMenu(mb, p); };
+      row.addEventListener("click", function(e){ if(!e.target.closest(".menu-btn")) pagamentoForm(p); });
+      list.appendChild(row);
+    });
+  });
+}
+function pagRowMenu(anchor, p){
+  var paid = pagEstado(p) === "pago";
+  openMenu(anchor, [
+    { label: paid ? "Marcar por pagar" : "Marcar como pago", onClick: function(){
+        var upd = paid
+          ? { pago:false, estado:"pendente", dataPagamento:"" }
+          : { pago:true, estado:"pago", dataPagamento: new Date().toISOString().slice(0,10) };
+        afterSave(colPut("pagamentos", p.id, Object.assign({}, p, upd)), function(){}, function(){ pagamentosView(); refreshNotifs(); });
+      } },
+    { label:"Editar", onClick:function(){ pagamentoForm(p); } },
+    { sep:true },
+    { label:"Apagar", danger:true, onClick:function(){
+        confirmModal({ title:"Apagar pagamento?", message:"Não dá para desfazer.", ok:"Apagar", danger:true })
+          .then(function(y){ if(y) colDel("pagamentos", p.id).then(pagamentosView); });
+      } }
+  ]);
+}
+function pagamentoForm(p){
+  p = p || {};
+  modal(function(box, close){
+    box.innerHTML = '<h4>' + (p.id ? "Editar pagamento" : "Novo pagamento") + '</h4>'
+      + '<div class="field"><label>Contrato (opcional)</label><select id="pg-k"><option value="">— nenhum —</option></select></div>'
+      + frow("Descrição","pg-desc",p.descricao)
+      + '<div class="row"><div class="field"><label>Cliente</label><input id="pg-cli" value="' + esc(p.cliente || "") + '"></div>'
+      +   '<div class="field"><label>Valor (EUR)</label><input id="pg-val" type="number" step="0.01" value="' + esc(p.valor != null ? p.valor : "") + '"></div></div>'
+      + '<div class="row"><div class="field"><label>Emitido</label><input type="date" id="pg-emit" value="' + esc(p.emitido || "") + '"></div>'
+      +   '<div class="field"><label>Vencimento</label><input type="date" id="pg-venc" value="' + esc(p.vencimento || "") + '"></div></div>'
+      + '<div class="row"><div class="field"><label>Estado</label><select id="pg-est"><option value="pendente"' + (!p.pago && p.estado!=="pago" ? " selected" : "") + '>Pendente</option><option value="pago"' + (p.pago || p.estado==="pago" ? " selected" : "") + '>Pago</option></select></div>'
+      +   '<div class="field"><label>Data de pagamento</label><input type="date" id="pg-dp" value="' + esc(p.dataPagamento || "") + '"></div></div>'
+      + frow("Método (transferência, MB Way…)","pg-met",p.metodo)
+      + '<div class="field"><label>Notas</label><textarea id="pg-notas">' + esc(p.notas || "") + '</textarea></div>'
+      + scopeRow(p.scope)
+      + '<div class="err" id="pg-err"></div>'
+      + '<div class="mrow"><button class="btn ghost" id="pg-x">Cancelar</button><button class="btn gold" id="pg-ok">Guardar</button></div>';
+    var getScope = bindScope(box);
+    var sel = box.querySelector("#pg-k");
+    col("contratos").then(function(ks){
+      ks.forEach(function(k){
+        var o = el("option"); o.value = k.id; o.textContent = (k.titulo || k.cliente || "Contrato"); o.dataset.cli = k.cliente || ""; o.dataset.val = parseValor(k.valor) || ""; o.dataset.tit = k.titulo || k.cliente || "";
+        if(p.contrato === k.id) o.selected = true;
+        sel.appendChild(o);
+      });
+    });
+    sel.onchange = function(){
+      var o = sel.selectedOptions[0]; if(!o || !o.value) return;
+      if(!box.querySelector("#pg-cli").value) box.querySelector("#pg-cli").value = o.dataset.cli || "";
+      if(!box.querySelector("#pg-val").value && o.dataset.val) box.querySelector("#pg-val").value = o.dataset.val;
+    };
+    box.querySelector("#pg-x").onclick = function(){ close(); };
+    box.querySelector("#pg-ok").onclick = function(){
+      var val = parseFloat(box.querySelector("#pg-val").value);
+      if(!isFinite(val)){ box.querySelector("#pg-err").textContent = "Põe o valor."; return; }
+      var est = box.querySelector("#pg-est").value;
+      var o = sel.selectedOptions[0];
+      afterSave(colPut("pagamentos", p.id || newId(), {
+        contrato: sel.value || "", contratoTitulo: (sel.value && o) ? o.dataset.tit : "",
+        descricao: box.querySelector("#pg-desc").value.trim(),
+        cliente: box.querySelector("#pg-cli").value.trim(),
+        valor: val, emitido: box.querySelector("#pg-emit").value, vencimento: box.querySelector("#pg-venc").value,
+        estado: est, pago: est === "pago",
+        dataPagamento: est === "pago" ? (box.querySelector("#pg-dp").value || new Date().toISOString().slice(0,10)) : "",
+        metodo: box.querySelector("#pg-met").value.trim(), notas: box.querySelector("#pg-notas").value.trim(),
+        scope: getScope()
+      }), close, function(){ pagamentosView(); refreshNotifs(); });
+    };
+    box.querySelector("#pg-desc").focus();
+  }, { cls:"lg" });
+}
+function pagPlanoModal(){
+  modal(function(box, close){
+    box.innerHTML = '<h4>Gerar plano de pagamentos</h4>'
+      + '<p class="hint">Cria uma cobrança pendente por mês a partir de um contrato.</p>'
+      + '<div class="field"><label>Contrato</label><select id="pl-k"><option value="">— escolher —</option></select></div>'
+      + '<div class="row"><div class="field"><label>Valor por mês (EUR)</label><input id="pl-val" type="number" step="0.01"></div>'
+      +   '<div class="field"><label>Dia de vencimento</label><input id="pl-dia" type="number" min="1" max="28" value="1"></div></div>'
+      + '<div class="row"><div class="field"><label>Primeiro mês</label><input id="pl-ini" type="month"></div>'
+      +   '<div class="field"><label>Nº de meses</label><input id="pl-n" type="number" min="1" max="24" value="6"></div></div>'
+      + scopeRow()
+      + '<div class="err" id="pl-err"></div>'
+      + '<div class="mrow"><button class="btn ghost" id="pl-x">Cancelar</button><button class="btn gold" id="pl-ok">Gerar</button></div>';
+    var getScope = bindScope(box);
+    var kmap = {};
+    col("contratos").then(function(ks){
+      var sel = box.querySelector("#pl-k");
+      ks.forEach(function(k){
+        kmap[k.id] = k;
+        var o = el("option"); o.value = k.id; o.textContent = (k.titulo || k.cliente || "Contrato"); sel.appendChild(o);
+      });
+      sel.onchange = function(){
+        var k = kmap[sel.value]; if(!k) return;
+        if(parseValor(k.valor)) box.querySelector("#pl-val").value = parseValor(k.valor);
+        if(k.inicio) box.querySelector("#pl-ini").value = String(k.inicio).slice(0,7);
+      };
+    });
+    box.querySelector("#pl-x").onclick = function(){ close(); };
+    box.querySelector("#pl-ok").onclick = function(){
+      var k = kmap[box.querySelector("#pl-k").value];
+      var val = parseFloat(box.querySelector("#pl-val").value);
+      var dia = Math.min(28, Math.max(1, parseInt(box.querySelector("#pl-dia").value, 10) || 1));
+      var ini = box.querySelector("#pl-ini").value;
+      var n = Math.min(24, Math.max(1, parseInt(box.querySelector("#pl-n").value, 10) || 1));
+      if(!k || !isFinite(val) || !ini){ box.querySelector("#pl-err").textContent = "Falta contrato, valor ou mês."; return; }
+      var scope = getScope();
+      var parts = ini.split("-"), y = +parts[0], mo = +parts[1] - 1;
+      var jobs = [];
+      for(var i = 0; i < n; i++){
+        var d = new Date(y, mo + i, dia);
+        var venc = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+        jobs.push(colPut("pagamentos", newId(), {
+          contrato: k.id, contratoTitulo: k.titulo || k.cliente || "",
+          descricao: (k.titulo || "Contrato") + " · " + d.toLocaleDateString("pt-PT",{ month:"long", year:"numeric" }),
+          cliente: k.cliente || "", valor: val, emitido:"", vencimento: venc,
+          estado:"pendente", pago:false, dataPagamento:"", metodo:"", notas:"", scope: scope
+        }));
+      }
+      box.querySelector("#pl-ok").disabled = true;
+      Promise.all(jobs).then(function(){ toast(n + " cobranças criadas"); close(); pagamentosView(); refreshNotifs(); });
+    };
+  }, { cls:"lg" });
 }
 
 /* ============================ WORKSPACES ============================ */
