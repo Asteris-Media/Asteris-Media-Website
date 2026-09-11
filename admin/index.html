@@ -651,6 +651,7 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
       <button data-v="workspaces"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5z"/><path d="m2 12 10 5 10-5M2 17l10 5 10-5"/></svg>Workspaces</button>
       <button data-v="clientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>Clientes</button>
       <button data-v="tarefas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 17 2 2 4-4M3 7l2 2 4-4"/><path d="M13 6h8M13 12h8M13 18h8"/></svg>Tarefas</button>
+      <button data-v="projetos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>Projetos</button>
       <button data-v="contratos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h11a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4"/><path d="M19 17V5a2 2 0 0 0-2-2H5"/></svg>Contratos</button>
       <button data-v="pagamentos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>Pagamentos</button>
       <button data-v="prospeccao"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/></svg>Prospecção</button>
@@ -1127,7 +1128,11 @@ var ICN = {
   partilhado: _si('<circle cx="9" cy="9" r="3"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M16 8.5a3 3 0 0 1 0 5.4"/><path d="M18 20a5.5 5.5 0 0 0-3.5-5.1"/>'),
   link:       ICO_LINK,
   euro:       _si('<path d="M17 6.5A6 6 0 1 0 17 17.5"/><path d="M4 10h9M4 14h9"/>'),
-  lista:      _si('<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6l1 1 1.5-1.5M4.5 12l1 1 1.5-1.5M4.5 18l1 1 1.5-1.5"/>')
+  lista:      _si('<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6l1 1 1.5-1.5M4.5 12l1 1 1.5-1.5M4.5 18l1 1 1.5-1.5"/>'),
+  projeto:    _si('<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>'),
+  pessoa:     _si('<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>'),
+  contrato:   _si('<path d="M8 21h11a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4"/><path d="M19 17V5a2 2 0 0 0-2-2H5"/>'),
+  timeline:   _si('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>')
 };
 var TAG_ICONS = [
   ["lampada","Ideia", _si('<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.7.6 1 1.5 1 2.5h6c0-1 .3-1.9 1-2.5A6 6 0 0 0 12 3z"/>')],
@@ -1169,7 +1174,7 @@ function cbar(leftHtml, rightHtml){
 /* ============================ router ============================ */
 var VIEW = null;
 var VIEW_TITLES = { painel:"Painel", links:"Links", proposta:"Propostas", portfolio:"Portfólio",
-  entrega:"Entregas", selecao:"Seleções", workspaces:"Workspaces", clientes:"Clientes", tarefas:"Tarefas", contratos:"Contratos",
+  entrega:"Entregas", selecao:"Seleções", workspaces:"Workspaces", clientes:"Clientes", tarefas:"Tarefas", projetos:"Projetos", contratos:"Contratos",
   pagamentos:"Pagamentos", prospeccao:"Prospecção", notas:"Notas", calendario:"Calendário", biblioteca:"Biblioteca", log:"Registo de atividade" };
 function openView(v){
   closeMenu();
@@ -1183,7 +1188,7 @@ function openView(v){
     painel: painelView, links: linksView,
     proposta: function(){ catView("proposta"); }, portfolio: function(){ catView("portfolio"); },
     entrega: function(){ catView("entrega"); }, selecao: function(){ catView("selecao"); },
-    clientes: clientesView, tarefas: tarefasView, contratos: contratosView, calendario: calendarioView,
+    clientes: clientesView, tarefas: tarefasView, projetos: projetosView, contratos: contratosView, calendario: calendarioView,
     pagamentos: pagamentosView, prospeccao: prospeccaoView, notas: notasView, workspaces: workspacesView,
     biblioteca: libraryView, log: logView
   }[v] || painelView)();
@@ -2934,6 +2939,361 @@ function tarefaForm(t){
   });
 }
 
+/* ---------------- PROJETOS ---------------- */
+var PROJ_ESTADOS = [["ativo","Ativo"],["concluido","Concluído"],["arquivado","Arquivado"]];
+var PROJ_TIPOS = ["Único","Recorrente"];
+var PROJ_CHIP = { ativo:"chip ok", concluido:"chip", arquivado:"chip bad" };
+function projLbl(e){ var m = PROJ_ESTADOS.filter(function(x){ return x[0] === e; })[0]; return m ? m[1] : "Ativo"; }
+
+function projetosView(){
+  var v = $("#view"); v.innerHTML = "";
+  var head = el("div","view-head");
+  head.appendChild(scopeTabs(projetosView));
+  var add = el("button","btn gold", ICO_PLUS + "Projeto"); add.onclick = function(){ projetoForm(null, function(item){ projetoModal(item); }); };
+  head.appendChild(add); v.appendChild(head);
+
+  var chips = el("div","filter-row"); v.appendChild(chips);
+  var grid = el("div","card-grid"); grid.innerHTML = '<div class="wide-empty">a carregar…</div>'; v.appendChild(grid);
+  col("projetos").then(function(items){
+    items = items.filter(scopeMatch);
+    var counts = {}; items.forEach(function(p){ var e = p.estado || "ativo"; counts[e] = (counts[e] || 0) + 1; });
+    var cur = projetosView._f || "";
+    chips.innerHTML = "";
+    var all = el("span","chip" + (cur === "" ? " on" : ""), "Todos · " + items.length);
+    all.onclick = function(){ projetosView._f = ""; projetosView(); }; chips.appendChild(all);
+    PROJ_ESTADOS.forEach(function(e){
+      if(!counts[e[0]]) return;
+      var c = el("span","chip" + (cur === e[0] ? " on" : ""), e[1] + " · " + counts[e[0]]);
+      c.onclick = function(){ projetosView._f = e[0]; projetosView(); };
+      chips.appendChild(c);
+    });
+    var show = cur ? items.filter(function(p){ return (p.estado || "ativo") === cur; }) : items;
+    grid.innerHTML = "";
+    if(!show.length){ grid.appendChild(el("div","wide-empty","Sem projetos. Cria o primeiro.")); return; }
+    show.forEach(function(p){
+      var est = p.estado || "ativo";
+      var nCt = (p.contratos || []).length;
+      var card = el("div","gcard");
+      card.innerHTML =
+        '<span class="g-bar"></span>'
+        + '<button class="menu-btn" aria-label="Ações">&#8942;</button>'
+        + '<div class="g-nm">' + esc(p.titulo || "(sem título)") + '</div>'
+        + '<div class="g-body"><div class="g-rows">'
+        +   (p.cliente ? '<div><b>' + esc(p.cliente) + '</b></div>' : '')
+        +   (p.dataEntrega ? '<div>Entrega <b>' + fmtDate(p.dataEntrega) + '</b></div>' : '')
+        +   (p.valor ? '<div>Valor <b>' + esc(p.valor) + '</b></div>' : '')
+        +   '<div>' + nCt + ' contrato' + (nCt === 1 ? '' : 's') + '</div>'
+        + '</div></div>'
+        + cbar('<span class="' + PROJ_CHIP[est] + '"><span>' + projLbl(est) + '</span></span>',
+            (p.tipo ? '<span class="chip">' + esc(p.tipo) + '</span>' : '') + scopeChip(p.scope));
+      var mb = card.querySelector(".menu-btn");
+      mb.onclick = function(e){ e.stopPropagation(); rowMenu(mb, function(){ projetoForm(p, function(item){ p = item; projetoModal(p); }); }, "projetos", p.id, projetosView, "Apagar projeto?"); };
+      card.addEventListener("click", function(e){ if(!e.target.closest(".menu-btn")) projetoModal(p); });
+      grid.appendChild(card);
+    });
+  });
+}
+
+function projetoForm(p, onSaved){
+  p = p || {};
+  modal(function(box, close){
+    box.innerHTML = '<h4>' + (p.id ? "Editar projeto" : "Novo projeto") + '</h4>'
+      + frow("Título","pj-t",p.titulo)
+      + '<div class="row"><div class="field"><label>Cliente</label><input id="pj-cli" value="' + esc(p.cliente || "") + '"></div>'
+      +   '<div class="field"><label>Tipo</label><select id="pj-tipo">' + PROJ_TIPOS.map(function(t){ return '<option' + (p.tipo === t ? " selected" : "") + '>' + t + '</option>'; }).join("") + '</select></div></div>'
+      + '<div class="row"><div class="field"><label>Início</label><input type="date" id="pj-ini" value="' + esc(p.dataInicio || "") + '"></div>'
+      +   '<div class="field"><label>Entrega</label><input type="date" id="pj-ent" value="' + esc(p.dataEntrega || "") + '"></div></div>'
+      + frow("Valor (ex.: 1900 EUR)","pj-val",p.valor)
+      + scopeRow(p.scope)
+      + '<div class="err" id="pj-err"></div>'
+      + '<div class="mrow"><button class="btn ghost" id="pj-x">Cancelar</button><button class="btn gold" id="pj-ok">Guardar</button></div>';
+    var getScope = bindScope(box);
+    bindClienteAutocomplete(box.querySelector("#pj-cli"));
+    box.querySelector("#pj-x").onclick = function(){ close(); };
+    box.querySelector("#pj-ok").onclick = function(){
+      var titulo = box.querySelector("#pj-t").value.trim();
+      if(!titulo){ box.querySelector("#pj-err").textContent = "Dá um título ao projeto."; return; }
+      colPut("projetos", p.id || newId(), {
+        titulo: titulo, cliente: box.querySelector("#pj-cli").value.trim(),
+        tipo: box.querySelector("#pj-tipo").value, dataInicio: box.querySelector("#pj-ini").value,
+        dataEntrega: box.querySelector("#pj-ent").value, valor: box.querySelector("#pj-val").value.trim(),
+        estado: p.estado || "ativo", contratos: p.contratos || [], colaboradores: p.colaboradores || [],
+        timeline: p.timeline || [], scope: getScope()
+      }).then(function(r){
+        if(!r || !r.ok){ box.querySelector("#pj-err").textContent = (r && r.j && r.j.error) || "Não foi possível guardar."; return; }
+        toast("Guardado"); close();
+        var item = (r.j && r.j.item) || Object.assign(p, {});
+        if(onSaved) onSaved(item); else projetosView();
+      });
+    };
+    box.querySelector("#pj-t").focus();
+  }, { cls:"lg" });
+}
+
+function projetoModal(p){
+  return col("contratos").then(function(allContratos){
+    return modal(function(box, close){
+      function persist(patch){
+        var payload = {
+          titulo:p.titulo, cliente:p.cliente, tipo:p.tipo, dataInicio:p.dataInicio, dataEntrega:p.dataEntrega,
+          valor:p.valor, estado:p.estado || "ativo", contratos:p.contratos || [], colaboradores:p.colaboradores || [],
+          timeline:p.timeline || [], scope:p.scope
+        };
+        Object.assign(payload, patch);
+        return colPut("projetos", p.id, payload).then(function(r){
+          if(r && r.ok){ p = r.j && r.j.item ? r.j.item : Object.assign(p, payload); }
+          return r;
+        });
+      }
+
+      var body = el("div"); box.appendChild(body);
+      function render(){
+        var box = body; box.innerHTML = "";
+        var est = p.estado || "ativo";
+
+        var hd = el("div","ws-head");
+        hd.innerHTML = '<div class="wh-t">' + esc(p.titulo || "") + '</div>'
+          + '<div class="wh-links">'
+          +   '<span class="' + PROJ_CHIP[est] + '"><span>' + projLbl(est) + '</span></span>'
+          +   (p.tipo ? '<span class="chip">' + esc(p.tipo) + '</span>' : '')
+          +   scopeChip(p.scope)
+          +   (p.cliente ? '<a data-go="clientes">' + ICO_LINK + '<span>' + esc(p.cliente) + '</span></a>' : '')
+          + '</div>'
+          + (p.dataInicio || p.dataEntrega || p.valor ? '<div class="wh-desc">'
+              + [p.dataInicio ? "Início " + fmtDate(p.dataInicio) : "", p.dataEntrega ? "Entrega " + fmtDate(p.dataEntrega) : "", p.valor ? "Valor " + esc(p.valor) : ""].filter(Boolean).join(" · ")
+              + '</div>' : '');
+        box.appendChild(hd);
+        hd.querySelectorAll("[data-go]").forEach(function(a){ a.onclick = function(){ close(); openView(a.dataset.go); }; });
+
+        var actions = el("div","ws-actions"); actions.style.flexWrap = "wrap";
+        var ed = el("button","btn ghost","Editar projeto");
+        ed.onclick = function(){ projetoForm(p, function(item){ p = item; render(); }); };
+        actions.appendChild(ed);
+        if(est !== "concluido"){
+          var doneBtn = el("button","btn ghost","Concluir");
+          doneBtn.onclick = function(){ persist({ estado:"concluido" }).then(render); };
+          actions.appendChild(doneBtn);
+        }
+        if(est !== "arquivado"){
+          var arqBtn = el("button","btn ghost","Arquivar");
+          arqBtn.onclick = function(){ persist({ estado:"arquivado" }).then(render); };
+          actions.appendChild(arqBtn);
+        }
+        if(est !== "ativo"){
+          var reBtn = el("button","btn gold","Reabrir");
+          reBtn.onclick = function(){ persist({ estado:"ativo" }).then(render); };
+          actions.appendChild(reBtn);
+        }
+        var addBtn = el("button","btn gold", ICO_PLUS + "Adicionar");
+        addBtn.onclick = function(){
+          openMenu(addBtn, [
+            { label:"Contrato existente", onClick:function(){
+                pickContratoModal(allContratos, p.contratos || []).then(function(id){
+                  if(!id) return;
+                  p.contratos = (p.contratos || []).concat([id]);
+                  persist({ contratos:p.contratos }).then(render);
+                });
+            } },
+            { label:"Colaborador", onClick:function(){
+                colaboradorModal().then(function(c){
+                  if(!c) return;
+                  p.colaboradores = (p.colaboradores || []).concat([c]);
+                  persist({ colaboradores:p.colaboradores }).then(render);
+                });
+            } },
+            { label:"Evento na timeline", onClick:function(){
+                eventoModal().then(function(ev){
+                  if(!ev) return;
+                  p.timeline = (p.timeline || []).concat([ev]);
+                  persist({ timeline:p.timeline }).then(render);
+                });
+            } },
+            { label:"Nota", onClick:function(){ notaModal({ projeto:p.id, scope:p.scope }, render); } }
+          ]);
+        };
+        actions.appendChild(addBtn);
+        box.appendChild(actions);
+
+        /* contratos anexados */
+        var sh1 = el("div","ws-sec-h"); sh1.innerHTML = '<b>' + ICN.contrato + 'Contratos</b>'; box.appendChild(sh1);
+        var ctIds = p.contratos || [];
+        var ctList = el("div","card-list"); box.appendChild(ctList);
+        if(!ctIds.length){ ctList.appendChild(el("div","wide-empty","Sem contratos anexados.")); }
+        var ctPagamentos = [];
+        ctIds.forEach(function(id){
+          var c = allContratos.filter(function(x){ return x.id === id; })[0];
+          var row = el("div","lcard");
+          row.innerHTML =
+            '<div class="lc-lead"><span class="itag">' + ICN.contrato + '</span></div>'
+            + '<div class="lc-nm">' + esc(c ? (c.titulo || c.cliente || "Contrato") : "(contrato apagado)") + '</div>'
+            + '<div class="lc-sub">' + (c ? ("Início " + fmtDate(c.inicio) + (c.fim ? " · Fim " + fmtDate(c.fim) : "")) : "") + '</div>'
+            + '<div class="lc-aside"><button class="menu-btn" aria-label="Ações">&#8942;</button></div>';
+          var mb = row.querySelector(".menu-btn");
+          mb.onclick = function(e){
+            e.stopPropagation();
+            openMenu(mb, [
+              { label:"Abrir contrato", onClick:function(){ if(c) contratoForm(c); } },
+              { sep:true },
+              { label:"Desanexar", danger:true, onClick:function(){
+                  p.contratos = ctIds.filter(function(x){ return x !== id; });
+                  persist({ contratos:p.contratos }).then(render);
+              } }
+            ]);
+          };
+          if(c) row.addEventListener("click", function(e){ if(!e.target.closest(".menu-btn")) contratoForm(c); });
+          ctList.appendChild(row);
+        });
+
+        /* colaboradores */
+        var sh2 = el("div","ws-sec-h"); sh2.innerHTML = '<b>' + ICN.pessoa + 'Colaboradores</b>'; box.appendChild(sh2);
+        var colabs = p.colaboradores || [];
+        var clList = el("div","card-list"); box.appendChild(clList);
+        if(!colabs.length){ clList.appendChild(el("div","wide-empty","Sem colaboradores neste projeto.")); }
+        colabs.forEach(function(cb, i){
+          var row = el("div","lcard");
+          row.innerHTML =
+            '<div class="lc-lead"><span class="itag">' + ICN.pessoa + '</span></div>'
+            + '<div class="lc-nm">' + esc(cb.nome || "(sem nome)") + '</div>'
+            + '<div class="lc-sub">' + esc(cb.funcao || "") + '</div>'
+            + '<div class="lc-aside"><button class="menu-btn" aria-label="Ações">&#8942;</button></div>';
+          var mb = row.querySelector(".menu-btn");
+          mb.onclick = function(e){
+            e.stopPropagation();
+            openMenu(mb, [
+              { label:"Apagar", danger:true, onClick:function(){
+                  p.colaboradores = colabs.filter(function(x, j){ return j !== i; });
+                  persist({ colaboradores:p.colaboradores }).then(render);
+              } }
+            ]);
+          };
+          clList.appendChild(row);
+        });
+
+        /* notas do projeto */
+        var sh3 = el("div","ws-sec-h"); sh3.innerHTML = '<b>' + ICN.nota + 'Notas</b>'; box.appendChild(sh3);
+        var nlist = el("div","card-list"); nlist.innerHTML = '<div class="wide-empty">a carregar…</div>'; box.appendChild(nlist);
+        col("notas").then(function(items){
+          var mine = items.filter(function(n){ return n.projeto === p.id; });
+          nlist.innerHTML = "";
+          if(!mine.length){ nlist.appendChild(el("div","wide-empty","Sem notas neste projeto.")); return; }
+          mine.forEach(function(n){
+            var prev = (n.corpo || "").replace(/[#*`>_-]/g,"").replace(/\s+/g," ").trim().slice(0,140);
+            var c = el("div","lcard");
+            c.innerHTML =
+              '<div class="lc-lead"><span class="itag">' + ICN.nota + '</span></div>'
+              + '<div class="lc-nm">' + esc(n.titulo || "(sem título)") + '</div>'
+              + '<div class="lc-sub">' + esc(prev) + '</div>'
+              + '<div class="lc-aside"><button class="menu-btn" aria-label="Ações">&#8942;</button></div>'
+              + cbar('', '<span class="chip"><span>' + esc(n.categoria || "Outro") + '</span></span>' + scopeChip(n.scope));
+            var mb = c.querySelector(".menu-btn");
+            mb.onclick = function(e){ e.stopPropagation(); rowMenu(mb, function(){ notaModal(n, render); }, "notas", n.id, render, "Apagar nota?"); };
+            c.addEventListener("click", function(e){ if(!e.target.closest(".menu-btn")) notaModal(n, render); });
+            nlist.appendChild(c);
+          });
+        });
+
+        /* pagamentos dos contratos anexados */
+        var sh4 = el("div","ws-sec-h"); sh4.innerHTML = '<b>' + ICN.euro + 'Pagamentos</b>'; box.appendChild(sh4);
+        var pglist = el("div","card-list"); pglist.innerHTML = '<div class="wide-empty">a carregar…</div>'; box.appendChild(pglist);
+        col("pagamentos").then(function(items){
+          var mine = items.filter(function(pg){ return ctIds.indexOf(pg.contrato) >= 0; });
+          pglist.innerHTML = "";
+          if(!mine.length){ pglist.appendChild(el("div","wide-empty","Sem pagamentos ligados (anexa um contrato para ver os dele).")); return; }
+          mine.sort(function(a,b){ return String(a.vencimento||"").localeCompare(String(b.vencimento||"")); });
+          mine.forEach(function(pg){
+            var pe = pagEstado(pg);
+            var row = el("div","lcard");
+            row.innerHTML =
+              '<div class="lc-lead"><span class="itag">' + ICN.euro + '</span></div>'
+              + '<div class="lc-nm">' + esc(pg.descricao || "Pagamento") + '</div>'
+              + '<div class="lc-sub">' + fmtMoney(pg.valor) + (pg.vencimento ? " · vence " + fmtDate(pg.vencimento) : "") + '</div>'
+              + '<div class="lc-aside"></div>'
+              + cbar('', '<span class="' + PAG_CHIP[pe] + '"><span>' + PAG_LBL[pe] + '</span></span>');
+            row.addEventListener("click", function(){ pagamentoForm(pg); });
+            pglist.appendChild(row);
+          });
+        });
+
+        /* timeline */
+        var sh5 = el("div","ws-sec-h"); sh5.innerHTML = '<b>' + ICN.timeline + 'Timeline</b>'; box.appendChild(sh5);
+        var tl = (p.timeline || []).slice().sort(function(a,b){ return String(b.data||"").localeCompare(String(a.data||"")); });
+        var tlist = el("div","card-list"); box.appendChild(tlist);
+        if(!tl.length){ tlist.appendChild(el("div","wide-empty","Sem eventos na timeline.")); }
+        tl.forEach(function(ev){
+          var row = el("div","lcard");
+          row.innerHTML =
+            '<div class="lc-lead"><span class="itag">' + ICN.timeline + '</span></div>'
+            + '<div class="lc-nm">' + esc(ev.texto || "") + '</div>'
+            + '<div class="lc-sub">' + fmtDate(ev.data) + '</div>'
+            + '<div class="lc-aside"><button class="menu-btn" aria-label="Ações">&#8942;</button></div>';
+          var mb = row.querySelector(".menu-btn");
+          mb.onclick = function(e){
+            e.stopPropagation();
+            openMenu(mb, [
+              { label:"Apagar", danger:true, onClick:function(){
+                  p.timeline = (p.timeline || []).filter(function(x){ return x !== ev; });
+                  persist({ timeline:p.timeline }).then(render);
+              } }
+            ]);
+          };
+          tlist.appendChild(row);
+        });
+      }
+      render();
+    }, { cls:"xl" }).then(function(){ projetosView(); });
+  });
+}
+
+/* pequenos popups auxiliares do projeto */
+function pickContratoModal(allContratos, jaAnexados){
+  return modal(function(box, close){
+    var disponiveis = allContratos.filter(function(c){ return jaAnexados.indexOf(c.id) < 0; });
+    box.innerHTML = '<h4>Anexar contrato</h4>'
+      + (disponiveis.length ? '<div class="card-list" id="pc-list"></div>' : '<div class="wide-empty">Sem contratos disponíveis para anexar.</div>');
+    var list = box.querySelector("#pc-list");
+    if(list){
+      disponiveis.forEach(function(c){
+        var row = el("div","lcard");
+        row.innerHTML = '<div class="lc-lead"><span class="itag">' + ICN.contrato + '</span></div>'
+          + '<div class="lc-nm">' + esc(c.titulo || c.cliente || "Contrato") + '</div>'
+          + '<div class="lc-sub">' + (c.cliente || "") + '</div>';
+        row.addEventListener("click", function(){ close(c.id); });
+        list.appendChild(row);
+      });
+    }
+  }, { cls:"lg" });
+}
+function colaboradorModal(){
+  return modal(function(box, close){
+    box.innerHTML = '<h4>Novo colaborador</h4>'
+      + frow("Nome","cb-nome","")
+      + frow("Função","cb-funcao","")
+      + '<div class="mrow"><button class="btn ghost" id="cb-x">Cancelar</button><button class="btn gold" id="cb-ok">Adicionar</button></div>';
+    box.querySelector("#cb-x").onclick = function(){ close(); };
+    box.querySelector("#cb-ok").onclick = function(){
+      var nome = box.querySelector("#cb-nome").value.trim();
+      if(!nome) return;
+      close({ nome:nome, funcao: box.querySelector("#cb-funcao").value.trim() });
+    };
+    box.querySelector("#cb-nome").focus();
+  }, { cls:"lg" });
+}
+function eventoModal(){
+  return modal(function(box, close){
+    box.innerHTML = '<h4>Novo evento</h4>'
+      + '<div class="field"><label>Data</label><input type="date" id="ev-data" value="' + new Date().toISOString().slice(0,10) + '"></div>'
+      + frow("O que aconteceu","ev-texto","")
+      + '<div class="mrow"><button class="btn ghost" id="ev-x">Cancelar</button><button class="btn gold" id="ev-ok">Adicionar</button></div>';
+    box.querySelector("#ev-x").onclick = function(){ close(); };
+    box.querySelector("#ev-ok").onclick = function(){
+      var texto = box.querySelector("#ev-texto").value.trim();
+      if(!texto) return;
+      close({ data: box.querySelector("#ev-data").value, texto:texto });
+    };
+    box.querySelector("#ev-texto").focus();
+  }, { cls:"lg" });
+}
+
 /* ---------------- CONTRATOS ---------------- */
 function contratosView(){
   var v = $("#view"); v.innerHTML = "";
@@ -3316,6 +3676,7 @@ function notaModal(n, after){
         var payload = {
           titulo: titulo, categoria: box.querySelector("#no-cat").value,
           workspace: (box.querySelector("#no-ws") || {}).value || "",
+          projeto: n.projeto || "",
           corpo: bodyEl.value, scope: getScope()
         };
         colPut("notas", n.id || (n.id = newId()), payload).then(function(r){

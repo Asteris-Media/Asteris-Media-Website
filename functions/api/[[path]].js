@@ -767,7 +767,7 @@ if(b) b.onclick=function(){
   // PUT  /api/col/<nome>/<id>       -> upsert
   // DELETE /api/col/<nome>/<id>     -> apaga
   if (seg[0] === "col") {
-    const COLS = ["clientes", "tarefas", "contratos", "agenda", "notas", "prospeccao", "workspaces", "pagamentos", "despesas"];
+    const COLS = ["clientes", "tarefas", "contratos", "agenda", "notas", "prospeccao", "workspaces", "pagamentos", "despesas", "projetos"];
     const name = (seg[1] || "").toLowerCase();
     if (!COLS.includes(name)) return json({ error: "coleção desconhecida" }, 404);
     const kvKey = "col:" + name;
