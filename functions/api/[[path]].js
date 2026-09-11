@@ -66,17 +66,30 @@ async function s3Conf(env) {
       accessKey: j.credentials.accessKeyId,
       secretKey: j.credentials.secretAccessKey,
       sessionToken: j.credentials.sessionToken || "",
-      region: j.region || "auto"
+      region: j.region || "auto",
+      userId: j.userId || ""
     };
     _s3ConfCache = conf; _s3ConfCacheAt = Date.now();
     return conf;
   } catch (e) { return null; }
 }
+// o bucket é partilhado entre todos os clientes do FFmpegLab — as credenciais só autorizam o
+// prefixo do próprio utilizador (userId), por isso toda chave real leva esse prefixo à frente;
+// o resto do código continua a falar em chaves "limpas" (sem o prefixo).
+function s3FullKey(conf, key) {
+  const p = conf.userId ? String(conf.userId).replace(/^\/+|\/+$/g, "") + "/" : "";
+  return p + String(key || "").replace(/^\/+/, "");
+}
+function s3StripPrefix(conf, fullKey) {
+  const p = conf.userId ? String(conf.userId).replace(/^\/+|\/+$/g, "") + "/" : "";
+  return p && fullKey.indexOf(p) === 0 ? fullKey.slice(p.length) : fullKey;
+}
 // devolve { url, headers } prontos para fetch(). `query` já vem ordenada e codificada (ver s3Query).
 // `payloadHash` = hash SHA-256 hex do corpo, ou "UNSIGNED-PAYLOAD" para streams grandes (upload).
 async function s3Sign(conf, method, key, { query = "", payloadHash = "UNSIGNED-PAYLOAD", extraHeaders = {} } = {}) {
   const u = new URL(conf.endpoint);
-  const canonicalUri = "/" + conf.bucket + (key ? "/" + key.split("/").map(encodeURIComponent).join("/") : "");
+  const fullKey = key ? s3FullKey(conf, key) : "";
+  const canonicalUri = "/" + conf.bucket + (fullKey ? "/" + fullKey.split("/").map(encodeURIComponent).join("/") : "");
   const now = new Date();
   const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
   const dateStamp = amzDate.slice(0, 8);
@@ -105,7 +118,8 @@ function s3Query(params) {
 // das Pages Functions em ficheiros grandes.
 async function s3PresignUrl(conf, method, key, expiresSeconds) {
   const u = new URL(conf.endpoint);
-  const canonicalUri = "/" + conf.bucket + "/" + key.split("/").map(encodeURIComponent).join("/");
+  const fullKey = s3FullKey(conf, key);
+  const canonicalUri = "/" + conf.bucket + "/" + fullKey.split("/").map(encodeURIComponent).join("/");
   const now = new Date();
   const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
   const dateStamp = amzDate.slice(0, 8);
@@ -145,9 +159,9 @@ async function s3Get(conf, key) {
 async function s3List(conf, prefix) {
   const out = [];
   let token = "";
+  const fullPrefix = s3FullKey(conf, prefix || "");
   do {
-    const params = { "list-type": "2", "max-keys": "1000" };
-    if (prefix) params.prefix = prefix;
+    const params = { "list-type": "2", "max-keys": "1000", prefix: fullPrefix };
     if (token) params["continuation-token"] = token;
     const { url, headers } = await s3Sign(conf, "GET", "", { query: s3Query(params), payloadHash: await sha256Hex("") });
     const r = await fetch(url, { headers });
@@ -155,8 +169,9 @@ async function s3List(conf, prefix) {
     const xml = await r.text();
     for (const m of xml.matchAll(/<Contents>([\s\S]*?)<\/Contents>/g)) {
       const block = m[1];
-      const key = (block.match(/<Key>([\s\S]*?)<\/Key>/) || [, ""])[1];
+      const rawKey = (block.match(/<Key>([\s\S]*?)<\/Key>/) || [, ""])[1];
       const size = +(block.match(/<Size>([\s\S]*?)<\/Size>/) || [, "0"])[1];
+      const key = s3StripPrefix(conf, rawKey);
       if (key) out.push({ key, size });
     }
     const trunc = /<IsTruncated>true<\/IsTruncated>/.test(xml);
@@ -275,7 +290,10 @@ export async function onRequest(context) {
       if (!r.ok) return json({ hasKey: true, ok: false, motivo: "s3config respondeu " + r.status });
       const j = await r.json().catch(() => null);
       if (!j || !j.endpoint || !j.bucketId || !j.credentials || !j.credentials.accessKeyId) return json({ hasKey: true, ok: false, motivo: "resposta do s3config não tem o formato esperado" });
-      return json({ hasKey: true, ok: true, bucket: j.bucketId, region: j.region || "auto", hasSessionToken: !!j.credentials.sessionToken });
+      const conf = await s3Conf(env);
+      let listOk = false, listMotivo = "";
+      try { await s3List(conf, ""); listOk = true; } catch (e) { listMotivo = String(e).slice(0, 200); }
+      return json({ hasKey: true, ok: true, bucket: j.bucketId, region: j.region || "auto", hasSessionToken: !!j.credentials.sessionToken, hasUserId: !!j.userId, listOk, listMotivo });
     } catch (e) { return json({ hasKey: true, ok: false, motivo: String(e).slice(0, 200) }); }
   }
 
