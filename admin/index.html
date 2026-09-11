@@ -414,6 +414,8 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
 /* popover de ações */
 .pop{position:fixed;z-index:85;min-width:190px;background:rgba(16,16,16,.7);backdrop-filter:blur(24px) saturate(1.5);-webkit-backdrop-filter:blur(24px) saturate(1.5);border:1px solid var(--edge2);border-radius:4px;padding:5px;box-shadow:0 14px 40px rgba(0,0,0,.6)}
 .pop button,.pop a{display:flex;width:100%;align-items:center;gap:9px;text-align:left;background:none;border:0;color:var(--ink);font-size:13.5px;padding:8px 10px;border-radius:4px;text-decoration:none}
+.ac-pop{max-width:none}
+.ac-pop .ac-sub{color:var(--faint);font-size:12px;margin-left:auto;padding-left:10px;flex-shrink:0}
 .pop button:hover,.pop a:hover{background:rgba(255,255,255,.06)}
 .pop .sep{height:1px;background:var(--edge);margin:4px 3px}
 .pop .head{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);padding:7px 10px 3px}
@@ -2693,6 +2695,44 @@ function col(name){ return api("GET","col/"+name).then(function(r){ return (r.j 
 function colPut(name, id, obj){ return api("PUT","col/"+name+"/"+id, obj); }
 function colDel(name, id){ return api("DELETE","col/"+name+"/"+id); }
 function newId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+var CLI_LIST = null;
+function loadClientes(force){
+  if(CLI_LIST && !force) return Promise.resolve(CLI_LIST);
+  return col("clientes").then(function(x){ CLI_LIST = x || []; return CLI_LIST; }).catch(function(){ CLI_LIST = CLI_LIST || []; return CLI_LIST; });
+}
+/* liga um <input> de cliente a uma lista de pesquisa (nome/empresa), sem obrigar a escolher da lista */
+function bindClienteAutocomplete(input){
+  var box = null, suppress = false;
+  function close(){ if(box){ box.remove(); box = null; } document.removeEventListener("mousedown", onDown, true); }
+  function onDown(e){ if(box && !box.contains(e.target) && e.target !== input) close(); }
+  function render(){
+    if(suppress){ suppress = false; return; }
+    var q = input.value.trim().toLowerCase();
+    loadClientes().then(function(list){
+      var matches = (q ? list.filter(function(c){
+        return (c.nome || "").toLowerCase().indexOf(q) >= 0 || (c.empresa || "").toLowerCase().indexOf(q) >= 0;
+      }) : list).slice(0, 8);
+      if(!matches.length){ close(); return; }
+      if(!box){
+        box = el("div","pop ac-pop");
+        document.body.appendChild(box);
+        document.addEventListener("mousedown", onDown, true);
+      }
+      box.innerHTML = "";
+      matches.forEach(function(c){
+        var b = el("button", null, esc(c.nome || "(sem nome)") + (c.empresa ? ' <span class="ac-sub">' + esc(c.empresa) + '</span>' : ""));
+        b.type = "button";
+        b.onmousedown = function(e){ e.preventDefault(); suppress = true; input.value = c.nome || ""; input.dispatchEvent(new Event("input", { bubbles:true })); close(); };
+        box.appendChild(b);
+      });
+      var r = input.getBoundingClientRect();
+      box.style.left = r.left + "px"; box.style.top = (r.bottom + 4) + "px"; box.style.width = r.width + "px";
+    });
+  }
+  input.addEventListener("focus", render);
+  input.addEventListener("input", render);
+  input.addEventListener("blur", close);
+}
 /* fecha + refresca só se guardou; senão avisa e mantém o formulário aberto */
 function afterSave(pr, close, refresh){
   return pr.then(function(r){
@@ -2837,6 +2877,7 @@ function tarefaForm(t){
         + '<div class="err" id="tf-err"></div>'
         + '<div class="mrow"><button class="btn ghost" id="tf-x">Cancelar</button><button class="btn gold" id="tf-ok">Guardar</button></div>';
       var getScope = bindScope(box);
+      bindClienteAutocomplete(box.querySelector("#tf-cli"));
       box.querySelector("#tf-x").onclick = function(){ close(); };
       box.querySelector("#tf-ok").onclick = function(){
         var titulo = box.querySelector("#tf-t").value.trim();
@@ -2925,6 +2966,7 @@ function contratoForm(c){
       + '<div class="err" id="kf-err"></div>'
       + '<div class="mrow"><button class="btn ghost" id="kf-x">Cancelar</button><button class="btn gold" id="kf-ok">Guardar</button></div>';
     var getScope = bindScope(box);
+    bindClienteAutocomplete(box.querySelector("#kf-cli"));
     var ptTipo = pag.tipo || "nenhum";
     var ptRow = box.querySelector("#kf-pt");
     ptRow.querySelectorAll("label").forEach(function(l){
@@ -3815,6 +3857,7 @@ function workspaceForm(w, onSaved){
       ip.appendChild(b);
     });
     var getScope = bindScope(box);
+    bindClienteAutocomplete(box.querySelector("#ws-cli"));
     box.querySelector("#ws-x").onclick = function(){ close(); };
     box.querySelector("#ws-ok").onclick = function(){
       var titulo = box.querySelector("#ws-t").value.trim();
