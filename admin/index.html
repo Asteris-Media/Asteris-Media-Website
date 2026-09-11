@@ -1322,23 +1322,25 @@ function loadStats(dash){
         + '</div>';
     }
 
-    /* 2 — FFmpegLab (entregas grandes, +10GB) */
-    var fl = s.ffmpeglab || {};
-    var flMaxB = (s.limits.ffmpeglab ? s.limits.ffmpeglab.storageGB : 50) * GB;
-    if(fl.bound && fl.bytes != null){
-      var flpct = fl.bytes / flMaxB * 100, flcls = pctCls(flpct);
-      html += '<div class="qcard '+flcls+'">'
-        + '<div class="qt">FFmpegLab · Entregas grandes</div>'
-        + '<div class="qbig">'+fmtBytes(fl.bytes)+' <small>/ '+(s.limits.ffmpeglab ? s.limits.ffmpeglab.storageGB : 50)+' GB</small></div>'
-        + '<div class="qbar"><i class="f '+flcls+'" style="width:'+Math.max(2, Math.min(100, flpct)).toFixed(1)+'%"></i></div>'
-        + '<div class="qmeta">'+fmtBytes(flMaxB - fl.bytes)+' livres · '+fl.objects+' ficheiro'+(fl.objects===1?'':'s')+' · zero custo de saída</div>'
-        + '</div>';
-    } else {
-      html += '<div class="qcard warn">'
-        + '<div class="qt">FFmpegLab · Entregas grandes</div>'
-        + '<div class="qbig">não ligado</div>'
-        + '<div class="qmeta">'+(fl.error ? "erro: "+esc(fl.error) : "Falta pôr a variável FFMPEGLAB_API_KEY no Pages.")+'</div>'
-        + '</div>';
+    /* 2 — FFmpegLab (entregas grandes, +10GB) — integração em pausa, ver README.md ("13. FFmpegLab") */
+    if(FFMPEGLAB_ATIVO){
+      var fl = s.ffmpeglab || {};
+      var flMaxB = (s.limits.ffmpeglab ? s.limits.ffmpeglab.storageGB : 50) * GB;
+      if(fl.bound && fl.bytes != null){
+        var flpct = fl.bytes / flMaxB * 100, flcls = pctCls(flpct);
+        html += '<div class="qcard '+flcls+'">'
+          + '<div class="qt">FFmpegLab · Entregas grandes</div>'
+          + '<div class="qbig">'+fmtBytes(fl.bytes)+' <small>/ '+(s.limits.ffmpeglab ? s.limits.ffmpeglab.storageGB : 50)+' GB</small></div>'
+          + '<div class="qbar"><i class="f '+flcls+'" style="width:'+Math.max(2, Math.min(100, flpct)).toFixed(1)+'%"></i></div>'
+          + '<div class="qmeta">'+fmtBytes(flMaxB - fl.bytes)+' livres · '+fl.objects+' ficheiro'+(fl.objects===1?'':'s')+' · zero custo de saída</div>'
+          + '</div>';
+      } else {
+        html += '<div class="qcard warn">'
+          + '<div class="qt">FFmpegLab · Entregas grandes</div>'
+          + '<div class="qbig">não ligado</div>'
+          + '<div class="qmeta">'+(fl.error ? "erro: "+esc(fl.error) : "Falta pôr a variável FFMPEGLAB_API_KEY no Pages.")+'</div>'
+          + '</div>';
+      }
     }
 
     /* 3 — Cloudinary (portfólio + seleção) */
@@ -1655,10 +1657,10 @@ function libraryView(){
     body.innerHTML = "";
     if(!lib){ body.innerHTML = '<div class="lib-empty">Nenhuma nuvem ligada.</div>'; return; }
     var clouds = [
-      { key:"r2", label:"R2 · Entregas", data: lib.r2 },
-      { key:"ffmpeglab", label:"FFmpegLab · Entregas grandes", data: lib.ffmpeglab },
-      { key:"cloudinary", label:"Cloudinary · Portfólio + Seleção", data: lib.cloudinary }
+      { key:"r2", label:"R2 · Entregas", data: lib.r2 }
     ];
+    if(FFMPEGLAB_ATIVO) clouds.push({ key:"ffmpeglab", label:"FFmpegLab · Entregas grandes", data: lib.ffmpeglab });
+    clouds.push({ key:"cloudinary", label:"Cloudinary · Portfólio + Seleção", data: lib.cloudinary });
     function show(key){
       LIB_TAB = key; saveLibPrefs({ tab: key });
       subtabs.querySelectorAll("button").forEach(function(b){ b.classList.toggle("on", b.dataset.k === key); });
@@ -2074,9 +2076,13 @@ function startFolderUpload(files, nameHint){
     box.querySelector("#fu-name").focus();
   }, { cls: "lg" });
 }
-/* entregas grandes vão para o FFmpegLab (50GB grátis), o resto fica no R2 */
+/* integração com o FFmpegLab em PAUSA — ver "13. FFmpegLab (storage extra) — em pausa"
+   no README.md do repo para o porquê e o que já foi tentado. Tudo o resto (upload-url,
+   media/ffmpeglab-*, limpezas, etc.) continua no código, só não é chamado por aqui. */
+var FFMPEGLAB_ATIVO = false;
 var FFMPEGLAB_LIMIAR = 10 * 1024 * 1024 * 1024; // 10GB
 function destForEntrega(files){
+  if(!FFMPEGLAB_ATIVO) return "r2";
   var total = 0;
   for(var i = 0; i < files.length; i++) total += files[i].size || 0;
   return total > FFMPEGLAB_LIMIAR ? "ffmpeglab" : "r2";

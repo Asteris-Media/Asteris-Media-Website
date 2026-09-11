@@ -3,7 +3,7 @@
 > Documento para quem vai continuar este projeto (humano ou outra IA).
 > Objetivo: entender **tudo** sem falar com quem construiu — o negócio, o sistema,
 > a arquitetura, as decisões, o que foi descartado e porquê, o que falta, e onde parámos.
-> Última atualização: **2026-09-09**.
+> Última atualização: **2026-09-11**.
 
 ---
 
@@ -229,6 +229,101 @@ Cripto: Web Crypto. `makeToken`/`checkToken` = `b64url(payload).b64url(HMAC-SHA2
 - **Auto-delete:** R2 = regra de ciclo de vida (POR CONFIGURAR no dashboard). Cloudinary = URL com `expires_at` + um cron de limpeza (POR FAZER). Nenhum dos dois está montado ainda.
 - **Storj** foi avaliado e **descartado** (trial 30 dias + mínimo $5/mês depois — não é grátis permanente). Backblaze B2 mencionado como alternativa sem cartão mas sem integração nativa com Pages.
 
+### 8.1 FFmpegLab (storage extra) — avaliado, integrado, **PAUSADO** (2026-09-11)
+
+O R2 grátis é só 10GB e o Brener achou pouco. Fomos atrás de alternativas grátis >25GB
+(ver histórico de conversa) — quase tudo era trial de 30 dias, pedia cartão, ou tinha
+menos espaço. A única que bateu a barra foi **FFmpegLab** (`ffmpeglab.com`), um "IDE de
+engenharia de media" open source, com um plano Starter **grátis pra sempre: 50GB, "Full
+S3-compatible API", zero custo de egress, sem cartão**.
+
+**Foi construída uma integração completa (SigV4 assinado à mão, sem SDK — o runtime das
+Pages Functions não tem npm) e depois teve de ser posta em pausa porque a promessa "Full
+S3-compatible API" não se confirmou na prática.** Fica tudo registado aqui para quem
+retomar (humano ou IA) não repetir o mesmo caminho.
+
+**O que foi testado, em ordem:**
+
+1. Conta grátis criada no `sia.storage` (nome parecido, **serviço diferente** — rede de
+   armazenamento descentralizada Sia) foi avaliada primeiro e **descartada**: dá 50GB mas
+   é um cofre pessoal por-app (o SDK encripta no dispositivo do próprio utilizador), sem
+   chave de API de servidor — não serve para um backend guardar/servir ficheiros de
+   clientes. O caminho real de API deles (**S3d**, do SiaFoundation) exige correr
+   infraestrutura própria ligada à rede Sia, não é a conta grátis de 50GB.
+2. **FFmpegLab**: a conta grátis **não dá um par de chaves S3 fixo para configurar à
+   mão** — dá uma **API key única** (Settings → API Keys → Create new API key). A partir
+   dela, `GET https://api.ffmpeglab.com/files/s3config` (header `Authorization: Bearer
+   <key>`) devolve credenciais S3 **temporárias** (estilo STS, com `sessionToken`):
+   ```json
+   { "bucketId":"prod", "region":"stub", "endpoint":"...", "userId":"<uuid>",
+     "credentials": { "accessKeyId":"...", "secretAccessKey":"...", "sessionToken":"..." } }
+   ```
+3. Implementada assinatura AWS SigV4 completa (header-auth e presigned-URL por query
+   string), validada estrutura por estrutura contra a documentação oficial da AWS
+   (`docs.aws.amazon.com/IAM/.../create-signed-request.html`) — a matemática está
+   correta. Implementado também envio **direto do navegador para o bucket** (URL
+   pré-assinada, para não bater no limite de tamanho de pedido das Pages Functions em
+   ficheiros grandes).
+4. **Testado ao vivo com a chave real do Brener e falhou:** `ListObjectsV2` devolve
+   `403 AccessDenied`, e **`PutObject` também devolve `403 AccessDenied`** — mesmo depois
+   de prefixar a chave com o `userId` (hipótese de bucket partilhado multi-inquilino
+   isolado por prefixo, testada e não resolveu; o erro veio explicitamente no recurso
+   `prod/<userId>/...`). Ou seja: **as credenciais "S3-compatíveis" que a conta devolve
+   não autorizam escrever nem listar diretamente no bucket**, apesar do marketing.
+5. Investigada a Swagger UI pública deles (`https://api.ffmpeglab.com/api`) para achar o
+   caminho real. A API que **de facto funciona** (a mesma que a própria interface deles
+   usa) é outra, autenticada com a mesma `Bearer <API key>`, **sem SigV4**:
+   - `POST /files/upload` — multipart/form-data, campo `file` — devolve `{ "link": "<url>" }`
+   - `GET /files/list` — devolve `FileObject[]` = `{ Key, LastModified, ETag, Size }`
+   - `GET /files/file/{id}` — um ficheiro específico
+   - **Não existe nenhuma rota de apagar ficheiro na API deles.** Procurado à exaustão na
+     Swagger, não está lá.
+
+**Por que ficou em pausa em vez de reescrito na hora:** a API real resolve upload/lista,
+mas (a) não tem delete, o que mata a funcionalidade de "apagar pasta"/"apagar sozinho
+depois de X dias" que o Brener pediu; (b) não tem conceito de pasta, é uma lista plana
+por conta; (c) o envio ainda teria de passar por um servidor — nosso (Function, mesmo
+limite de tamanho de pedido que motivou tudo isto) ou deles diretamente do navegador (o
+que expõe a `FFMPEGLAB_API_KEY` no código do lado do cliente, aceitável talvez para uma
+equipa de 2 pessoas mas é uma troca que o Brener tem de decidir, não uma IA sozinha). O
+Brener pediu para pausar e decidir depois.
+
+**Estado do código (tudo ficou no repo, desligado, não apagado):**
+- `functions/api/[[path]].js`: toda a maquinaria SigV4 (`s3Sign`, `s3PresignUrl`,
+  `s3Query`, `s3Put`, `s3Get`, `s3Delete`, `s3List`, `s3Conf`, `s3FullKey`,
+  `s3StripPrefix`) mais as rotas `/api/upload-url`, `/api/ffmpeglab/<key>` (GET pública,
+  serve ficheiro), `/api/ffmpeglab-check` (GET pública, diagnóstico — ver abaixo), o ramo
+  `ffmpeglab` em `/api/media` (listar), `/api/media/ffmpeglab-folder` (apagar pasta),
+  `/api/limpezas*` (agendar/varrer apagar automático — cobre R2 e FFmpegLab). **Nada
+  disto foi apagado**, mas como o `s3List`/`s3Put` batem sempre em 403 contra a API
+  atual, estas rotas não devem ser chamadas até haver uma reescrita.
+- `admin/index.html`: `var FFMPEGLAB_ATIVO = false;` — a **chave mestra da pausa**. Com
+  isto a `false`: `destForEntrega()` devolve sempre `"r2"` (nunca escolhe FFmpegLab), o
+  separador "FFmpegLab · Entregas grandes" não aparece na Biblioteca, e o card
+  correspondente não aparece no Painel. Mudar para `true` volta a ligar tudo — mas **não
+  vale a pena até a integração ser reescrita para usar `/files/upload` + `/files/list`
+  em vez de SigV4/S3 direto.**
+- **Diagnóstico já pronto para a próxima tentativa:** `GET /api/ffmpeglab-check`
+  (pública, sem login, não expõe segredos) testa: se a `FFMPEGLAB_API_KEY` está definida,
+  se o `s3config` responde, e faz um `list`+`put`+`get`+`delete` de teste reais contra o
+  bucket, devolvendo o motivo exato de cada falha. Correr isto primeiro em qualquer
+  retoma, antes de mexer em código.
+- Variável **`FFMPEGLAB_API_KEY`** já está posta no Cloudflare Pages (Secret) — pode
+  ficar lá, não faz mal nenhum enquanto `FFMPEGLAB_ATIVO` for `false` (só é lida quando
+  as rotas acima são chamadas).
+
+**Se algum dia se retomar isto, o caminho certo é:**
+1. Reescrever `s3Put`/`s3List`/`s3Get`/`s3Delete` para chamar `POST /files/upload` e
+   `GET /files/list` com `Authorization: Bearer FFMPEGLAB_API_KEY` (sem SigV4 nenhum —
+   apagar essa complexidade toda).
+2. Aceitar que não há delete via API — ou perguntar ao suporte deles se existe uma rota
+   não documentada, ou manter os ficheiros lá permanentemente (50GB dá para durar) e
+   gerir manualmente pela app/dashboard deles quando precisar limpar.
+3. Decidir com o Brener se vale expor a `FFMPEGLAB_API_KEY` ao browser para envio direto
+   sem limite de tamanho, ou se convive com o limite de tamanho de pedido das Pages
+   Functions (routing pelo nosso `/api/upload` como o Cloudinary já faz hoje).
+4. Voltar `FFMPEGLAB_ATIVO = true` só depois disso funcionar de ponta a ponta.
+
 ---
 
 ## 9. Contas, serviços, IDs
@@ -252,6 +347,7 @@ Cripto: Web Crypto. `makeToken`/`checkToken` = `b64url(payload).b64url(HMAC-SHA2
 - `CLOUDINARY_CLOUD` = `bv9q81il` (Text)
 - `CLOUDINARY_KEY` / `CLOUDINARY_SECRET` (Secret) — API keys da Cloudinary
 - (opcional) `R2_PUBLIC_BASE` — se um dia o R2 tiver domínio público, o upload devolve URLs desse domínio em vez de `/api/r2/`
+- `FFMPEGLAB_API_KEY` (Secret, já posta) — **integração em pausa**, ver secção 8.1. Fica sem efeito enquanto `FFMPEGLAB_ATIVO = false` em `admin/index.html`.
 
 **Bindings no Cloudflare Pages** (Settings → Bindings): `ASTERIS_KV` (KV) · `ASTERIS_R2` (R2 bucket `asteris-media`).
 
@@ -276,7 +372,7 @@ Cripto: Web Crypto. `makeToken`/`checkToken` = `b64url(payload).b64url(HMAC-SHA2
 4. **Portal = obscuridade por código**, sem login de cliente. Códigos longos aleatórios.
 5. **Base de dados = Cloudflare KV**, não ficheiros (Fase 2). Os exemplos ficam como ficheiros estáticos com fallback.
 6. **Admin com password própria** (sessão HMAC self-contained), sem Cloudflare Access.
-7. **Storage: R2 para entregas, Cloudinary para portfólio/seleção.** (ver secção 8). Storj descartado.
+7. **Storage: R2 para entregas, Cloudinary para portfólio/seleção.** (ver secção 8). Storj descartado. FFmpegLab (50GB grátis) integrado e depois **pausado** — API não permite o que o marketing promete, ver 8.1.
 8. **Compressão de vídeo = local com ffmpeg**, por agora. Cloudinary/Stream ficam como alternativa futura para transcoding automático (Stream é pago, ~5€/mês).
 9. **Cards antes/depois:** notas de "antes" em cinza morto + 👎, "depois" em dourado forte com glow + 👏. Fotos clicáveis (lightbox). No mobile viram carrossel.
 10. **DOCS navegáveis fora dos artifacts do Claude** — o Brener não quer depender do Claude; estão em `Documents/Projetos/Asteris/DOCS/` como HTML autónomo.
