@@ -250,6 +250,21 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
 .ws-head .wh-links a:hover{color:var(--ink);border-color:var(--ink)}
 .ws-sec-h{display:flex;align-items:center;justify-content:space-between;margin:22px 0 10px}
 .ws-sec-h b{font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+.ll-card{border:1px solid var(--edge2);border-radius:4px;padding:12px 14px;margin-bottom:8px;background:var(--panel)}
+.ll-head{display:flex;align-items:center;gap:8px}
+.ll-head .itag{width:20px;height:20px;flex-shrink:0}
+.ll-head b{flex:1;font-size:13.5px;font-weight:600}
+.ll-head .cnt{font-size:11.5px;color:var(--faint);font-variant-numeric:tabular-nums}
+.ll-items{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.ll-item{display:flex;align-items:center;gap:9px;font-size:13.5px;cursor:pointer;text-transform:none;letter-spacing:0;font-weight:400;color:var(--ink);margin:0}
+.ll-item input[type=checkbox]{width:15px;height:15px;flex-shrink:0}
+.ll-item span{flex:1}
+.ll-item.done span{color:var(--faint);text-decoration:line-through}
+.ll-del{opacity:0;background:none;border:0;color:var(--faint);font-size:11px;padding:2px 4px;line-height:1}
+.ll-item:hover .ll-del{opacity:1}
+.ll-del:hover{color:var(--neg)}
+.ll-add{margin-top:10px;width:100%;background:rgba(0,0,0,.25);border:1px dashed var(--edge2);border-radius:4px;padding:7px 10px;font-size:13px;color:var(--ink)}
+.ll-add::placeholder{color:var(--faint)}
 .cor-pick{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
 .cor-pick button{width:26px;height:26px;border-radius:50%;border:2px solid transparent;padding:0;cursor:pointer}
 .cor-pick button.on{border-color:var(--ink)}
@@ -411,6 +426,7 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
 .modal .err{min-height:0;margin-top:6px}
 .modal .mrow{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
 .modal.lg{max-width:470px}
+.modal.xl{max-width:720px}
 .modal .close-x{position:absolute;top:12px;right:12px;width:26px;height:26px;border:0;background:none;color:var(--faint);font-size:20px;line-height:1;border-radius:4px}
 .modal .close-x:hover{color:var(--ink);background:rgba(255,255,255,.08)}
 .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:90;background:rgba(16,16,16,.8);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);border:1px solid var(--edge2);color:var(--ink);font-size:13.5px;padding:10px 16px;border-radius:4px;box-shadow:0 10px 30px rgba(0,0,0,.6);opacity:0;transition:opacity .2s}
@@ -1057,7 +1073,8 @@ var ICN = {
   privado:    _si('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>'),
   partilhado: _si('<circle cx="9" cy="9" r="3"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M16 8.5a3 3 0 0 1 0 5.4"/><path d="M18 20a5.5 5.5 0 0 0-3.5-5.1"/>'),
   link:       ICO_LINK,
-  euro:       _si('<path d="M17 6.5A6 6 0 1 0 17 17.5"/><path d="M4 10h9M4 14h9"/>')
+  euro:       _si('<path d="M17 6.5A6 6 0 1 0 17 17.5"/><path d="M4 10h9M4 14h9"/>'),
+  lista:      _si('<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6l1 1 1.5-1.5M4.5 12l1 1 1.5-1.5M4.5 18l1 1 1.5-1.5"/>')
 };
 var TAG_ICONS = [
   ["lampada","Ideia", _si('<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.7.6 1 1.5 1 2.5h6c0-1 .3-1.9 1-2.5A6 6 0 0 0 12 3z"/>')],
@@ -3571,6 +3588,7 @@ function workspacesView(){
     ws.forEach(function(w){
       var nN = notas.filter(function(n){ return n.workspace === w.id; }).length;
       var nF = (w.ficheiros || []).length;
+      var nL = (w.listas || []).length;
       var lk = w.cliente || w.pagina;
       var c = el("div","gcard");
       c.innerHTML =
@@ -3579,7 +3597,7 @@ function workspacesView(){
         + '<div class="g-nm">' + esc(w.titulo || "(sem título)") + '</div>'
         + '<div class="g-body"><div class="g-desc">' + esc(w.descricao || "") + '</div></div>'
         + cbar(
-            '<span>' + ICN.nota + nN + '</span><span>' + ICN.ficheiro + nF + '</span>',
+            '<span>' + ICN.nota + nN + '</span><span>' + ICN.lista + nL + '</span><span>' + ICN.ficheiro + nF + '</span>',
             (w.tag ? tagChip(w.tagIcone, corOf(w), w.tag) : '') + scopeChip(w.scope) + (lk ? linkIconChip(lk) : '')
           );
       var mb = c.querySelector(".menu-btn");
@@ -3591,86 +3609,160 @@ function workspacesView(){
 }
 
 function workspaceView(w){
-  var v = $("#view"); v.innerHTML = "";
-  var back = el("button","btn ghost back","← Workspaces"); back.onclick = workspacesView; v.appendChild(back);
-
-  var hd = el("div","ws-head"); hd.style.borderLeftColor = corOf(w);
-  var links = "";
-  if(w.tag) links += tagChip(w.tagIcone, corOf(w), w.tag);
-  links += scopeChip(w.scope);
-  if(w.cliente) links += '<a data-go="clientes">' + ICO_LINK + '<span>' + esc(w.cliente) + '</span></a>';
-  if(w.pagina) links += '<a data-code="' + esc(w.pagina) + '">' + ICO_LINK + '<span>' + esc(w.pagina) + '</span></a>';
-  hd.innerHTML = '<div class="wh-t">' + esc(w.titulo || "") + '</div>'
-    + (w.descricao ? '<div class="wh-desc">' + esc(w.descricao) + '</div>' : '')
-    + (links ? '<div class="wh-links">' + links + '</div>' : '');
-  var ed = el("button","btn ghost sm","Editar workspace"); ed.style.marginTop = "12px";
-  ed.onclick = function(){ workspaceForm(w); };
-  hd.appendChild(ed);
-  v.appendChild(hd);
-  hd.querySelectorAll("[data-code]").forEach(function(a){ a.onclick = function(){ editView(a.dataset.code); }; });
-  hd.querySelectorAll("[data-go]").forEach(function(a){ a.onclick = function(){ openView(a.dataset.go); }; });
-
-  /* notas do espaço */
-  var sh1 = el("div","ws-sec-h");
-  sh1.innerHTML = '<b>Notas</b>';
-  var addN = el("button","btn gold sm", ICO_PLUS + "Nota");
-  addN.onclick = function(){ notaModal({ workspace: w.id, scope: w.scope }, function(){ workspaceView(w); }); };
-  sh1.appendChild(addN); v.appendChild(sh1);
-  var nlist = el("div","card-list"); nlist.innerHTML = '<div class="wide-empty">a carregar…</div>'; v.appendChild(nlist);
-  col("notas").then(function(items){
-    var mine = items.filter(function(n){ return n.workspace === w.id; });
-    nlist.innerHTML = "";
-    if(!mine.length){ nlist.appendChild(el("div","wide-empty","Sem notas neste espaço.")); return; }
-    mine.forEach(function(n){
-      var prev = (n.corpo || "").replace(/[#*`>_-]/g,"").replace(/\s+/g," ").trim().slice(0,140);
-      var c = el("div","lcard");
-      c.innerHTML =
-        '<div class="lc-lead"><span class="itag">' + ICN.nota + '</span></div>'
-        + '<div class="lc-nm">' + esc(n.titulo || "(sem título)") + '</div>'
-        + '<div class="lc-sub">' + esc(prev) + '</div>'
-        + '<div class="lc-aside"><button class="menu-btn" aria-label="Ações">&#8942;</button></div>'
-        + cbar('', '<span class="chip"><span>' + esc(n.categoria || "Outro") + '</span></span>' + scopeChip(n.scope));
-      var mb = c.querySelector(".menu-btn");
-      mb.onclick = function(e){ e.stopPropagation(); rowMenu(mb, function(){ notaModal(n, function(){ workspaceView(w); }); }, "notas", n.id, function(){ workspaceView(w); }, "Apagar nota?"); };
-      c.addEventListener("click", function(e){ if(!e.target.closest(".menu-btn")) notaModal(n, function(){ workspaceView(w); }); });
-      nlist.appendChild(c);
-    });
-  });
-
-  /* ficheiros do espaço */
-  var files = (w.ficheiros || []).slice();
-  var sh2 = el("div","ws-sec-h"); sh2.innerHTML = '<b>Ficheiros</b>';
-  var addF = el("button","btn gold sm", ICO_PLUS + "Anexar");
-  sh2.appendChild(addF); v.appendChild(sh2);
-  var flist = el("div","cc-files"); flist.style.marginTop = "0"; v.appendChild(flist);
-  function drawF(){
-    flist.innerHTML = "";
-    if(!files.length){ flist.appendChild(el("div","wide-empty","Sem ficheiros.")); return; }
-    files.forEach(function(f, i){
-      var a = el("a", null, esc(f.nome || "ficheiro")); a.href = f.url; a.target = "_blank"; a.rel = "noopener";
-      var x = el("button","btn ghost sm","✕"); x.style.marginLeft = "4px";
-      x.onclick = function(e){ e.preventDefault(); files.splice(i,1); persistF(); };
-      var wrap = el("span"); wrap.style.cssText = "display:inline-flex;align-items:center"; wrap.appendChild(a); wrap.appendChild(x);
-      flist.appendChild(wrap);
-    });
-  }
-  function persistF(){
-    colPut("workspaces", w.id, { titulo:w.titulo, tag:w.tag, tagIcone:w.tagIcone, cor:w.cor, cliente:w.cliente, pagina:w.pagina, descricao:w.descricao, scope:w.scope, ficheiros:files }).then(function(r){
-      if(r.j && r.j.item) w = r.j.item; drawF();
-    });
-  }
-  addF.onclick = function(){
-    promptModal({ title:"Anexar ficheiro", label:"Link (R2 / Cloudinary / Drive)", ok:"Continuar" }).then(function(url){
-      if(!url) return;
-      promptModal({ title:"Nome do ficheiro", value:(url.split("/").pop() || "").split("?")[0], ok:"Anexar" }).then(function(nome){
-        files.push({ url:url.trim(), nome:(nome || "ficheiro").trim() }); persistF();
+  var navigatedAway = false;
+  return modal(function(box, close){
+    function persist(patch){
+      var payload = {
+        titulo:w.titulo, tag:w.tag, tagIcone:w.tagIcone, cor:w.cor, cliente:w.cliente, pagina:w.pagina,
+        descricao:w.descricao, scope:w.scope, ficheiros:w.ficheiros || [], listas:w.listas || []
+      };
+      Object.assign(payload, patch);
+      return colPut("workspaces", w.id, payload).then(function(r){
+        if(r && r.ok){ w = r.j && r.j.item ? r.j.item : Object.assign(w, payload); WS_LIST = null; }
+        return r;
       });
-    });
-  };
-  drawF();
+    }
+
+    var body = el("div"); box.appendChild(body);
+    function render(){
+      var box = body; box.innerHTML = "";
+      var hd = el("div","ws-head"); hd.style.borderLeftColor = corOf(w);
+      var links = "";
+      if(w.tag) links += tagChip(w.tagIcone, corOf(w), w.tag);
+      links += scopeChip(w.scope);
+      if(w.cliente) links += '<a data-go="clientes">' + ICO_LINK + '<span>' + esc(w.cliente) + '</span></a>';
+      if(w.pagina) links += '<a data-code="' + esc(w.pagina) + '">' + ICO_LINK + '<span>' + esc(w.pagina) + '</span></a>';
+      hd.innerHTML = '<div class="wh-t">' + esc(w.titulo || "") + '</div>'
+        + (w.descricao ? '<div class="wh-desc">' + esc(w.descricao) + '</div>' : '')
+        + (links ? '<div class="wh-links">' + links + '</div>' : '');
+      var ed = el("button","btn ghost sm","Editar workspace"); ed.style.marginTop = "12px";
+      ed.onclick = function(){ workspaceForm(w, function(item){ w = item; render(); }); };
+      hd.appendChild(ed);
+      box.appendChild(hd);
+      hd.querySelectorAll("[data-code]").forEach(function(a){ a.onclick = function(){ navigatedAway = true; close(); editView(a.dataset.code); }; });
+      hd.querySelectorAll("[data-go]").forEach(function(a){ a.onclick = function(){ navigatedAway = true; close(); openView(a.dataset.go); }; });
+
+      var addRow = el("div","view-head"); addRow.style.margin = "16px 0 0";
+      var addBtn = el("button","btn gold sm", ICO_PLUS + "Adicionar");
+      addBtn.onclick = function(){
+        openMenu(addBtn, [
+          { label:"Nota", onClick:function(){ notaModal({ workspace:w.id, scope:w.scope }, render); } },
+          { label:"Lista", onClick:function(){
+              promptModal({ title:"Nova lista", label:"Título", ok:"Criar" }).then(function(t){
+                if(!t) return;
+                w.listas = (w.listas || []).concat([{ id:newId(), titulo:t, itens:[] }]);
+                persist({ listas:w.listas }).then(render);
+              });
+          } },
+          { label:"Ficheiro", onClick:function(){
+              promptModal({ title:"Anexar ficheiro", label:"Link (R2 / Cloudinary / Drive)", ok:"Continuar" }).then(function(url){
+                if(!url) return;
+                promptModal({ title:"Nome do ficheiro", value:(url.split("/").pop() || "").split("?")[0], ok:"Anexar" }).then(function(nome){
+                  w.ficheiros = (w.ficheiros || []).concat([{ url:url.trim(), nome:(nome || "ficheiro").trim() }]);
+                  persist({ ficheiros:w.ficheiros }).then(render);
+                });
+              });
+          } }
+        ]);
+      };
+      addRow.appendChild(addBtn); box.appendChild(addRow);
+
+      /* notas do espaço */
+      var sh1 = el("div","ws-sec-h"); sh1.innerHTML = '<b>Notas</b>'; box.appendChild(sh1);
+      var nlist = el("div","card-list"); nlist.innerHTML = '<div class="wide-empty">a carregar…</div>'; box.appendChild(nlist);
+      col("notas").then(function(items){
+        var mine = items.filter(function(n){ return n.workspace === w.id; });
+        nlist.innerHTML = "";
+        if(!mine.length){ nlist.appendChild(el("div","wide-empty","Sem notas neste espaço.")); return; }
+        mine.forEach(function(n){
+          var prev = (n.corpo || "").replace(/[#*`>_-]/g,"").replace(/\s+/g," ").trim().slice(0,140);
+          var c = el("div","lcard");
+          c.innerHTML =
+            '<div class="lc-lead"><span class="itag">' + ICN.nota + '</span></div>'
+            + '<div class="lc-nm">' + esc(n.titulo || "(sem título)") + '</div>'
+            + '<div class="lc-sub">' + esc(prev) + '</div>'
+            + '<div class="lc-aside"><button class="menu-btn" aria-label="Ações">&#8942;</button></div>'
+            + cbar('', '<span class="chip"><span>' + esc(n.categoria || "Outro") + '</span></span>' + scopeChip(n.scope));
+          var mb = c.querySelector(".menu-btn");
+          mb.onclick = function(e){ e.stopPropagation(); rowMenu(mb, function(){ notaModal(n, render); }, "notas", n.id, render, "Apagar nota?"); };
+          c.addEventListener("click", function(e){ if(!e.target.closest(".menu-btn")) notaModal(n, render); });
+          nlist.appendChild(c);
+        });
+      });
+
+      /* listas (checklists) do espaço */
+      var sh3 = el("div","ws-sec-h"); sh3.innerHTML = '<b>Listas</b>'; box.appendChild(sh3);
+      var llist = el("div","card-list"); box.appendChild(llist);
+      var listas = w.listas || [];
+      if(!listas.length){ llist.appendChild(el("div","wide-empty","Sem listas neste espaço.")); }
+      listas.forEach(function(lst){
+        var itens = lst.itens || [];
+        var done = itens.filter(function(it){ return it.feito; }).length;
+        var card = el("div","ll-card");
+        var head = el("div","ll-head");
+        head.innerHTML = '<span class="itag">' + ICN.lista + '</span><b>' + esc(lst.titulo || "(sem título)") + '</b><span class="cnt">' + done + '/' + itens.length + '</span>';
+        var mb = el("button","menu-btn","&#8942;"); mb.setAttribute("aria-label","Ações");
+        mb.onclick = function(e){
+          e.stopPropagation();
+          openMenu(mb, [
+            { label:"Renomear", onClick:function(){
+                promptModal({ title:"Renomear lista", value:lst.titulo, ok:"Guardar" }).then(function(t){
+                  if(!t) return; lst.titulo = t; persist({ listas:w.listas }).then(render);
+                });
+            } },
+            { sep:true },
+            { label:"Apagar lista", danger:true, onClick:function(){
+                confirmModal({ title:"Apagar lista?", message:"Não dá para desfazer.", ok:"Apagar", danger:true }).then(function(y){
+                  if(!y) return;
+                  w.listas = (w.listas || []).filter(function(x){ return x.id !== lst.id; });
+                  persist({ listas:w.listas }).then(render);
+                });
+            } }
+          ]);
+        };
+        head.appendChild(mb);
+        card.appendChild(head);
+        var itemsBox = el("div","ll-items");
+        itens.forEach(function(it, i){
+          var row = el("label","ll-item" + (it.feito ? " done" : ""));
+          var cb = el("input"); cb.type = "checkbox"; cb.checked = !!it.feito;
+          cb.onchange = function(){ it.feito = cb.checked; row.classList.toggle("done", cb.checked); persist({ listas:w.listas }); };
+          var span = el("span","", it.texto);
+          var del = el("button","ll-del","&#10005;"); del.setAttribute("aria-label","Remover item");
+          del.onclick = function(e){ e.preventDefault(); itens.splice(i,1); persist({ listas:w.listas }).then(render); };
+          row.appendChild(cb); row.appendChild(span); row.appendChild(del);
+          itemsBox.appendChild(row);
+        });
+        card.appendChild(itemsBox);
+        var addI = el("input","ll-add"); addI.placeholder = "+ item, Enter para adicionar";
+        addI.onkeydown = function(e){
+          if(e.key !== "Enter") return;
+          var t = addI.value.trim(); if(!t) return;
+          lst.itens = itens.concat([{ texto:t, feito:false }]);
+          persist({ listas:w.listas }).then(render);
+        };
+        card.appendChild(addI);
+        llist.appendChild(card);
+      });
+
+      /* ficheiros do espaço */
+      var sh2 = el("div","ws-sec-h"); sh2.innerHTML = '<b>Ficheiros</b>'; box.appendChild(sh2);
+      var flist = el("div","cc-files"); flist.style.marginTop = "0"; box.appendChild(flist);
+      var files = w.ficheiros || [];
+      if(!files.length){ flist.appendChild(el("div","wide-empty","Sem ficheiros.")); }
+      files.forEach(function(f, i){
+        var a = el("a", null, esc(f.nome || "ficheiro")); a.href = f.url; a.target = "_blank"; a.rel = "noopener";
+        var x = el("button","btn ghost sm","✕"); x.style.marginLeft = "4px";
+        x.onclick = function(e){ e.preventDefault(); files.splice(i,1); persist({ ficheiros:files }).then(render); };
+        var wrap = el("span"); wrap.style.cssText = "display:inline-flex;align-items:center"; wrap.appendChild(a); wrap.appendChild(x);
+        flist.appendChild(wrap);
+      });
+    }
+    render();
+  }, { cls:"xl" }).then(function(){ if(!navigatedAway) workspacesView(); });
 }
 
-function workspaceForm(w){
+function workspaceForm(w, onSaved){
   w = w || {};
   var cor = w.cor || WS_CORES[0][0];
   var ico = w.tagIcone || TAG_ICONS[0][0];
@@ -3707,11 +3799,14 @@ function workspaceForm(w){
         titulo: titulo, tag: box.querySelector("#ws-tag").value.trim(), tagIcone: ico, cor: cor,
         cliente: box.querySelector("#ws-cli").value.trim(), pagina: box.querySelector("#ws-pag").value.trim().toUpperCase(),
         descricao: box.querySelector("#ws-desc").value.trim(), scope: getScope(),
-        ficheiros: w.ficheiros || []
+        ficheiros: w.ficheiros || [], listas: w.listas || []
       }).then(function(r){
         if(!r || !r.ok){ toast((r && r.j && r.j.error) || "Não foi possível guardar"); return; }
         toast("Guardado"); close(); WS_LIST = null;
-        (r.j && r.j.item && w.id) ? workspaceView(r.j.item) : workspacesView();
+        var item = (r.j && r.j.item) || Object.assign(w, { titulo:titulo });
+        if(onSaved) onSaved(item);
+        else if(w.id) workspaceView(item);
+        else workspacesView();
       });
     };
     box.querySelector("#ws-t").focus();
