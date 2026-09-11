@@ -84,6 +84,30 @@ async function s3Sign(conf, method, key, { query = "", payloadHash = "UNSIGNED-P
 function s3Query(params) {
   return Object.keys(params).sort().map(k => encodeURIComponent(k) + "=" + encodeURIComponent(params[k])).join("&");
 }
+// URL pré-assinada (SigV4 por query string) — o browser envia os bytes DIRETO ao bucket,
+// sem passar pela Function. É o único jeito de não bater no limite de tamanho de pedido
+// das Pages Functions em ficheiros grandes.
+async function s3PresignUrl(conf, method, key, expiresSeconds) {
+  const u = new URL(conf.endpoint);
+  const canonicalUri = "/" + conf.bucket + "/" + key.split("/").map(encodeURIComponent).join("/");
+  const now = new Date();
+  const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
+  const dateStamp = amzDate.slice(0, 8);
+  const credentialScope = `${dateStamp}/${conf.region}/s3/aws4_request`;
+  const query = s3Query({
+    "X-Amz-Algorithm": "AWS4-HMAC-SHA256",
+    "X-Amz-Credential": `${conf.accessKey}/${credentialScope}`,
+    "X-Amz-Date": amzDate,
+    "X-Amz-Expires": String(expiresSeconds || 900),
+    "X-Amz-SignedHeaders": "host"
+  });
+  const canonicalRequest = [method, canonicalUri, query, "host:" + u.host + "\n", "host", "UNSIGNED-PAYLOAD"].join("\n");
+  const stringToSign = ["AWS4-HMAC-SHA256", amzDate, credentialScope, await sha256Hex(canonicalRequest)].join("\n");
+  let k = enc.encode("AWS4" + conf.secretKey);
+  for (const part of [dateStamp, conf.region, "s3", "aws4_request"]) k = await s3Hmac(k, part);
+  const signature = hex(await s3Hmac(k, stringToSign));
+  return conf.endpoint + canonicalUri + "?" + query + "&X-Amz-Signature=" + signature;
+}
 async function s3Put(conf, key, stream, contentType) {
   const { url, headers } = await s3Sign(conf, "PUT", key, { extraHeaders: contentType ? { "content-type": contentType } : {} });
   const r = await fetch(url, { method: "PUT", headers, body: stream });
@@ -774,6 +798,25 @@ if(b) b.onclick=function(){
     await env.ASTERIS_KV.put("col:limpezas", JSON.stringify(restantes));
     if (apagadas.length) await logAction(env, ME, "limpeza automática apagou " + apagadas.length + " pasta(s) vencida(s)", { detail: apagadas.map(a => a.folder).join(", ") });
     return json({ ok: true, apagadas, restantes: restantes.length });
+  }
+
+  // ---- pede uma URL de envio direto (o browser envia os bytes ao bucket sem passar por aqui) ----
+  // POST /api/upload-url  body: { folder, filename }  ->  { url, key, getUrl }
+  // Precisa que o bucket do FFmpegLab aceite CORS de origem do admin (Settings > CORS no painel deles);
+  // sem isso o browser bloqueia o PUT mesmo com a assinatura certa.
+  if (seg[0] === "upload-url" && method === "POST") {
+    const conf = s3Conf(env);
+    if (!conf) return json({ error: "FFmpegLab ainda não está ligado" }, 501);
+    const b = await request.json().catch(() => ({}));
+    const folder = String(b.folder || "media").replace(/[^a-z0-9/_-]/gi, "").replace(/^\/+|\/+$/g, "");
+    const orig = (b.filename || "ficheiro").replace(/[^a-z0-9.\-_]/gi, "-");
+    const ext = (orig.match(/\.[a-z0-9]{2,5}$/i) || [""])[0].toLowerCase();
+    const rand = [...crypto.getRandomValues(new Uint8Array(6))].map(x => x.toString(16).padStart(2, "0")).join("");
+    const key = `${folder}/${Date.now().toString(36)}-${rand}${ext}`;
+    const uploadUrl = await s3PresignUrl(conf, "PUT", key, 3600);
+    const base = env.FFMPEGLAB_PUBLIC_BASE || "";
+    const getUrl = base ? `${base.replace(/\/+$/, "")}/${key}` : `/api/ffmpeglab/${key}`;
+    return json({ ok: true, url: uploadUrl, key, getUrl });
   }
 
   if (seg[0] === "upload" && method === "POST") {

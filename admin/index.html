@@ -2088,15 +2088,28 @@ function maybeRunLimpezasDiario(){
 function uploadFiles(files, folder, dest, onProgress, fallbackDest){
   return new Promise(function(resolve){
     var ok = 0, fail = 0, i = 0;
-    function attempt(file, useDest, isRetry){
+    function viaFunction(file, useDest){
       var fd = new FormData();
       fd.append("file", file);
       fd.append("folder", folder);
       fd.append("dest", useDest);
-      return fetch("/api/upload", { method:"POST", body:fd })
+      return fetch("/api/upload", { method:"POST", body:fd }).then(function(x){ return x.json(); }).then(function(j){ return !!j.url; });
+    }
+    /* ficheiros grandes (FFmpegLab): pede uma URL assinada e o browser envia direto ao bucket,
+       sem passar pela nossa Function — assim não há limite de tamanho de pedido a bater. */
+    function viaPresign(file){
+      return fetch("/api/upload-url", { method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify({ folder: folder, filename: file.name }) })
         .then(function(x){ return x.json(); })
         .then(function(j){
-          if(j.url) return true;
+          if(!j.url) return false;
+          return fetch(j.url, { method:"PUT", body: file }).then(function(r){ return r.ok; });
+        });
+    }
+    function attempt(file, useDest, isRetry){
+      var go = useDest === "ffmpeglab" ? viaPresign(file) : viaFunction(file, useDest);
+      return go
+        .then(function(success){
+          if(success) return true;
           if(!isRetry && fallbackDest && fallbackDest !== useDest) return attempt(file, fallbackDest, true);
           return false;
         })
