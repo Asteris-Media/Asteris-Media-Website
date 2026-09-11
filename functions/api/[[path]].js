@@ -293,7 +293,18 @@ export async function onRequest(context) {
       const conf = await s3Conf(env);
       let listOk = false, listMotivo = "";
       try { await s3List(conf, ""); listOk = true; } catch (e) { listMotivo = String(e).slice(0, 200); }
-      return json({ hasKey: true, ok: true, bucket: j.bucketId, region: j.region || "auto", hasSessionToken: !!j.credentials.sessionToken, hasUserId: !!j.userId, listOk, listMotivo });
+      const testKey = "_diag/probe-" + Date.now() + ".txt";
+      let putOk = false, putMotivo = "", getOk = false, getMotivo = "", delOk = false, delMotivo = "";
+      try { await s3Put(conf, testKey, "ok", "text/plain"); putOk = true; } catch (e) { putMotivo = String(e).slice(0, 200); }
+      if (putOk) {
+        try { const gr = await s3Get(conf, testKey); getOk = gr.ok; if (!gr.ok) getMotivo = "status " + gr.status; } catch (e) { getMotivo = String(e).slice(0, 200); }
+        try { delOk = await s3Delete(conf, testKey); if (!delOk) delMotivo = "delete devolveu falso"; } catch (e) { delMotivo = String(e).slice(0, 200); }
+      }
+      return json({
+        hasKey: true, ok: true, bucket: j.bucketId, region: j.region || "auto",
+        hasSessionToken: !!j.credentials.sessionToken, hasUserId: !!j.userId,
+        listOk, listMotivo, putOk, putMotivo, getOk, getMotivo, delOk, delMotivo
+      });
     } catch (e) { return json({ hasKey: true, ok: false, motivo: String(e).slice(0, 200) }); }
   }
 
