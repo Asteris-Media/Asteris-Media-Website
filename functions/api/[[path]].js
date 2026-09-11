@@ -7,13 +7,11 @@
 //   CLOUDINARY_CLOUD  -> ex. bv9q81il            (opcional, p/ upload)
 //   CLOUDINARY_KEY    -> api key da Cloudinary   (opcional)
 //   CLOUDINARY_SECRET -> api secret da Cloudinary (opcional, secret)
-//   FFMPEGLAB_S3_ENDPOINT    -> ex. https://s3.ffmpeglab.com (opcional, storage extra p/ entregas grandes)
-//   FFMPEGLAB_S3_BUCKET      -> nome do bucket
-//   FFMPEGLAB_S3_ACCESS_KEY  -> access key S3
-//   FFMPEGLAB_S3_SECRET_KEY  -> secret key S3 (secret)
-//   FFMPEGLAB_S3_REGION      -> opcional, por defeito "auto"
-//   FFMPEGLAB_PUBLIC_BASE    -> opcional: se o bucket serve ficheiros por um domínio público direto,
-//                               poupa o proxy (ex. https://cdn.ffmpeglab.com/<bucket>)
+//   FFMPEGLAB_API_KEY -> chave de API do FFmpegLab (opcional, secret; Settings > API Keys > Create new
+//                         API key na conta deles). A partir dela pedimos as credenciais S3 temporárias
+//                         em GET /files/s3config — não há chave S3 fixa para configurar à mão.
+//   FFMPEGLAB_PUBLIC_BASE -> opcional: se o bucket servir ficheiros por um domínio público direto,
+//                            poupa o proxy (ex. https://cdn.ffmpeglab.com/<bucket>)
 
 const enc = new TextEncoder();
 const CT_JSON = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" };
@@ -51,11 +49,28 @@ async function s3Hmac(keyBuf, msg) {
   const key = await crypto.subtle.importKey("raw", keyBuf, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   return crypto.subtle.sign("HMAC", key, enc.encode(msg));
 }
-function s3Conf(env) {
-  const endpoint = String(env.FFMPEGLAB_S3_ENDPOINT || "").replace(/\/+$/, "");
-  const bucket = env.FFMPEGLAB_S3_BUCKET, accessKey = env.FFMPEGLAB_S3_ACCESS_KEY, secretKey = env.FFMPEGLAB_S3_SECRET_KEY;
-  const region = env.FFMPEGLAB_S3_REGION || "auto";
-  return (endpoint && bucket && accessKey && secretKey) ? { endpoint, bucket, accessKey, secretKey, region } : null;
+// as credenciais S3 do FFmpegLab são temporárias (STS) — pedimos com a nossa API key sempre
+// que precisamos, e guardamos por uns minutos em memória do isolate para não pedir de mais.
+let _s3ConfCache = null, _s3ConfCacheAt = 0;
+async function s3Conf(env) {
+  if (!env.FFMPEGLAB_API_KEY) return null;
+  if (_s3ConfCache && (Date.now() - _s3ConfCacheAt) < 4 * 60 * 1000) return _s3ConfCache;
+  try {
+    const r = await fetch("https://api.ffmpeglab.com/files/s3config", { headers: { authorization: "Bearer " + env.FFMPEGLAB_API_KEY } });
+    if (!r.ok) return null;
+    const j = await r.json();
+    if (!j || !j.endpoint || !j.bucketId || !j.credentials || !j.credentials.accessKeyId) return null;
+    const conf = {
+      endpoint: String(j.endpoint).replace(/\/+$/, ""),
+      bucket: j.bucketId,
+      accessKey: j.credentials.accessKeyId,
+      secretKey: j.credentials.secretAccessKey,
+      sessionToken: j.credentials.sessionToken || "",
+      region: j.region || "auto"
+    };
+    _s3ConfCache = conf; _s3ConfCacheAt = Date.now();
+    return conf;
+  } catch (e) { return null; }
 }
 // devolve { url, headers } prontos para fetch(). `query` já vem ordenada e codificada (ver s3Query).
 // `payloadHash` = hash SHA-256 hex do corpo, ou "UNSIGNED-PAYLOAD" para streams grandes (upload).
@@ -65,7 +80,8 @@ async function s3Sign(conf, method, key, { query = "", payloadHash = "UNSIGNED-P
   const now = new Date();
   const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
   const dateStamp = amzDate.slice(0, 8);
-  const headersObj = Object.assign({ host: u.host, "x-amz-date": amzDate, "x-amz-content-sha256": payloadHash }, extraHeaders);
+  const headersObj = Object.assign({ host: u.host, "x-amz-date": amzDate, "x-amz-content-sha256": payloadHash },
+    conf.sessionToken ? { "x-amz-security-token": conf.sessionToken } : {}, extraHeaders);
   const entries = Object.keys(headersObj).map(k => [k.toLowerCase(), String(headersObj[k]).trim().replace(/\s+/g, " ")]).sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0);
   const canonicalHeaders = entries.map(([k, v]) => k + ":" + v + "\n").join("");
   const signedHeaders = entries.map(([k]) => k).join(";");
@@ -94,13 +110,15 @@ async function s3PresignUrl(conf, method, key, expiresSeconds) {
   const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
   const dateStamp = amzDate.slice(0, 8);
   const credentialScope = `${dateStamp}/${conf.region}/s3/aws4_request`;
-  const query = s3Query({
+  const queryObj = {
     "X-Amz-Algorithm": "AWS4-HMAC-SHA256",
     "X-Amz-Credential": `${conf.accessKey}/${credentialScope}`,
     "X-Amz-Date": amzDate,
     "X-Amz-Expires": String(expiresSeconds || 900),
     "X-Amz-SignedHeaders": "host"
-  });
+  };
+  if (conf.sessionToken) queryObj["X-Amz-Security-Token"] = conf.sessionToken;
+  const query = s3Query(queryObj);
   const canonicalRequest = [method, canonicalUri, query, "host:" + u.host + "\n", "host", "UNSIGNED-PAYLOAD"].join("\n");
   const stringToSign = ["AWS4-HMAC-SHA256", amzDate, credentialScope, await sha256Hex(canonicalRequest)].join("\n");
   let k = enc.encode("AWS4" + conf.secretKey);
@@ -251,7 +269,7 @@ export async function onRequest(context) {
 
   // ---- servir ficheiro do FFmpegLab (S3) — mesma lógica do R2 acima ----
   if (seg[0] === "ffmpeglab" && method === "GET") {
-    const conf = s3Conf(env);
+    const conf = await s3Conf(env);
     if (!conf) return json({ error: "FFmpegLab não ligado" }, 501);
     const key = seg.slice(1).map(decodeURIComponent).join("/");
     if (env.FFMPEGLAB_PUBLIC_BASE) return Response.redirect(env.FFMPEGLAB_PUBLIC_BASE.replace(/\/+$/, "") + "/" + key.split("/").map(encodeURIComponent).join("/"), 302);
@@ -287,7 +305,7 @@ export async function onRequest(context) {
           if (!files.length) diag = `Sem ficheiros com o prefixo "${folder}/" no R2.`;
         }
       } else if (cloud === "ffmpeglab") {
-        const conf = s3Conf(env);
+        const conf = await s3Conf(env);
         if (!conf) diag = "FFmpegLab não ligado.";
         else {
           const objs = await s3List(conf, folder + "/");
@@ -430,10 +448,11 @@ if(b) b.onclick=function(){
       } catch (e) { r2.error = String(e); }
     }
 
-    const ffmpeglab = { bound: !!s3Conf(env), objects: null, bytes: null };
-    if (ffmpeglab.bound) {
+    const ffConf = await s3Conf(env);
+    const ffmpeglab = { bound: !!ffConf, objects: null, bytes: null };
+    if (ffConf) {
       try {
-        const objs = await s3List(s3Conf(env), "");
+        const objs = await s3List(ffConf, "");
         ffmpeglab.objects = objs.length;
         ffmpeglab.bytes = objs.reduce((s, x) => s + (x.size || 0), 0);
       } catch (e) { ffmpeglab.error = String(e).slice(0, 120); }
@@ -491,11 +510,12 @@ if(b) b.onclick=function(){
     const tagsRaw = await env.ASTERIS_KV.get("mediatags");
     const TAGS = tagsRaw ? JSON.parse(tagsRaw) : {};
     const tagOf = (name) => TAGS[name] || (/entrega/i.test(name) ? "entrega" : /selec/i.test(name) ? "selecao" : /portf/i.test(name) ? "portfolio" : "");
-    const out = { r2: { bound: !!env.ASTERIS_R2, folders: [] }, cloudinary: { configured: !!(env.CLOUDINARY_CLOUD && env.CLOUDINARY_KEY && env.CLOUDINARY_SECRET), folders: [] }, ffmpeglab: { configured: !!s3Conf(env), folders: [] } };
+    const ffConfMedia = await s3Conf(env);
+    const out = { r2: { bound: !!env.ASTERIS_R2, folders: [] }, cloudinary: { configured: !!(env.CLOUDINARY_CLOUD && env.CLOUDINARY_KEY && env.CLOUDINARY_SECRET), folders: [] }, ffmpeglab: { configured: !!ffConfMedia, folders: [] } };
 
     if (out.ffmpeglab.configured) {
       try {
-        const conf = s3Conf(env);
+        const conf = ffConfMedia;
         const objs = await s3List(conf, "");
         const map = {};
         for (const o of objs) {
@@ -553,10 +573,11 @@ if(b) b.onclick=function(){
   if (seg[0] === "media" && seg[1] === "files" && method === "DELETE") {
     const b = await request.json().catch(() => ({}));
     let n = 0, erros = [];
+    const ffConfDel = b.cloud === "ffmpeglab" ? await s3Conf(env) : null;
     if (b.cloud === "r2" && env.ASTERIS_R2) {
       for (const k of (b.keys || [])) { try { await env.ASTERIS_R2.delete(k); n++; } catch (e) { erros.push(k); } }
-    } else if (b.cloud === "ffmpeglab" && s3Conf(env)) {
-      const conf = s3Conf(env);
+    } else if (b.cloud === "ffmpeglab" && ffConfDel) {
+      const conf = ffConfDel;
       for (const k of (b.keys || [])) { try { await s3Delete(conf, k); n++; } catch (e) { erros.push(k); } }
     } else if (b.cloud === "cloudinary" && env.CLOUDINARY_CLOUD && env.CLOUDINARY_KEY && env.CLOUDINARY_SECRET) {
       const auth = btoa(`${env.CLOUDINARY_KEY}:${env.CLOUDINARY_SECRET}`);
@@ -593,7 +614,7 @@ if(b) b.onclick=function(){
 
   // ---- apagar uma pasta inteira do FFmpegLab (S3) ----
   if (seg[0] === "media" && seg[1] === "ffmpeglab-folder" && method === "DELETE") {
-    const conf = s3Conf(env);
+    const conf = await s3Conf(env);
     if (!conf) return json({ error: "FFmpegLab não ligado" }, 501);
     const prefix = decodeURIComponent(seg.slice(2).join("/"));
     if (!prefix || prefix === "(raiz)") return json({ error: "pasta inválida" }, 400);
@@ -798,8 +819,9 @@ if(b) b.onclick=function(){
             for (const o of r.objects) { await env.ASTERIS_R2.delete(o.key); n++; }
             cursor = r.truncated ? r.cursor : null;
           } while (cursor);
-        } else if (it.cloud === "ffmpeglab" && s3Conf(env)) {
-          const conf = s3Conf(env);
+        } else if (it.cloud === "ffmpeglab") {
+          const conf = await s3Conf(env);
+          if (!conf) { restantes.push(it); continue; }
           const objs = await s3List(conf, it.folder + "/");
           for (const o of objs) { if (await s3Delete(conf, o.key)) n++; }
         }
@@ -816,7 +838,7 @@ if(b) b.onclick=function(){
   // Precisa que o bucket do FFmpegLab aceite CORS de origem do admin (Settings > CORS no painel deles);
   // sem isso o browser bloqueia o PUT mesmo com a assinatura certa.
   if (seg[0] === "upload-url" && method === "POST") {
-    const conf = s3Conf(env);
+    const conf = await s3Conf(env);
     if (!conf) return json({ error: "FFmpegLab ainda não está ligado" }, 501);
     const b = await request.json().catch(() => ({}));
     const folder = String(b.folder || "media").replace(/[^a-z0-9/_-]/gi, "").replace(/^\/+|\/+$/g, "");
@@ -824,7 +846,9 @@ if(b) b.onclick=function(){
     const ext = (orig.match(/\.[a-z0-9]{2,5}$/i) || [""])[0].toLowerCase();
     const rand = [...crypto.getRandomValues(new Uint8Array(6))].map(x => x.toString(16).padStart(2, "0")).join("");
     const key = `${folder}/${Date.now().toString(36)}-${rand}${ext}`;
-    const uploadUrl = await s3PresignUrl(conf, "PUT", key, 3600);
+    // 15 min para começar o envio; depois de começado o pedido, o resto do envio não depende disto —
+    // as credenciais do FFmpegLab são temporárias e não sabemos a validade real delas, então fica conservador.
+    const uploadUrl = await s3PresignUrl(conf, "PUT", key, 900);
     const base = env.FFMPEGLAB_PUBLIC_BASE || "";
     const getUrl = base ? `${base.replace(/\/+$/, "")}/${key}` : `/api/ffmpeglab/${key}`;
     return json({ ok: true, url: uploadUrl, key, getUrl });
@@ -838,8 +862,8 @@ if(b) b.onclick=function(){
     const dest = (form.get("dest") || "").toString().toLowerCase();
 
     const cloudOK = !!(env.CLOUDINARY_CLOUD && env.CLOUDINARY_KEY && env.CLOUDINARY_SECRET);
-    const s3conf = s3Conf(env);
     const useFFmpeglab = dest === "ffmpeglab";
+    const s3conf = useFFmpeglab ? await s3Conf(env) : null;
     const useR2 = dest === "r2" || (!dest && env.ASTERIS_R2);
     const useCloud = dest === "cloudinary" || (!dest && !env.ASTERIS_R2 && cloudOK);
 
