@@ -26,6 +26,11 @@
   --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",monospace;
 }
 body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.55;-webkit-font-smoothing:antialiased;font-size:15px;letter-spacing:-.005em}
+*{scrollbar-color:var(--edge2) transparent;scrollbar-width:thin}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--edge2);border-radius:6px;border:2px solid var(--panel)}
+::-webkit-scrollbar-thumb:hover{background:var(--c4)}
 a{color:var(--ink)}
 button{font-family:var(--sans);cursor:pointer}
 input,select,textarea{font-family:var(--sans);font-size:14.5px;background:var(--panel2);border:1px solid var(--edge2);color:var(--ink);padding:9px 11px;border-radius:4px;width:100%}
@@ -115,14 +120,11 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
 .side-nav button .badge.mut{background:var(--panel2);color:var(--dim);border:1px solid var(--edge2)}
 .side-nav button.on .badge.mut{background:var(--panel);color:var(--ink)}
 .side-create svg{width:14px;height:14px;flex-shrink:0}
-.side-foot{margin-top:auto;padding:10px 16px 14px;border-top:1px solid var(--edge);display:flex;flex-direction:column;gap:8px}
+.side-foot{margin-top:auto;height:65px;padding:0 16px;border-top:1px solid var(--edge);display:flex;align-items:center}
 .who-row{background:none;border:0;padding:6px 4px;border-radius:4px;display:flex;align-items:center;gap:10px;text-align:left;cursor:pointer;width:100%}
 .who-row:hover{background:var(--panel2)}
 .who-av{width:30px;height:30px;border-radius:50%;flex-shrink:0;background:var(--panel2);border:1px solid var(--edge2);display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;color:var(--dim);overflow:hidden;background-size:cover;background-position:center}
 .side-foot .who{flex:1;font-size:12.5px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.side-foot > button:not(.who-row){width:100%;justify-content:center;background:var(--panel2);border:1px solid var(--edge2);color:var(--ink);font-size:13.5px;font-weight:600;padding:9px 18px;border-radius:4px;display:flex;align-items:center;gap:8px}
-.side-foot > button:not(.who-row) svg{width:14px;height:14px}
-.side-foot > button:not(.who-row):hover{border-color:var(--ink)}
 
 .main{min-width:0;display:flex;flex-direction:column;overflow:hidden}
 .page-head{flex-shrink:0;padding:20px clamp(16px,4vw,40px) 0}
@@ -279,6 +281,13 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
 .ico-pick button svg{width:15px;height:15px}
 .ico-pick button:hover{color:var(--ink)}
 .ico-pick button.on{border-color:var(--ink);color:var(--ink);background:var(--gold-lo)}
+.tag-pick-row{display:flex;gap:10px;margin-top:6px}
+.tag-dd{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--panel2);border:1px solid var(--edge2);color:var(--ink);font-size:13.5px;padding:9px 11px;border-radius:4px}
+.tag-dd:hover{border-color:var(--ink)}
+.tag-dd svg{width:15px;height:15px;flex-shrink:0}
+.tag-dd .swatch{width:14px;height:14px;border-radius:50%;flex-shrink:0}
+.anchored-pop.ico-pop{width:224px}
+.anchored-pop.cor-pop{width:184px}
 
 /* ===== painel — negócio ===== */
 .fin-card{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:24px;background:var(--panel);border:1px solid var(--edge);border-radius:4px;padding:22px 26px;margin-bottom:16px}
@@ -359,6 +368,7 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
 .wgroup > h2{font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin:0 0 10px}
 .wgroup > h2 .cnt{font-family:var(--mono);color:var(--faint);margin-left:6px}
 .wide-empty{color:var(--faint);font-size:13.5px;padding:22px 4px;border:1px dashed var(--edge2);border-radius:4px;text-align:center}
+.card-grid > .wide-empty{grid-column:1 / -1}
 
 /* cartão de lista — grelha fixa: [lead] [conteúdo] [aside] / barra inferior */
 .lcard{position:relative;background:var(--panel);border:1px solid var(--edge);border-radius:4px;min-height:92px;padding:14px 16px;
@@ -427,7 +437,8 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
 /* ===== modal ===== */
 .modal-ov{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px}
 .modal{position:relative;width:100%;max-width:390px;max-height:88vh;overflow-y:auto;background:rgba(16,16,16,.72);backdrop-filter:blur(26px) saturate(1.5);-webkit-backdrop-filter:blur(26px) saturate(1.5);border:1px solid var(--edge2);border-radius:5px;padding:24px;box-shadow:0 26px 70px rgba(0,0,0,.7)}
-.modal h4{font-size:16px;font-weight:700;margin-bottom:9px;padding-right:24px;letter-spacing:-.01em}
+.modal h4{font-size:16px;font-weight:700;margin-bottom:9px;padding-right:24px;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+.modal h4 svg{width:16px;height:16px;flex-shrink:0;opacity:.85}
 .modal p{font-size:13.5px;color:var(--dim);line-height:1.6;margin-bottom:2px}
 .modal .field{margin:14px 0 0}
 .modal input,.modal select,.modal textarea{background:rgba(0,0,0,.35)}
@@ -436,8 +447,11 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
 .modal.lg{max-width:470px}
 .modal.xl{max-width:720px}
 .modal.xxl{max-width:1180px}
-.q-btn{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;border:1px solid var(--edge2);background:none;color:var(--faint);font-size:9.5px;font-weight:700;line-height:1;vertical-align:middle;margin-left:5px;cursor:help;text-transform:none;letter-spacing:0}
-.q-btn:hover{color:var(--ink);border-color:var(--ink)}
+.q-btn{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;border:1px solid var(--edge2);background:none;color:var(--faint);font-size:9.5px;font-weight:700;line-height:1;vertical-align:middle;margin-left:5px;cursor:pointer;text-transform:none;letter-spacing:0}
+.q-btn:hover,.q-btn.on{color:var(--ink);border-color:var(--ink)}
+.help-pop{width:230px;padding:11px 13px;font-size:12.5px;line-height:1.85;color:var(--dim)}
+.help-pop code{color:var(--ink);font-family:var(--mono);font-size:11.5px}
+.help-pop .hp-note{margin-top:6px;padding-top:6px;border-top:1px solid var(--edge);color:var(--faint)}
 .no-layout{display:flex;gap:26px;align-items:flex-start;margin-top:14px}
 .no-meta{width:250px;flex-shrink:0}
 .no-meta .field:first-child{margin-top:0}
@@ -481,6 +495,7 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
 .radio-row label{flex:1;text-align:center;background:var(--panel2);border:1px solid var(--edge2);border-radius:4px;padding:9px 8px;font-size:13px;color:var(--ink);text-transform:none;letter-spacing:0;margin:0;min-width:90px}
 .radio-row label.on{border-color:var(--ink);color:var(--ink);background:var(--gold-lo)}
 .np-fromlib{width:100%;background:var(--panel2);border:1px dashed var(--edge2);border-radius:4px;color:var(--dim);font-size:13px;padding:11px;margin-top:8px}
+.np-fromlib svg{width:14px;height:14px;flex-shrink:0;vertical-align:-2px}
 .np-fromlib:hover{border-color:var(--ink);color:var(--ink)}
 .np-fromlib.picked{border-style:solid;border-color:var(--c1);color:var(--c1)}
 
@@ -647,6 +662,10 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
       <button data-v="portfolio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg>Portfólio</button>
       <button data-v="entrega"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>Entregas</button>
       <button data-v="selecao"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Seleções</button>
+      <button data-v="custom"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Galerias</button>
+      <div class="nav-group">Vendas</div>
+      <button data-v="funcionarios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>Funcionários</button>
+      <button data-v="vendas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-4 4"/></svg>Vendas</button>
       <div class="nav-group">Gestão</div>
       <button data-v="workspaces"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5z"/><path d="m2 12 10 5 10-5M2 17l10 5 10-5"/></svg>Workspaces</button>
       <button data-v="clientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>Clientes</button>
@@ -658,6 +677,8 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
       <button data-v="notas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M8 7h8M8 11h8M8 15h5"/></svg>Notas</button>
       <button data-v="calendario"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Calendário</button>
       <button data-v="biblioteca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9L9.6 3.9A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>Biblioteca</button>
+      <div class="nav-group">Conta</div>
+      <button id="btnLogout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></svg>Sair</button>
     </nav>
     <div class="side-foot">
       <button class="who-row" id="whoRow" type="button" title="Alterar foto de perfil">
@@ -665,7 +686,6 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
         <span class="who" id="whoami"></span>
       </button>
       <input type="file" id="avaFile" accept="image/*" hidden>
-      <button id="btnLogout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></svg>Sair</button>
     </div>
   </aside>
   <div class="side-scrim" id="sideScrim" hidden></div>
@@ -1132,7 +1152,12 @@ var ICN = {
   projeto:    _si('<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>'),
   pessoa:     _si('<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>'),
   contrato:   _si('<path d="M8 21h11a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4"/><path d="M19 17V5a2 2 0 0 0-2-2H5"/>'),
-  timeline:   _si('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>')
+  timeline:   _si('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>'),
+  clientes:   _si('<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>'),
+  tarefa:     _si('<path d="m3 17 2 2 4-4M3 7l2 2 4-4"/><path d="M13 6h8M13 12h8M13 18h8"/>'),
+  agenda:     _si('<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'),
+  prospeccao: _si('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/>'),
+  workspace:  _si('<path d="M12 2 2 7l10 5 10-5z"/><path d="m2 12 10 5 10-5M2 17l10 5 10-5"/>')
 };
 var TAG_ICONS = [
   ["lampada","Ideia", _si('<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.7.6 1 1.5 1 2.5h6c0-1 .3-1.9 1-2.5A6 6 0 0 0 12 3z"/>')],
@@ -1174,7 +1199,8 @@ function cbar(leftHtml, rightHtml){
 /* ============================ router ============================ */
 var VIEW = null;
 var VIEW_TITLES = { painel:"Painel", links:"Links", proposta:"Propostas", portfolio:"Portfólio",
-  entrega:"Entregas", selecao:"Seleções", workspaces:"Workspaces", clientes:"Clientes", tarefas:"Tarefas", projetos:"Projetos", contratos:"Contratos",
+  entrega:"Entregas", selecao:"Seleções", custom:"Galerias customizáveis", funcionarios:"Funcionários", vendas:"Vendas",
+  workspaces:"Workspaces", clientes:"Clientes", tarefas:"Tarefas", projetos:"Projetos", contratos:"Contratos",
   pagamentos:"Pagamentos", prospeccao:"Prospecção", notas:"Notas", calendario:"Calendário", biblioteca:"Biblioteca", log:"Registo de atividade" };
 function openView(v){
   closeMenu();
@@ -1188,6 +1214,8 @@ function openView(v){
     painel: painelView, links: linksView,
     proposta: function(){ catView("proposta"); }, portfolio: function(){ catView("portfolio"); },
     entrega: function(){ catView("entrega"); }, selecao: function(){ catView("selecao"); },
+    custom: function(){ catView("custom"); },
+    funcionarios: funcionariosView, vendas: vendasView,
     clientes: clientesView, tarefas: tarefasView, projetos: projetosView, contratos: contratosView, calendario: calendarioView,
     pagamentos: pagamentosView, prospeccao: prospeccaoView, notas: notasView, workspaces: workspacesView,
     biblioteca: libraryView, log: logView
@@ -1195,7 +1223,7 @@ function openView(v){
 }
 /* refrescos das páginas continuam a chamar listView() -> volta à vista de páginas certa */
 function listView(){
-  openView(["proposta","portfolio","entrega","selecao","links"].indexOf(VIEW) >= 0 ? VIEW : "links");
+  openView(["proposta","portfolio","entrega","selecao","custom","links"].indexOf(VIEW) >= 0 ? VIEW : "links");
 }
 
 function painelView(){
@@ -1358,7 +1386,7 @@ function despesasModal(despesas, teto){
 function despesaForm(d, onSaved){
   d = d || {};
   modal(function(box, close){
-    box.innerHTML = '<h4>' + (d.id ? "Editar despesa" : "Nova despesa") + '</h4>'
+    box.innerHTML = '<h4>' + ICN.euro + (d.id ? "Editar despesa" : "Nova despesa") + '</h4>'
       + frow("Descrição","de-desc",d.descricao)
       + '<div class="row"><div class="field"><label>Categoria</label><select id="de-cat">' + CAT_DESPESA.map(function(c){ return '<option' + (d.categoria===c?" selected":"") + '>' + c + '</option>'; }).join("") + '</select></div>'
       +   '<div class="field"><label>Valor (EUR)</label><input id="de-val" type="number" step="0.01" value="' + (d.valor != null ? d.valor : "") + '"></div></div>'
@@ -1416,7 +1444,8 @@ var CATS = [
   { key:"proposta",  titulo:"Proposta",              match:function(p){ return p.type === "proposta"; } },
   { key:"portfolio", titulo:"Portfólio",             match:function(p){ return p.type === "portfolio" || (p.type === "galeria" && p.anon === true); } },
   { key:"entrega",   titulo:"Entrega de trabalho",   match:function(p){ return p.type === "galeria" && p.anon !== true; } },
-  { key:"selecao",   titulo:"Seleção de material",   match:function(p){ return p.type === "triagem"; } }
+  { key:"selecao",   titulo:"Seleção de material",   match:function(p){ return p.type === "triagem"; } },
+  { key:"custom",    titulo:"Galeria customizável",  match:function(p){ return p.type === "custom"; } }
 ];
 
 function daysBetween(a, b){ return Math.round((a - b) / 86400000); }
@@ -1430,7 +1459,7 @@ function setExpira(code, novaData, logMsg){
   }).then(function(){ listView(); });
 }
 
-var TYPE_FOR_CAT = { proposta:"proposta", portfolio:"portfolio", entrega:"galeria", selecao:"triagem" };
+var TYPE_FOR_CAT = { proposta:"proposta", portfolio:"portfolio", entrega:"galeria", selecao:"triagem", custom:"custom" };
 
 function linksView(){
   var v = $("#view"); v.innerHTML = "";
@@ -1685,12 +1714,14 @@ var NP_TYPES = [
   { k:"proposta",  t:"Proposta",  d:"Proposta comercial para um cliente" },
   { k:"portfolio", t:"Portfólio", d:"Galeria privada de trabalhos" },
   { k:"galeria",   t:"Entrega",   d:"Ficheiros finais para descarregar" },
-  { k:"triagem",   t:"Seleção",   d:"O cliente escolhe fotos/vídeos" }
+  { k:"triagem",   t:"Seleção",   d:"O cliente escolhe fotos/vídeos" },
+  { k:"custom",    t:"Galeria customizável", d:"Título, texto e listas de itens livres" }
 ];
 function skeletonFor(type, base){
   if(type === "proposta") return Object.assign({ type:"proposta", proposta:{ validade:"", secoes:[] } }, base);
   if(type === "portfolio") return Object.assign({ type:"portfolio", anon:true, itens:[] }, base);
   if(type === "galeria")  return Object.assign({ type:"galeria", anon:false, intro:"", itens:[] }, base);
+  if(type === "custom")   return Object.assign({ type:"custom", intro:"", custom:{ secoes:[] } }, base);
   return Object.assign({ type:"triagem", intro:"", itens:[] }, base);
 }
 function itensFromFolder(folder){
@@ -1772,7 +1803,7 @@ function newPageModal(preFolder, preType){
       if(!box.querySelector("#np-anon-row").hidden) base.anon = !!anonEl.checked;
       var data = skeletonFor(st.type, base);
       if(st.folder && data.itens) data.itens = itensFromFolder(st.folder);
-      var TL = { proposta:"proposta", galeria:"entrega", triagem:"seleção", portfolio:"portfólio" };
+      var TL = { proposta:"proposta", galeria:"entrega", triagem:"seleção", portfolio:"portfólio", custom:"galeria customizável" };
       data._log = "criou " + (TL[st.type] || st.type) + " " + st.code + (cli ? " · " + cli : "")
         + (st.folder ? " (da pasta " + st.folder.name + ")" : "");
       var ok = box.querySelector("#np-ok"); ok.disabled = true; ok.textContent = "A criar…";
@@ -2391,7 +2422,7 @@ function buildEditor(v){
   var r1 = el("div","row");
   r1.appendChild(fieldEl("Código", inputEl("code", CUR.code, { disabled: !CUR.isNew, cls:"mono" })));
   r1.appendChild(fieldEl("Tipo", selectEl("type", d.type||"galeria", [
-    ["galeria","Entrega"],["triagem","Seleção"],["portfolio","Portfólio"],["proposta","Proposta"]
+    ["galeria","Entrega"],["triagem","Seleção"],["portfolio","Portfólio"],["proposta","Proposta"],["custom","Galeria customizável"]
   ])));
   base.appendChild(r1);
   var r2 = el("div","row");
@@ -2440,6 +2471,7 @@ function buildEditor(v){
 function renderBody(host, d){
   host.innerHTML = "";
   if(d.type === "proposta"){ renderPropostaEditor(host, d); }
+  else if(d.type === "custom"){ renderCustomEditor(host, d); }
   else { renderGaleriaEditor(host, d); }
 }
 
@@ -2584,25 +2616,42 @@ function renderPropostaEditor(host, d){
 
   c.appendChild(fieldEl("Validade (ex.: 15 dias)", inputEl("validade", pr.validade||"")));
 
-  var sc = el("div"); c.appendChild(sc);
+  renderSecoesEditor(c, pr.secoes);
+  host.appendChild(c);
+}
+
+/* ---------- editor galeria customizável ---------- */
+function renderCustomEditor(host, d){
+  d.custom = d.custom || {};
+  if(!d.custom.secoes) d.custom.secoes = [];
+
+  var c = el("div","card"); c.innerHTML = '<h3>Conteúdo</h3>';
+  renderSecoesEditor(c, d.custom.secoes);
+  host.appendChild(c);
+}
+
+/* ---------- construtor de secções livres (texto / galeria / cards / itens) ---------- */
+/* usado pela Proposta e pela Galeria customizável — reaproveita o mesmo motor de blocos */
+function renderSecoesEditor(host, secoes){
+  var sc = el("div"); host.appendChild(sc);
   function draw(){
     sc.innerHTML = "";
-    pr.secoes.forEach(function(s, i){ sc.appendChild(secEditor(s, i, pr.secoes, draw)); });
+    secoes.forEach(function(s, i){ sc.appendChild(secEditor(s, i, secoes, draw)); });
     var add = el("div","addsec");
-    [["texto","+ Texto"],["galeria","+ Galeria"],["cards","+ Cards"]].forEach(function(t){
+    [["texto","+ Texto"],["galeria","+ Galeria"],["cards","+ Cards"],["itens","+ Itens"]].forEach(function(t){
       var b = el("button","btn sm",t[1]);
       b.onclick = function(){
         var ns = { texto:{ tipo:"texto", eyebrow:"", titulo:"", _para:"", _bul:"" },
                    galeria:{ tipo:"galeria", eyebrow:"", modo:"colagem", itens:[] },
-                   cards:{ tipo:"cards", eyebrow:"", modo:"grelha", colunas:3, cards:[] } }[t[0]];
-        pr.secoes.push(ns); draw();
+                   cards:{ tipo:"cards", eyebrow:"", modo:"grelha", colunas:3, cards:[] },
+                   itens:{ tipo:"itens", eyebrow:"", titulo:"", descricao:"", itens:[] } }[t[0]];
+        secoes.push(ns); draw();
       };
       add.appendChild(b);
     });
     sc.appendChild(add);
   }
   draw();
-  host.appendChild(c);
 }
 
 function secEditor(s, i, arr, draw){
@@ -2652,7 +2701,55 @@ function secEditor(s, i, arr, draw){
     }
     drawCards();
   }
+
+  if(s.tipo === "itens"){
+    sb.appendChild(fieldEl("Título (opcional)", bind(inputEl("_it", s.titulo||""), function(v){ s.titulo=v; })));
+    sb.appendChild(fieldEl("Descrição (opcional)", bind(textareaEl("_id", s.descricao||""), function(v){ s.descricao=v; })));
+    s.itens = s.itens || [];
+    var il = el("div"); sb.appendChild(il);
+    function drawItens(){
+      il.innerHTML = "";
+      s.itens.forEach(function(it, ii){ il.appendChild(itemEditor(it, ii, s.itens, drawItens)); });
+      var ab = el("button","btn sm","+ Item"); ab.onclick=function(){ s.itens.push({ nome:"", ficheiro:"", nota:"" }); drawItens(); };
+      il.appendChild(ab);
+    }
+    drawItens();
+  }
   return wrap;
+}
+
+/* ---------- linha de item livre (nome + ficheiro + nota) ---------- */
+function itemEditor(it, i, arr, draw){
+  var w = el("div","cardrow");
+  var top = el("div","cr-top");
+  var t = bind(inputEl("_in", it.nome||""), function(v){ it.nome=v; }); t.placeholder="Nome";
+  var tg = el("div","grow"); tg.appendChild(t);
+  var up = el("button","btn ghost sm","▲"); up.onclick=function(){ if(i>0){ var x=arr[i-1];arr[i-1]=arr[i];arr[i]=x;draw(); } };
+  var dn = el("button","btn ghost sm","▼"); dn.onclick=function(){ if(i<arr.length-1){ var x=arr[i+1];arr[i+1]=arr[i];arr[i]=x;draw(); } };
+  var rm = el("button","btn ghost sm","✕"); rm.onclick=function(){ arr.splice(i,1); draw(); };
+  top.appendChild(tg); top.appendChild(up); top.appendChild(dn); top.appendChild(rm);
+  w.appendChild(top);
+
+  var fr = el("div","row");
+  var fi = inputEl("_if", it.ficheiro||""); fi.placeholder = "URL do ficheiro (ou carrega)";
+  fi.addEventListener("input", function(){ it.ficheiro = fi.value; });
+  var fg = el("div","grow"); fg.appendChild(fieldEl("Ficheiro", fi));
+  var up2 = el("button","btn sm","Carregar"); up2.style.alignSelf = "end"; up2.style.marginBottom = "2px";
+  var file = el("input"); file.type="file"; file.style.display="none";
+  up2.onclick = function(){ file.click(); };
+  file.onchange = function(){
+    var f = file.files && file.files[0]; if(!f) return;
+    up2.textContent = "a enviar…";
+    uploadMany([f], function(){}, function(urls){
+      if(urls && urls[0]){ it.ficheiro = urls[0]; fi.value = urls[0]; }
+      up2.textContent = "Carregar"; file.value = "";
+    });
+  };
+  fr.appendChild(fg); fr.appendChild(up2); fr.appendChild(file);
+  w.appendChild(fr);
+
+  w.appendChild(fieldEl("Nota (uma linha, opcional)", bind(inputEl("_ino", it.nota||""), function(v){ it.nota=v; })));
+  return w;
 }
 
 function cardEditor(cd, i, arr, draw){
@@ -2704,9 +2801,12 @@ function collectBase(){
     var val = $("#f-validade"); if(val) d.proposta.validade = val.value.trim() || undefined;
     // limpar campos internos _para/_bul
     (d.proposta.secoes||[]).forEach(function(s){ delete s._para; delete s._bul; });
-    delete d.itens; delete d.instrucoes; delete d.formspree; delete d.downloadTudo;
+    delete d.itens; delete d.instrucoes; delete d.formspree; delete d.downloadTudo; delete d.custom;
+  } else if(d.type === "custom"){
+    (d.custom.secoes||[]).forEach(function(s){ delete s._para; delete s._bul; });
+    delete d.itens; delete d.instrucoes; delete d.formspree; delete d.downloadTudo; delete d.proposta;
   } else {
-    delete d.proposta;
+    delete d.proposta; delete d.custom;
   }
   return d;
 }
@@ -2776,6 +2876,36 @@ function bindClienteAutocomplete(input){
   input.addEventListener("input", render);
   input.addEventListener("blur", close);
 }
+/* popover ancorado a um botão (dropdown de ícone/cor etc.) — chama build(box, close) para preencher */
+function openAnchoredPopover(anchor, extraCls, build){
+  document.querySelectorAll(".anchored-pop").forEach(function(x){ x.remove(); });
+  var box = el("div","pop anchored-pop" + (extraCls ? " " + extraCls : ""));
+  document.body.appendChild(box);
+  function close(){ box.remove(); document.removeEventListener("mousedown", onDown, true); }
+  function onDown(e){ if(!box.contains(e.target) && e.target !== anchor && !anchor.contains(e.target)) close(); }
+  build(box, close);
+  document.addEventListener("mousedown", onDown, true);
+  var r = anchor.getBoundingClientRect();
+  box.style.left = Math.max(8, r.left) + "px"; box.style.top = (r.bottom + 6) + "px";
+  return box;
+}
+/* liga um botãozinho "?" a um popover clicável (abre/fecha, fecha ao clicar fora) */
+function bindHelpPopover(btn, bodyHtml){
+  var box = null;
+  function close(){ if(box){ box.remove(); box = null; btn.classList.remove("on"); } document.removeEventListener("mousedown", onDown, true); }
+  function onDown(e){ if(box && !box.contains(e.target) && e.target !== btn) close(); }
+  btn.onclick = function(e){
+    e.preventDefault(); e.stopPropagation();
+    if(box){ close(); return; }
+    box = el("div","pop help-pop"); box.innerHTML = bodyHtml;
+    document.body.appendChild(box);
+    btn.classList.add("on");
+    document.addEventListener("mousedown", onDown, true);
+    var r = btn.getBoundingClientRect();
+    var left = Math.min(r.left, window.innerWidth - 246);
+    box.style.left = Math.max(8, left) + "px"; box.style.top = (r.bottom + 6) + "px";
+  };
+}
 /* fecha + refresca só se guardou; senão avisa e mantém o formulário aberto */
 function afterSave(pr, close, refresh){
   return pr.then(function(r){
@@ -2838,7 +2968,7 @@ function clientesView(){
 function clienteForm(c){
   c = c || {};
   modal(function(box, close){
-    box.innerHTML = '<h4>' + (c.id ? "Editar cliente" : "Novo cliente") + '</h4>'
+    box.innerHTML = '<h4>' + ICN.clientes + (c.id ? "Editar cliente" : "Novo cliente") + '</h4>'
       + frow("Nome","cf-nome",c.nome) + frow("Empresa","cf-emp",c.empresa)
       + frow("Email","cf-mail",c.email) + frow("Telefone","cf-tel",c.telefone)
       + '<div class="field"><label>Notas</label><textarea id="cf-notas">' + esc(c.notas||"") + '</textarea></div>'
@@ -2903,7 +3033,7 @@ function tarefaForm(t){
   t = t || {};
   col("contratos").then(function(contratos){
     modal(function(box, close){
-      box.innerHTML = '<h4>' + (t.id ? "Editar tarefa" : "Nova tarefa") + '</h4>'
+      box.innerHTML = '<h4>' + ICN.tarefa + (t.id ? "Editar tarefa" : "Nova tarefa") + '</h4>'
         + frow("Tarefa","tf-t",t.titulo)
         + '<div class="field"><label>Estado</label><select id="tf-est">'
         +   TAREFA_ESTADOS.map(function(e){ return '<option value="'+e[0]+'"'+(t.estado===e[0]?" selected":"")+'>'+e[1]+'</option>'; }).join("")
@@ -2996,38 +3126,178 @@ function projetosView(){
 
 function projetoForm(p, onSaved){
   p = p || {};
+  var pg = p.pag || { tipo:"nenhum" };
+  var parcelas = (pg.parcelas || []).slice();
   modal(function(box, close){
-    box.innerHTML = '<h4>' + (p.id ? "Editar projeto" : "Novo projeto") + '</h4>'
+    box.innerHTML = '<h4>' + ICN.projeto + (p.id ? "Editar projeto" : "Novo projeto") + '</h4>'
       + frow("Título","pj-t",p.titulo)
       + '<div class="row"><div class="field"><label>Cliente</label><input id="pj-cli" value="' + esc(p.cliente || "") + '"></div>'
       +   '<div class="field"><label>Tipo</label><select id="pj-tipo">' + PROJ_TIPOS.map(function(t){ return '<option' + (p.tipo === t ? " selected" : "") + '>' + t + '</option>'; }).join("") + '</select></div></div>'
-      + '<div class="row"><div class="field"><label>Início</label><input type="date" id="pj-ini" value="' + esc(p.dataInicio || "") + '"></div>'
-      +   '<div class="field"><label>Entrega</label><input type="date" id="pj-ent" value="' + esc(p.dataEntrega || "") + '"></div></div>'
-      + frow("Valor (ex.: 1900 EUR)","pj-val",p.valor)
+      + '<div id="pj-dyn"></div>'
+      + frow("Valor (texto livre, ex.: 1900 EUR)","pj-val",p.valor)
       + scopeRow(p.scope)
       + '<div class="err" id="pj-err"></div>'
       + '<div class="mrow"><button class="btn ghost" id="pj-x">Cancelar</button><button class="btn gold" id="pj-ok">Guardar</button></div>';
     var getScope = bindScope(box);
     bindClienteAutocomplete(box.querySelector("#pj-cli"));
+    var tipoSel = box.querySelector("#pj-tipo");
+    var dyn = box.querySelector("#pj-dyn");
+    var ptTipo = pg.tipo || "nenhum";
+
+    function drawParcelas(){
+      var list = box.querySelector("#pj-parc-list");
+      if(!list) return;
+      list.innerHTML = "";
+      parcelas.forEach(function(pc, i){
+        var row = el("div","row"); row.style.cssText = "align-items:center;margin-top:6px";
+        row.innerHTML = '<div class="field" style="margin:0"><input type="number" step="0.01" placeholder="Valor (EUR)" value="' + (pc.valor != null ? pc.valor : "") + '" class="pj-pc-val"></div>'
+          + '<div class="field" style="margin:0"><input type="date" value="' + esc(pc.data || "") + '" class="pj-pc-data"></div>';
+        var x = el("button","btn ghost sm","✕"); x.type = "button"; x.style.cssText = "flex-shrink:0";
+        row.appendChild(x);
+        row.querySelector(".pj-pc-val").onchange = function(){ pc.valor = this.value; };
+        row.querySelector(".pj-pc-data").onchange = function(){ pc.data = this.value; };
+        x.onclick = function(){ parcelas.splice(i,1); drawParcelas(); };
+        list.appendChild(row);
+      });
+    }
+
+    function renderDyn(){
+      var recorrente = tipoSel.value === "Recorrente";
+      if(recorrente){
+        dyn.innerHTML =
+          '<div class="row"><div class="field"><label>Início</label><input type="date" id="pj-ini" value="' + esc(p.dataInicio || "") + '"></div>'
+          +   '<div class="field"><label>Fim (opcional)</label><input type="date" id="pj-fim" value="' + esc(p.dataFim || "") + '"></div></div>'
+          + '<div class="row"><div class="field"><label>Valor por mês (EUR)</label><input id="pj-pval" type="number" step="0.01" value="' + (pg.valor != null && ptTipo !== "nenhum" ? pg.valor : "") + '"></div>'
+          +   '<div class="field"><label>Dia de pagamento mensal</label><input id="pj-pdia" type="number" min="1" max="28" value="' + esc(pg.dia || 1) + '"></div></div>'
+          + '<div class="field" id="pj-pmeses-f"><label>Nº de meses (se sem data de fim)</label><input id="pj-pmeses" type="number" min="1" max="36" value="' + esc(pg.meses || 12) + '"></div>'
+          + '<p class="hint">Deixa o valor por mês em branco se este projeto ainda não tiver cobrança definida.</p>';
+        box.querySelector("#pj-fim").addEventListener("input", function(){
+          box.querySelector("#pj-pmeses-f").hidden = !!this.value;
+        });
+        box.querySelector("#pj-pmeses-f").hidden = !!p.dataFim;
+      } else {
+        dyn.innerHTML =
+          '<div class="row"><div class="field"><label>Início</label><input type="date" id="pj-ini" value="' + esc(p.dataInicio || "") + '"></div>'
+          +   '<div class="field"><label>Entrega</label><input type="date" id="pj-ent" value="' + esc(p.dataEntrega || "") + '"></div></div>'
+          + '<div class="field"><label>Pagamento</label><div class="radio-row" id="pj-pt">'
+          +   '<label data-s="nenhum"' + (ptTipo === "nenhum" ? ' class="on"' : '') + '>Sem cobrança</label>'
+          +   '<label data-s="unico"' + (ptTipo === "unico" ? ' class="on"' : '') + '>Único</label>'
+          +   '<label data-s="parcelas"' + (ptTipo === "parcelas" ? ' class="on"' : '') + '>Parcelas</label>'
+          + '</div></div>'
+          + '<div id="pj-pgbox"' + (ptTipo === "nenhum" ? ' hidden' : '') + '>'
+          +   '<div class="field" id="pj-pval-f"' + (ptTipo === "parcelas" ? ' hidden' : '') + '><label>Valor (EUR)</label><input id="pj-pval" type="number" step="0.01" value="' + (pg.valor != null && ptTipo === "unico" ? pg.valor : "") + '"></div>'
+          +   '<div class="field" id="pj-pdata-f"' + (ptTipo === "unico" ? '' : ' hidden') + '><label>Data de vencimento</label><input type="date" id="pj-pdata" value="' + esc(pg.data || "") + '"></div>'
+          +   '<div id="pj-parcelas-f"' + (ptTipo === "parcelas" ? '' : ' hidden') + '>'
+          +     '<div class="field"><label>Parcelas</label><div id="pj-parc-list"></div>'
+          +       '<button type="button" class="np-fromlib" id="pj-parc-add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Adicionar parcela</button></div>'
+          +   '</div>'
+          + '</div>';
+        var ptRow = box.querySelector("#pj-pt");
+        ptRow.querySelectorAll("label").forEach(function(l){
+          l.onclick = function(){
+            ptRow.querySelectorAll("label").forEach(function(x){ x.classList.toggle("on", x === l); });
+            ptTipo = l.dataset.s;
+            box.querySelector("#pj-pgbox").hidden = (ptTipo === "nenhum");
+            box.querySelector("#pj-pval-f").hidden = (ptTipo === "parcelas");
+            box.querySelector("#pj-pdata-f").hidden = (ptTipo !== "unico");
+            box.querySelector("#pj-parcelas-f").hidden = (ptTipo !== "parcelas");
+            if(ptTipo === "parcelas") drawParcelas();
+          };
+        });
+        if(ptTipo === "parcelas") drawParcelas();
+        box.querySelector("#pj-parc-add").onclick = function(){ parcelas.push({ valor:"", data:"" }); drawParcelas(); };
+      }
+    }
+    tipoSel.onchange = renderDyn;
+    renderDyn();
+
     box.querySelector("#pj-x").onclick = function(){ close(); };
     box.querySelector("#pj-ok").onclick = function(){
       var titulo = box.querySelector("#pj-t").value.trim();
       if(!titulo){ box.querySelector("#pj-err").textContent = "Dá um título ao projeto."; return; }
-      colPut("projetos", p.id || newId(), {
-        titulo: titulo, cliente: box.querySelector("#pj-cli").value.trim(),
-        tipo: box.querySelector("#pj-tipo").value, dataInicio: box.querySelector("#pj-ini").value,
-        dataEntrega: box.querySelector("#pj-ent").value, valor: box.querySelector("#pj-val").value.trim(),
+      var tipo = tipoSel.value, recorrente = tipo === "Recorrente";
+      var novo = {
+        titulo: titulo, cliente: box.querySelector("#pj-cli").value.trim(), tipo: tipo,
+        dataInicio: box.querySelector("#pj-ini").value,
+        dataEntrega: recorrente ? "" : box.querySelector("#pj-ent").value,
+        dataFim: recorrente ? box.querySelector("#pj-fim").value : "",
+        valor: box.querySelector("#pj-val").value.trim(),
         estado: p.estado || "ativo", contratos: p.contratos || [], colaboradores: p.colaboradores || [],
         timeline: p.timeline || [], scope: getScope()
-      }).then(function(r){
-        if(!r || !r.ok){ box.querySelector("#pj-err").textContent = (r && r.j && r.j.error) || "Não foi possível guardar."; return; }
-        toast("Guardado"); close();
-        var item = (r.j && r.j.item) || Object.assign(p, {});
-        if(onSaved) onSaved(item); else projetosView();
+      };
+      var pagOut = { tipo: recorrente ? "recorrente" : ptTipo };
+      if(recorrente){
+        var mv = box.querySelector("#pj-pval").value;
+        if(mv !== ""){ pagOut.valor = parseFloat(mv); pagOut.dia = parseInt(box.querySelector("#pj-pdia").value, 10) || 1; pagOut.meses = parseInt(box.querySelector("#pj-pmeses").value, 10) || 12; }
+        else pagOut.tipo = "nenhum";
+      } else if(ptTipo === "unico"){
+        var uv = parseFloat(box.querySelector("#pj-pval").value);
+        if(!isFinite(uv)){ box.querySelector("#pj-err").textContent = "Põe o valor do pagamento, ou muda para \"Sem cobrança\"."; return; }
+        pagOut.valor = uv; pagOut.data = box.querySelector("#pj-pdata").value;
+      } else if(ptTipo === "parcelas"){
+        pagOut.parcelas = parcelas.filter(function(pc){ return pc.valor !== "" && pc.data; }).map(function(pc){ return { valor:parseFloat(pc.valor), data:pc.data }; });
+        if(!pagOut.parcelas.length){ box.querySelector("#pj-err").textContent = "Adiciona pelo menos uma parcela com valor e data, ou muda para \"Sem cobrança\"."; return; }
+      }
+      novo.pag = pagOut;
+      var pid = p.id || newId();
+      box.querySelector("#pj-ok").disabled = true;
+      col("pagamentos").then(function(existentes){
+        colPut("projetos", pid, novo).then(function(r){
+          if(!r || !r.ok){ box.querySelector("#pj-err").textContent = (r && r.j && r.j.error) || "Não foi possível guardar."; box.querySelector("#pj-ok").disabled = false; return; }
+          var ops = buildProjetoPagamentos(Object.assign({ id:pid }, novo), existentes);
+          Promise.all(ops).then(function(){
+            toast(ops.length ? "Guardado · pagamentos atualizados" : "Guardado");
+            close();
+            var item = (r.j && r.j.item) || Object.assign(p, novo);
+            if(onSaved) onSaved(item); else projetosView();
+          });
+        });
       });
     };
     box.querySelector("#pj-t").focus();
   }, { cls:"lg" });
+}
+function buildProjetoPagamentos(p, existentes){
+  var ops = [];
+  var mine = (existentes || []).filter(function(x){ return x.projeto === p.id && x.origem === "projeto"; });
+  mine.forEach(function(x){ if(pagEstado(x) !== "pago") ops.push(colDel("pagamentos", x.id)); });
+  var pagos = mine.filter(function(x){ return pagEstado(x) === "pago"; });
+  var pg = p.pag;
+  if(!pg || !pg.tipo || pg.tipo === "nenhum") return ops;
+  var base = { projeto:p.id, projetoTitulo:p.titulo || "", cliente:p.cliente || "",
+    metodo:pg.metodo || "", origem:"projeto", scope:p.scope || "partilhado",
+    emitido:"", estado:"pendente", pago:false, dataPagamento:"", notas:"" };
+  if(pg.tipo === "unico"){
+    if(!(Number(pg.valor) > 0) || !pg.data) return ops;
+    var jaTemUnico = pagos.some(function(x){ return String(x.vencimento).slice(0,7) === String(pg.data).slice(0,7); });
+    if(!jaTemUnico) ops.push(colPut("pagamentos", newId(), Object.assign({}, base, { valor:Number(pg.valor), descricao:(p.titulo || "Projeto"), vencimento:pg.data })));
+    return ops;
+  }
+  if(pg.tipo === "parcelas"){
+    (pg.parcelas || []).forEach(function(pc, i){
+      if(!(Number(pc.valor) > 0) || !pc.data) return;
+      ops.push(colPut("pagamentos", newId(), Object.assign({}, base, { valor:Number(pc.valor), descricao:(p.titulo || "Projeto") + " · parcela " + (i + 1), vencimento:pc.data })));
+    });
+    return ops;
+  }
+  // recorrente
+  if(!(Number(pg.valor) > 0)) return ops;
+  var dia = Math.min(28, Math.max(1, parseInt(pg.dia, 10) || 1));
+  var start = String(p.dataInicio || "").slice(0, 7);
+  if(!start){ var t = new Date(); start = t.getFullYear() + "-" + String(t.getMonth()+1).padStart(2,"0"); }
+  var sp = start.split("-"), y = +sp[0], mo = +sp[1] - 1, n;
+  if(p.dataFim){ var ep = String(p.dataFim).slice(0,7).split("-"); n = (+ep[0] - y) * 12 + (+ep[1] - 1 - mo) + 1; }
+  else { n = parseInt(pg.meses, 10) || 12; }
+  n = Math.min(36, Math.max(1, n));
+  var jaTemMes = function(venc){ return pagos.some(function(x){ return String(x.vencimento).slice(0,7) === String(venc).slice(0,7); }); };
+  for(var i = 0; i < n; i++){
+    var vc = ymd(y, mo + i, dia);
+    if(jaTemMes(vc)) continue;
+    ops.push(colPut("pagamentos", newId(), Object.assign({}, base, {
+      valor:Number(pg.valor), descricao:(p.titulo || "Projeto") + " · " + mesNome(y, mo + i), vencimento:vc, recorrente:true
+    })));
+  }
+  return ops;
 }
 
 function projetoModal(p){
@@ -3196,7 +3466,7 @@ function projetoModal(p){
         var sh4 = el("div","ws-sec-h"); sh4.innerHTML = '<b>' + ICN.euro + 'Pagamentos</b>'; box.appendChild(sh4);
         var pglist = el("div","card-list"); pglist.innerHTML = '<div class="wide-empty">a carregar…</div>'; box.appendChild(pglist);
         col("pagamentos").then(function(items){
-          var mine = items.filter(function(pg){ return ctIds.indexOf(pg.contrato) >= 0; });
+          var mine = items.filter(function(pg){ return pg.projeto === p.id || ctIds.indexOf(pg.contrato) >= 0; });
           pglist.innerHTML = "";
           if(!mine.length){ pglist.appendChild(el("div","wide-empty","Sem pagamentos ligados (anexa um contrato para ver os dele).")); return; }
           mine.sort(function(a,b){ return String(a.vencimento||"").localeCompare(String(b.vencimento||"")); });
@@ -3248,7 +3518,7 @@ function projetoModal(p){
 function pickContratoModal(allContratos, jaAnexados){
   return modal(function(box, close){
     var disponiveis = allContratos.filter(function(c){ return jaAnexados.indexOf(c.id) < 0; });
-    box.innerHTML = '<h4>Anexar contrato</h4>'
+    box.innerHTML = '<h4>' + ICN.contrato + 'Anexar contrato</h4>'
       + (disponiveis.length ? '<div class="card-list" id="pc-list"></div>' : '<div class="wide-empty">Sem contratos disponíveis para anexar.</div>');
     var list = box.querySelector("#pc-list");
     if(list){
@@ -3265,7 +3535,7 @@ function pickContratoModal(allContratos, jaAnexados){
 }
 function colaboradorModal(){
   return modal(function(box, close){
-    box.innerHTML = '<h4>Novo colaborador</h4>'
+    box.innerHTML = '<h4>' + ICN.pessoa + 'Novo colaborador</h4>'
       + frow("Nome","cb-nome","")
       + frow("Função","cb-funcao","")
       + '<div class="mrow"><button class="btn ghost" id="cb-x">Cancelar</button><button class="btn gold" id="cb-ok">Adicionar</button></div>';
@@ -3280,7 +3550,7 @@ function colaboradorModal(){
 }
 function eventoModal(){
   return modal(function(box, close){
-    box.innerHTML = '<h4>Novo evento</h4>'
+    box.innerHTML = '<h4>' + ICN.timeline + 'Novo evento</h4>'
       + '<div class="field"><label>Data</label><input type="date" id="ev-data" value="' + new Date().toISOString().slice(0,10) + '"></div>'
       + frow("O que aconteceu","ev-texto","")
       + '<div class="mrow"><button class="btn ghost" id="ev-x">Cancelar</button><button class="btn gold" id="ev-ok">Adicionar</button></div>';
@@ -3337,7 +3607,7 @@ function contratoForm(c){
   var ficheiros = (c.ficheiros || []).slice();
   var pag = c.pag || { tipo:"nenhum" };
   modal(function(box, close){
-    box.innerHTML = '<h4>' + (c.id ? "Editar contrato" : "Novo contrato") + '</h4>'
+    box.innerHTML = '<h4>' + ICN.contrato + (c.id ? "Editar contrato" : "Novo contrato") + '</h4>'
       + frow("Título","kf-t",c.titulo) + frow("Cliente","kf-cli",c.cliente)
       + '<div class="row"><div class="field"><label>Início</label><input type="date" id="kf-ini" value="'+esc(c.inicio||"")+'"></div>'
       +   '<div class="field"><label>Fim</label><input type="date" id="kf-fim" value="'+esc(c.fim||"")+'"></div></div>'
@@ -3521,7 +3791,7 @@ function agendaDayModal(day, evs){
 function agendaForm(a){
   a = a || {};
   modal(function(box, close){
-    box.innerHTML = '<h4>' + (a.id ? "Editar compromisso" : "Novo compromisso") + '</h4>'
+    box.innerHTML = '<h4>' + ICN.agenda + (a.id ? "Editar compromisso" : "Novo compromisso") + '</h4>'
       + frow("Título","af-t",a.titulo)
       + '<div class="row"><div class="field"><label>Data</label><input type="date" id="af-d" value="'+esc(a.data||"")+'"></div>'
       +   '<div class="field"><label>Hora</label><input type="time" id="af-h" value="'+esc(a.hora||"")+'"></div></div>'
@@ -3641,13 +3911,13 @@ function notasView(){
     });
   });
 }
-var MD_HELP = "# título\n**negrito**\n- lista\n[texto](link)\n\nGuarda sozinho enquanto escreves.";
+var MD_HELP_HTML = '<div><code># título</code></div><div><code>**negrito**</code></div><div><code>- lista</code></div><div><code>[texto](link)</code></div><div class="hp-note">Guarda sozinho enquanto escreves.</div>';
 function notaModal(n, after){
   n = n || {};
   var saveTimer = null;
   return loadWorkspaces().then(function(){
     return modal(function(box, close){
-      box.innerHTML = '<h4>' + (n.id ? "Nota" : "Nova nota") + '</h4>'
+      box.innerHTML = '<h4>' + ICN.nota + (n.id ? "Nota" : "Nova nota") + '</h4>'
         + '<div class="no-layout">'
         +   '<div class="no-meta">'
         +     '<div class="field"><label>Título</label><input id="no-t" value="' + esc(n.titulo || "") + '" placeholder="Título da nota"></div>'
@@ -3657,7 +3927,7 @@ function notaModal(n, after){
         +     '</select></div>'
         +     scopeRow(n.scope)
         +   '</div>'
-        +   '<div class="no-editor"><div class="field"><label>Texto <button type="button" class="q-btn" title="' + esc(MD_HELP) + '" aria-label="Ajuda de formatação">?</button></label><textarea id="no-b" style="min-height:420px;font-family:var(--mono);font-size:13.5px;line-height:1.7" placeholder="Escreve aqui, clica fora para sair…">' + esc(n.corpo || "") + '</textarea></div></div>'
+        +   '<div class="no-editor"><div class="field"><label>Texto <button type="button" class="q-btn" id="no-help" aria-label="Ajuda de formatação">?</button></label><textarea id="no-b" style="min-height:420px;font-family:var(--mono);font-size:13.5px;line-height:1.7" placeholder="Escreve aqui, clica fora para sair…">' + esc(n.corpo || "") + '</textarea></div></div>'
         + '</div>'
         + '<div class="err" id="no-err"></div>'
         + '<div class="mrow" style="justify-content:space-between;align-items:center;margin-top:16px">'
@@ -3667,6 +3937,7 @@ function notaModal(n, after){
       var getScope = bindScope(box);
       var status = box.querySelector("#no-status");
       var titleEl = box.querySelector("#no-t"), bodyEl = box.querySelector("#no-b");
+      bindHelpPopover(box.querySelector("#no-help"), MD_HELP_HTML);
 
       function doSave(auto){
         var titulo = titleEl.value.trim();
@@ -3761,7 +4032,7 @@ function prospeccaoView(){
 function prospectForm(p){
   p = p || {};
   modal(function(box, close){
-    box.innerHTML = '<h4>' + (p.id ? "Editar prospecção" : "Nova prospecção") + '</h4>'
+    box.innerHTML = '<h4>' + ICN.prospeccao + (p.id ? "Editar prospecção" : "Nova prospecção") + '</h4>'
       + frow("Lugar / empresa","pr-nome",p.nome)
       + '<div class="row"><div class="field"><label>Canal</label><select id="pr-canal">' + PROSP_CANAIS.map(function(c){ return '<option' + (p.canal === c ? " selected" : "") + '>' + c + '</option>'; }).join("") + '</select></div>'
       +   '<div class="field"><label>Contacto</label><input id="pr-contacto" value="' + esc(p.contacto || "") + '"></div></div>'
@@ -3782,6 +4053,170 @@ function prospectForm(p){
       }), close, prospeccaoView);
     };
     box.querySelector("#pr-nome").focus();
+  }, { cls:"lg" });
+}
+
+/* ============================ FUNCIONÁRIOS ============================ */
+function funcionariosView(){
+  var v = $("#view"); v.innerHTML = "";
+  var head = el("div","view-head");
+  head.innerHTML = '<div class="vh-sub">Equipa de vendas e comissão de cada um</div>';
+  var add = el("button","btn gold", ICO_PLUS + "Funcionário"); add.onclick = function(){ funcionarioForm(); };
+  head.appendChild(add); v.appendChild(head);
+
+  var grid = el("div","card-grid"); grid.innerHTML = '<div class="wide-empty">a carregar…</div>'; v.appendChild(grid);
+  Promise.all([col("funcionarios"), col("vendas")]).then(function(res){
+    var list = res[0], vendas = res[1];
+    grid.innerHTML = "";
+    if(!list.length){ grid.appendChild(el("div","wide-empty","Ainda sem funcionários. Cria o primeiro.")); return; }
+    list.forEach(function(f){
+      var minhas = vendas.filter(function(x){ return x.funcionarioId === f.id && x.estado !== "cancelado"; });
+      var card = el("div","gcard");
+      card.innerHTML =
+        '<span class="g-bar"></span>'
+        + '<button class="menu-btn" aria-label="Ações">&#8942;</button>'
+        + '<div class="g-nm">' + esc(f.nome || "—") + '</div>'
+        + '<div class="g-body"><div class="g-rows">'
+        +   (f.cargo ? '<div><b>' + esc(f.cargo) + '</b></div>' : '')
+        +   '<div>Comissão padrão <b>' + (Number(f.comissaoPadrao)||0) + '%</b></div>'
+        +   '<div>' + minhas.length + ' venda' + (minhas.length===1?'':'s') + '</div>'
+        + '</div></div>'
+        + cbar('', (f.ativo === false ? '<span class="chip bad">Inativo</span>' : '<span class="chip ok">Ativo</span>'));
+      var mb = card.querySelector(".menu-btn");
+      mb.onclick = function(e){ e.stopPropagation(); rowMenu(mb, function(){ funcionarioForm(f); }, "funcionarios", f.id, funcionariosView, "Apagar " + (f.nome||"funcionário") + "?"); };
+      card.addEventListener("click", function(e){ if(!e.target.closest(".menu-btn")) funcionarioForm(f); });
+      grid.appendChild(card);
+    });
+  });
+}
+function funcionarioForm(f){
+  f = f || {};
+  modal(function(box, close){
+    box.innerHTML = '<h4>' + (f.id ? "Editar funcionário" : "Novo funcionário") + '</h4>'
+      + frow("Nome","ff-nome",f.nome) + frow("Cargo","ff-cargo",f.cargo)
+      + '<div class="row"><div class="field"><label>Comissão padrão (%)</label><input id="ff-com" type="number" step="0.1" value="' + (f.comissaoPadrao != null ? f.comissaoPadrao : "") + '"></div>'
+      +   '<div class="field"><label>Contacto</label><input id="ff-cont" value="' + esc(f.contacto||"") + '"></div></div>'
+      + '<label class="check"><input type="checkbox" id="ff-ativo"' + (f.ativo === false ? "" : " checked") + '> Ativo</label>'
+      + '<div class="err" id="ff-err"></div>'
+      + '<div class="mrow"><button class="btn ghost" id="ff-x">Cancelar</button><button class="btn gold" id="ff-ok">Guardar</button></div>';
+    box.querySelector("#ff-x").onclick = function(){ close(); };
+    box.querySelector("#ff-ok").onclick = function(){
+      var nome = box.querySelector("#ff-nome").value.trim();
+      if(!nome){ box.querySelector("#ff-err").textContent = "O nome é obrigatório."; return; }
+      afterSave(colPut("funcionarios", f.id || newId(), {
+        nome: nome, cargo: box.querySelector("#ff-cargo").value.trim(),
+        comissaoPadrao: parseFloat(box.querySelector("#ff-com").value) || 0,
+        contacto: box.querySelector("#ff-cont").value.trim(),
+        ativo: box.querySelector("#ff-ativo").checked
+      }), close, funcionariosView);
+    };
+    box.querySelector("#ff-nome").focus();
+  });
+}
+
+/* ============================ VENDAS ============================ */
+var VENDA_ESTADOS = [["proposta","Proposta"],["reservado","Reservado"],["fechado","Fechado"],["cancelado","Cancelado"]];
+function vendaEstCls(e){ return e === "fechado" ? "chip ok" : e === "cancelado" ? "chip bad" : e === "reservado" ? "chip warn" : "chip"; }
+function vendaLbl(e){ var m = VENDA_ESTADOS.filter(function(x){ return x[0] === e; })[0]; return m ? m[1] : "Proposta"; }
+function comissaoDe(venda, func){
+  var pct = venda.comissaoPct != null ? venda.comissaoPct : (func ? Number(func.comissaoPadrao)||0 : 0);
+  return (Number(venda.valor)||0) * pct / 100;
+}
+function vendasView(){
+  var v = $("#view"); v.innerHTML = "";
+  var head = el("div","view-head");
+  head.innerHTML = '<div class="vh-sub">Vendas e comissões</div>';
+  var add = el("button","btn gold", ICO_PLUS + "Venda"); add.onclick = function(){
+    col("funcionarios").then(function(fs){
+      if(!fs.length){ noticeModal("Sem funcionários", "Cria primeiro um funcionário para lhe associar vendas."); return; }
+      vendaForm(null, fs);
+    });
+  };
+  head.appendChild(add); v.appendChild(head);
+
+  var kpis = el("div","dash"); v.appendChild(kpis);
+  var chips = el("div","filter-row"); v.appendChild(chips);
+  var list = el("div","card-list"); list.innerHTML = '<div class="wide-empty">a carregar…</div>'; v.appendChild(list);
+
+  Promise.all([col("vendas"), col("funcionarios")]).then(function(res){
+    var vendas = res[0], funcs = res[1];
+    var byId = {}; funcs.forEach(function(f){ byId[f.id] = f; });
+    var mes = new Date().toISOString().slice(0,7);
+    var doMes = vendas.filter(function(x){ return String(x.data||"").slice(0,7) === mes && x.estado !== "cancelado"; });
+    var totalVendido = doMes.reduce(function(a,x){ return a + (Number(x.valor)||0); }, 0);
+    var totalComissao = doMes.reduce(function(a,x){ return a + comissaoDe(x, byId[x.funcionarioId]); }, 0);
+    var porFunc = {};
+    doMes.forEach(function(x){ porFunc[x.funcionarioId] = (porFunc[x.funcionarioId]||0) + (Number(x.valor)||0); });
+    var melhor = Object.keys(porFunc).sort(function(a,b){ return porFunc[b]-porFunc[a]; })[0];
+    kpis.innerHTML =
+      '<div class="qcard"><div class="qt">Vendido este mês</div><div class="qbig">' + fmtMoney(totalVendido) + '</div></div>'
+      + '<div class="qcard"><div class="qt">Comissões a pagar</div><div class="qbig">' + fmtMoney(totalComissao) + '</div><div class="qmeta">' + doMes.length + ' venda' + (doMes.length===1?'':'s') + ' este mês</div></div>'
+      + '<div class="qcard"><div class="qt">Melhor vendedor (mês)</div><div class="qbig">' + (melhor && byId[melhor] ? esc(byId[melhor].nome) : "—") + '</div>' + (melhor ? '<div class="qmeta">' + fmtMoney(porFunc[melhor]) + '</div>' : '') + '</div>';
+
+    var counts = {}; vendas.forEach(function(x){ var e = x.estado || "proposta"; counts[e] = (counts[e]||0)+1; });
+    var cur = vendasView._f || "";
+    chips.innerHTML = "";
+    var all = el("span","chip" + (cur === "" ? " on" : ""), "Todas · " + vendas.length);
+    all.onclick = function(){ vendasView._f = ""; vendasView(); }; chips.appendChild(all);
+    VENDA_ESTADOS.forEach(function(e){
+      if(!counts[e[0]]) return;
+      var c = el("span","chip" + (cur === e[0] ? " on" : ""), e[1] + " · " + counts[e[0]]);
+      c.onclick = function(){ vendasView._f = e[0]; vendasView(); };
+      chips.appendChild(c);
+    });
+    var show = (cur ? vendas.filter(function(x){ return (x.estado||"proposta") === cur; }) : vendas)
+      .slice().sort(function(a,b){ return String(b.data||"").localeCompare(String(a.data||"")); });
+    list.innerHTML = "";
+    if(!show.length){ list.appendChild(el("div","wide-empty","Nada aqui. Carrega em Venda.")); return; }
+    show.forEach(function(x){
+      var f = byId[x.funcionarioId];
+      var est = x.estado || "proposta";
+      var sub = [f ? f.nome : "(sem funcionário)", x.cliente].filter(Boolean).join(" · ");
+      var row = el("div","lcard");
+      row.innerHTML =
+        '<div class="lc-lead"><span class="lc-code">' + esc(fmtDate(x.data)) + '</span></div>'
+        + '<div class="lc-nm">' + esc(x.item || "—") + '</div>'
+        + '<div class="lc-sub">' + esc(sub) + '</div>'
+        + '<div class="lc-aside"><span class="lc-when"><b>' + fmtMoney(x.valor) + '</b>comissão ' + fmtMoney(comissaoDe(x, f)) + '</span><button class="menu-btn" aria-label="Ações">&#8942;</button></div>'
+        + cbar('', '<span class="' + vendaEstCls(est) + '"><span>' + vendaLbl(est) + '</span></span>');
+      var mb = row.querySelector(".menu-btn");
+      mb.onclick = function(e){ e.stopPropagation(); rowMenu(mb, function(){ vendaForm(x, funcs); }, "vendas", x.id, vendasView, "Apagar venda?"); };
+      row.addEventListener("click", function(e){ if(!e.target.closest(".menu-btn")) vendaForm(x, funcs); });
+      list.appendChild(row);
+    });
+  });
+}
+function vendaForm(x, funcs){
+  x = x || {};
+  modal(function(box, close){
+    box.innerHTML = '<h4>' + (x.id ? "Editar venda" : "Nova venda") + '</h4>'
+      + '<div class="row"><div class="field"><label>Data</label><input id="vf-data" type="date" value="' + esc(x.data || new Date().toISOString().slice(0,10)) + '"></div>'
+      +   '<div class="field"><label>Funcionário</label><select id="vf-func">' + funcs.map(function(f){ return '<option value="' + f.id + '"' + (x.funcionarioId === f.id ? " selected" : "") + '>' + esc(f.nome) + '</option>'; }).join("") + '</select></div></div>'
+      + frow("Cliente","vf-cli",x.cliente)
+      + frow("Item (ex.: BMW X1 · 2019 · 45 000km)","vf-item",x.item)
+      + '<div class="row"><div class="field"><label>Valor (€)</label><input id="vf-valor" type="number" step="0.01" value="' + (x.valor != null ? x.valor : "") + '"></div>'
+      +   '<div class="field"><label>Comissão (%, opcional — senão usa a padrão)</label><input id="vf-com" type="number" step="0.1" value="' + (x.comissaoPct != null ? x.comissaoPct : "") + '"></div></div>'
+      + '<div class="field"><label>Estado</label><select id="vf-estado">' + VENDA_ESTADOS.map(function(e){ return '<option value="' + e[0] + '"' + ((x.estado||"proposta") === e[0] ? " selected" : "") + '>' + e[1] + '</option>'; }).join("") + '</select></div>'
+      + '<div class="field"><label>Notas</label><textarea id="vf-notas">' + esc(x.notas||"") + '</textarea></div>'
+      + '<div class="err" id="vf-err"></div>'
+      + '<div class="mrow"><button class="btn ghost" id="vf-x2">Cancelar</button><button class="btn gold" id="vf-ok">Guardar</button></div>';
+    bindClienteAutocomplete(box.querySelector("#vf-cli"));
+    box.querySelector("#vf-x2").onclick = function(){ close(); };
+    box.querySelector("#vf-ok").onclick = function(){
+      var valor = parseFloat(box.querySelector("#vf-valor").value);
+      if(!isFinite(valor) || valor < 0){ box.querySelector("#vf-err").textContent = "Põe um valor válido."; return; }
+      var comEl = box.querySelector("#vf-com").value;
+      afterSave(colPut("vendas", x.id || newId(), {
+        data: box.querySelector("#vf-data").value || new Date().toISOString().slice(0,10),
+        funcionarioId: box.querySelector("#vf-func").value,
+        cliente: box.querySelector("#vf-cli").value.trim(),
+        item: box.querySelector("#vf-item").value.trim(),
+        valor: valor,
+        comissaoPct: comEl === "" ? undefined : parseFloat(comEl),
+        estado: box.querySelector("#vf-estado").value,
+        notas: box.querySelector("#vf-notas").value.trim()
+      }), close, vendasView);
+    };
   });
 }
 
@@ -3926,7 +4361,7 @@ function pagamentoForm(p){
   p = p || {};
   var editing = !!p.id;
   modal(function(box, close){
-    box.innerHTML = '<h4>' + (editing ? "Editar pagamento" : "Novo pagamento") + '</h4>'
+    box.innerHTML = '<h4>' + ICN.euro + (editing ? "Editar pagamento" : "Novo pagamento") + '</h4>'
       + (editing ? '' :
         '<div class="field"><label>Tipo</label><div class="radio-row" id="pg-tp">'
         +   '<label data-s="unico" class="on">Único</label>'
@@ -4232,29 +4667,43 @@ function workspaceForm(w, onSaved){
   var cor = w.cor || WS_CORES[0][0];
   var ico = w.tagIcone || TAG_ICONS[0][0];
   modal(function(box, close){
-    box.innerHTML = '<h4>' + (w.id ? "Editar workspace" : "Novo workspace") + '</h4>'
+    box.innerHTML = '<h4>' + ICN.workspace + (w.id ? "Editar workspace" : "Novo workspace") + '</h4>'
       + frow("Título","ws-t",w.titulo)
       + '<div class="field"><label>Nome da etiqueta (só tu o vês ao clicar)</label><input id="ws-tag" value="' + esc(w.tag || "") + '" placeholder="ex. Campanha, Ideia, Institucional"></div>'
-      + '<div class="field"><label>Ícone da etiqueta</label><div class="ico-pick" id="ws-ico"></div></div>'
-      + '<div class="field"><label>Cor da etiqueta</label><div class="cor-pick" id="ws-cor"></div></div>'
+      + '<div class="field"><label>Ícone e cor da etiqueta</label><div class="tag-pick-row">'
+      +   '<button type="button" class="tag-dd" id="ws-icobtn"></button>'
+      +   '<button type="button" class="tag-dd" id="ws-corbtn"></button>'
+      + '</div></div>'
       + '<div class="row"><div class="field"><label>Cliente (opcional)</label><input id="ws-cli" value="' + esc(w.cliente || "") + '"></div>'
       +   '<div class="field"><label>Código de página (opcional)</label><input id="ws-pag" value="' + esc(w.pagina || "") + '"></div></div>'
       + '<div class="field"><label>Descrição</label><textarea id="ws-desc">' + esc(w.descricao || "") + '</textarea></div>'
       + scopeRow(w.scope)
       + '<div class="err" id="ws-err"></div>'
       + '<div class="mrow"><button class="btn ghost" id="ws-x">Cancelar</button><button class="btn gold" id="ws-ok">Guardar</button></div>';
-    var cp = box.querySelector("#ws-cor");
-    WS_CORES.forEach(function(c){
-      var b = el("button", c[0] === cor ? "on" : ""); b.type = "button"; b.style.background = c[0]; b.title = c[1];
-      b.onclick = function(){ cor = c[0]; cp.querySelectorAll("button").forEach(function(x){ x.classList.toggle("on", x === b); }); };
-      cp.appendChild(b);
-    });
-    var ip = box.querySelector("#ws-ico");
-    TAG_ICONS.forEach(function(t){
-      var b = el("button", t[0] === ico ? "on" : "", t[2]); b.type = "button"; b.title = t[1];
-      b.onclick = function(){ ico = t[0]; ip.querySelectorAll("button").forEach(function(x){ x.classList.toggle("on", x === b); }); };
-      ip.appendChild(b);
-    });
+    var icoBtn = box.querySelector("#ws-icobtn"), corBtn = box.querySelector("#ws-corbtn");
+    function paintIcoBtn(){ icoBtn.innerHTML = tagIconSvg(ico) + '<span>Ícone</span>'; }
+    function paintCorBtn(){ corBtn.innerHTML = '<span class="swatch" style="background:' + cor + '"></span><span>Cor</span>'; }
+    paintIcoBtn(); paintCorBtn();
+    icoBtn.onclick = function(){
+      openAnchoredPopover(icoBtn, "ico-pop", function(pop){
+        var grid = el("div","ico-pick"); pop.appendChild(grid);
+        TAG_ICONS.forEach(function(t){
+          var b = el("button", t[0] === ico ? "on" : "", t[2]); b.type = "button"; b.title = t[1];
+          b.onclick = function(){ ico = t[0]; paintIcoBtn(); pop.remove(); };
+          grid.appendChild(b);
+        });
+      });
+    };
+    corBtn.onclick = function(){
+      openAnchoredPopover(corBtn, "cor-pop", function(pop){
+        var grid = el("div","cor-pick"); pop.appendChild(grid);
+        WS_CORES.forEach(function(c){
+          var b = el("button", c[0] === cor ? "on" : ""); b.type = "button"; b.style.background = c[0]; b.title = c[1];
+          b.onclick = function(){ cor = c[0]; paintCorBtn(); pop.remove(); };
+          grid.appendChild(b);
+        });
+      });
+    };
     var getScope = bindScope(box);
     bindClienteAutocomplete(box.querySelector("#ws-cli"));
     box.querySelector("#ws-x").onclick = function(){ close(); };
