@@ -259,6 +259,35 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
 .ico-pick button:hover{color:var(--ink)}
 .ico-pick button.on{border-color:var(--ink);color:var(--ink);background:var(--gold-lo)}
 
+/* ===== painel — negócio ===== */
+.fin-card{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:24px;background:var(--panel);border:1px solid var(--edge);border-radius:4px;padding:22px 26px;margin-bottom:16px}
+@media(max-width:640px){.fin-card{grid-template-columns:1fr;text-align:center;gap:14px}}
+.fin-col{display:flex;flex-direction:column;align-items:center;gap:9px}
+.fin-ring{position:relative;width:104px;height:104px}
+.fin-ring .ring-svg{width:100%;height:100%}
+.fin-ring .fin-ring-c{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 8px}
+.fin-ring .fin-ring-c b{font-size:15px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.fin-ring-l{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.fin-mid{text-align:center}
+.fin-mid .fin-mid-l{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:8px}
+.fin-mid .fin-mid-v{font-size:28px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.fin-mid .fin-mid-sub{font-size:12px;color:var(--dim);margin-top:6px}
+.fin-mid .fin-mid-sub.bad{color:#FF7A6B}
+.op-row{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:16px}
+@media(max-width:900px){.op-row{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:480px){.op-row{grid-template-columns:repeat(2,1fr)}}
+.op-item{background:var(--panel);border:1px solid var(--edge);border-radius:4px;padding:16px 14px;text-align:center}
+.op-item .op-v{font-size:22px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.op-item .op-l{font-size:10.5px;color:var(--faint);margin-top:6px;line-height:1.4}
+.dest-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+@media(max-width:900px){.dest-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.dest-grid{grid-template-columns:1fr}}
+.dest-card{background:var(--panel);border:1px solid var(--edge);border-radius:4px;padding:16px 16px}
+.dest-card .dest-l{font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-bottom:10px}
+.dest-card .dest-nm{font-size:14px;font-weight:700;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dest-card .dest-nm.empty{font-weight:400;font-style:italic;color:var(--faint)}
+.dest-card .dest-v{font-size:12px;color:var(--dim);margin-top:4px;font-variant-numeric:tabular-nums}
+
 /* ===== painel de estado / quotas ===== */
 .dash-h{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin:0 0 11px}
 .dash{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
@@ -1078,9 +1107,93 @@ function listView(){
 
 function painelView(){
   var v = $("#view"); v.innerHTML = "";
+  var neg = el("div"); v.appendChild(neg);
+  loadNegocio(neg);
   v.appendChild(Object.assign(el("div","dash-h"), { textContent: "Estado & quotas" }));
   var dash = el("div","dash"); v.appendChild(dash);
   loadStats(dash);
+}
+
+/* ============================ PAINEL — negócio ============================ */
+function ringSvg(pct, color){
+  var r = 42, c = 2 * Math.PI * r;
+  pct = Math.max(0, Math.min(100, pct || 0));
+  var dash = (pct / 100 * c).toFixed(1);
+  return '<svg viewBox="0 0 100 100" class="ring-svg">'
+    + '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="var(--edge2)" stroke-width="9"/>'
+    + '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="9" stroke-linecap="round" stroke-dasharray="' + dash + ' ' + c.toFixed(1) + '" transform="rotate(-90 50 50)"/>'
+    + '</svg>';
+}
+function finRing(label, value, pct, color){
+  return '<div class="fin-ring">' + ringSvg(pct, color)
+    + '<div class="fin-ring-c"><b>' + fmtMoney(value) + '</b></div></div>'
+    + '<div class="fin-ring-l">' + esc(label) + '</div>';
+}
+function destCard(label, nome, val){
+  return '<div class="dest-card"><div class="dest-l">' + esc(label) + '</div>'
+    + (nome ? ('<div class="dest-nm">' + esc(nome) + '</div><div class="dest-v">' + esc(val) + '</div>')
+            : '<div class="dest-nm empty">Ainda sem dados</div>')
+    + '</div>';
+}
+function loadNegocio(box){
+  box.innerHTML = '<div class="dash-h">Negócio</div><div class="wide-empty">a carregar…</div>';
+  Promise.all([col("pagamentos"), col("contratos"), col("tarefas"), col("prospeccao"), col("agenda")]).then(function(x){
+    var pagamentos = x[0], contratos = x[1], tarefas = x[2], prospeccao = x[3], agenda = x[4];
+    var hoje = new Date().toISOString().slice(0, 10);
+    var semana = new Date(); semana.setDate(semana.getDate() + 7);
+    var semanaStr = semana.toISOString().slice(0, 10);
+
+    /* -- financeiro -- */
+    var tot = { pago:0, pendente:0, atraso:0 };
+    pagamentos.forEach(function(p){ tot[pagEstado(p)] += Number(p.valor) || 0; });
+    var aberto = tot.pendente + tot.atraso, movimento = tot.pago + aberto;
+    var pctPago = movimento ? tot.pago / movimento * 100 : 0;
+    var pctAberto = movimento ? aberto / movimento * 100 : 0;
+
+    /* -- operacional -- */
+    var op = [
+      { l:"Tarefas por fazer", v: tarefas.filter(function(t){ return t.estado !== "feito"; }).length },
+      { l:"Contratos ativos", v: contratos.filter(function(k){ return !k.fim || k.fim >= hoje; }).length },
+      { l:"Cobranças pendentes", v: pagamentos.filter(function(p){ return pagEstado(p) === "pendente"; }).length },
+      { l:"Cobranças em atraso", v: pagamentos.filter(function(p){ return pagEstado(p) === "atraso"; }).length },
+      { l:"Prospecção ativa", v: prospeccao.filter(function(p){ return ["abordar","contactado","conversa","proposta"].indexOf(p.estado || "abordar") >= 0; }).length },
+      { l:"Compromissos · 7 dias", v: agenda.filter(function(a){ return a.data && a.data >= hoje && a.data <= semanaStr; }).length }
+    ];
+
+    /* -- destaques, por cliente -- */
+    var acc = {};
+    function ensure(nome){ nome = (nome || "").trim(); if(!nome) return null; if(!acc[nome]) acc[nome] = { nome:nome, receita:0, contratosAtivos:0, tarefasPendentes:0, maiorAtraso:0 }; return acc[nome]; }
+    pagamentos.forEach(function(p){
+      var c = ensure(p.cliente); if(!c) return;
+      var e = pagEstado(p);
+      if(e === "pago") c.receita += Number(p.valor) || 0;
+      if(e === "atraso") c.maiorAtraso = Math.max(c.maiorAtraso, Number(p.valor) || 0);
+    });
+    contratos.forEach(function(k){ var c = ensure(k.cliente); if(c && (!k.fim || k.fim >= hoje)) c.contratosAtivos++; });
+    tarefas.forEach(function(t){ if(t.estado === "feito") return; var c = ensure(t.cliente); if(c) c.tarefasPendentes++; });
+    var agg = Object.keys(acc).map(function(k){ return acc[k]; });
+    var topReceita = agg.filter(function(c){ return c.receita > 0; }).sort(function(a,b){ return b.receita - a.receita; })[0];
+    var topContratos = agg.filter(function(c){ return c.contratosAtivos > 0; }).sort(function(a,b){ return b.contratosAtivos - a.contratosAtivos; })[0];
+    var topAtraso = agg.filter(function(c){ return c.maiorAtraso > 0; }).sort(function(a,b){ return b.maiorAtraso - a.maiorAtraso; })[0];
+    var topTarefas = agg.filter(function(c){ return c.tarefasPendentes > 0; }).sort(function(a,b){ return b.tarefasPendentes - a.tarefasPendentes; })[0];
+
+    box.innerHTML = ""
+      + '<div class="dash-h">Negócio</div>'
+      + '<div class="fin-card">'
+      +   '<div class="fin-col">' + finRing("Recebido", tot.pago, pctPago, "#5FBE82") + '</div>'
+      +   '<div class="fin-mid"><div class="fin-mid-l">Movimentado</div><div class="fin-mid-v">' + fmtMoney(movimento) + '</div>'
+      +     (tot.atraso ? '<div class="fin-mid-sub bad">' + fmtMoney(tot.atraso) + ' em atraso</div>' : '<div class="fin-mid-sub">tudo em dia</div>')
+      +   '</div>'
+      +   '<div class="fin-col">' + finRing("Em aberto", aberto, pctAberto, tot.atraso ? "#FF6B5C" : "#E7B84B") + '</div>'
+      + '</div>'
+      + '<div class="op-row">' + op.map(function(o){ return '<div class="op-item"><div class="op-v">' + o.v + '</div><div class="op-l">' + esc(o.l) + '</div></div>'; }).join("") + '</div>'
+      + '<div class="dest-grid">'
+      +   destCard("Maior cliente", topReceita && topReceita.nome, topReceita && fmtMoney(topReceita.receita))
+      +   destCard("Mais contratos ativos", topContratos && topContratos.nome, topContratos && (topContratos.contratosAtivos + " contrato" + (topContratos.contratosAtivos===1?"":"s")))
+      +   destCard("Maior valor em atraso", topAtraso && topAtraso.nome, topAtraso && fmtMoney(topAtraso.maiorAtraso))
+      +   destCard("Mais tarefas por fazer", topTarefas && topTarefas.nome, topTarefas && (topTarefas.tarefasPendentes + " tarefa" + (topTarefas.tarefasPendentes===1?"":"s")))
+      + '</div>';
+  }).catch(function(){ box.innerHTML = '<div class="dash-h">Negócio</div><div class="wide-empty">Não foi possível carregar.</div>'; });
 }
 
 function logView(){
