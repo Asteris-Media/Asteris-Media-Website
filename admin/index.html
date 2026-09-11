@@ -51,14 +51,14 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
 .btn.back{margin-bottom:14px}
 
 /* ===== LAYOUT: appbar + sidebar + main ===== */
-#app{display:grid;grid-template-columns:230px 1fr;grid-template-rows:56px 1fr;min-height:100vh}
+#app{display:grid;grid-template-columns:230px 1fr;grid-template-rows:calc(56px + env(safe-area-inset-top,0px)) 1fr;min-height:100vh;min-height:100dvh}
 @media(min-width:861px){#app{height:100vh;overflow:hidden}}
 @media(max-width:860px){#app{grid-template-columns:1fr}}
 @media(min-width:861px){#app.editing .side{display:none}}
 @media(min-width:861px){#app.editing{grid-template-columns:1fr}}
 
 /* barra do topo (linha contínua com o rótulo, pesquisa e sino) */
-.appbar{grid-column:1 / -1;display:grid;grid-template-columns:230px 1fr auto;align-items:center;border-bottom:1px solid var(--edge);position:sticky;top:0;background:rgba(12,12,12,.62);backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5);z-index:12;height:56px}
+.appbar{grid-column:1 / -1;display:grid;grid-template-columns:230px 1fr auto;align-items:center;border-bottom:1px solid var(--edge);position:sticky;top:0;background:rgba(12,12,12,.62);backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5);z-index:12;height:calc(56px + env(safe-area-inset-top,0px));padding-top:env(safe-area-inset-top,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
 .ab-burger{display:none;width:48px;height:100%;border:0;border-right:1px solid var(--edge);background:none;color:var(--dim);align-items:center;justify-content:center}
 .ab-burger svg{width:19px;height:19px}
 .ab-burger:hover{color:var(--ink)}
@@ -90,10 +90,10 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
 .search-results button .sr-tag{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--faint)}
 .search-results .sr-empty{color:var(--faint);font-size:12.5px;padding:14px 10px;text-align:center}
 
-.side{background:var(--bg);border-right:1px solid var(--edge);display:flex;flex-direction:column;padding:16px 0 0;position:sticky;top:56px;height:calc(100vh - 56px)}
+.side{background:var(--bg);border-right:1px solid var(--edge);display:flex;flex-direction:column;padding:16px 0 0;position:sticky;top:calc(56px + env(safe-area-inset-top,0px));height:calc(100dvh - 56px - env(safe-area-inset-top,0px))}
 .side-scrim{position:fixed;inset:0;z-index:38;background:rgba(0,0,0,.5)}
 @media(max-width:860px){
-  .side{position:fixed;left:0;top:56px;bottom:0;width:256px;z-index:39;border-right:1px solid var(--edge2);
+  .side{position:fixed;left:0;top:calc(56px + env(safe-area-inset-top,0px));bottom:0;width:256px;z-index:39;border-right:1px solid var(--edge2);padding-bottom:env(safe-area-inset-bottom,0px);
     transform:translateX(-100%);transition:transform .25s cubic-bezier(.4,0,.2,1);
     background:rgba(12,12,12,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
   #app.nav-open .side{transform:translateX(0)}
@@ -287,6 +287,23 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
 .dest-card .dest-nm{font-size:14px;font-weight:700;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dest-card .dest-nm.empty{font-weight:400;font-style:italic;color:var(--faint)}
 .dest-card .dest-v{font-size:12px;color:var(--dim);margin-top:4px;font-variant-numeric:tabular-nums}
+.exp-card{display:flex;align-items:center;gap:18px;background:var(--panel);border:1px solid var(--edge);border-radius:4px;padding:16px 20px;margin-bottom:22px;cursor:pointer}
+.exp-card:hover{border-color:var(--edge2)}
+.exp-card .exp-ring{position:relative;width:64px;height:64px;flex-shrink:0}
+.exp-card .exp-ring .ring-svg{width:100%;height:100%}
+.exp-card .exp-ring-c{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.exp-card .exp-ring-c svg{width:20px;height:20px;opacity:.8}
+.exp-card .exp-body{flex:1;min-width:0}
+.exp-card .exp-l{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+.exp-card .exp-v{font-size:18px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.exp-card .exp-v small{font-size:12px;font-weight:500;color:var(--dim)}
+.exp-card .exp-sub{font-size:11px;color:var(--dim);margin-top:3px}
+.exp-list{display:flex;flex-direction:column;gap:8px;margin-top:14px;max-height:340px;overflow-y:auto}
+.exp-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--edge);border-radius:4px}
+.exp-row .exp-row-nm{flex:1;min-width:0}
+.exp-row .exp-row-t{font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.exp-row .exp-row-sub{font-size:10.5px;color:var(--faint);margin-top:2px}
+.exp-row .exp-row-v{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
 
 /* ===== painel de estado / quotas ===== */
 .dash-h{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin:0 0 11px}
@@ -1138,8 +1155,10 @@ function destCard(label, nome, val){
 }
 function loadNegocio(box){
   box.innerHTML = '<div class="dash-h">Negócio</div><div class="wide-empty">a carregar…</div>';
-  Promise.all([col("pagamentos"), col("contratos"), col("tarefas"), col("prospeccao"), col("agenda")]).then(function(x){
-    var pagamentos = x[0], contratos = x[1], tarefas = x[2], prospeccao = x[3], agenda = x[4];
+  Promise.all([col("pagamentos"), col("contratos"), col("tarefas"), col("prospeccao"), col("agenda"), col("despesas"), api("GET","config")]).then(function(x){
+    var pagamentos = x[0], contratos = x[1], tarefas = x[2], prospeccao = x[3], agenda = x[4], despesas = x[5];
+    var CFG = (x[6] && x[6].j) || {};
+    var teto = Number(CFG.tetoDespesas) || 0;
     var hoje = new Date().toISOString().slice(0, 10);
     var semana = new Date(); semana.setDate(semana.getDate() + 7);
     var semanaStr = semana.toISOString().slice(0, 10);
@@ -1178,6 +1197,13 @@ function loadNegocio(box){
     var topAtraso = agg.filter(function(c){ return c.maiorAtraso > 0; }).sort(function(a,b){ return b.maiorAtraso - a.maiorAtraso; })[0];
     var topTarefas = agg.filter(function(c){ return c.tarefasPendentes > 0; }).sort(function(a,b){ return b.tarefasPendentes - a.tarefasPendentes; })[0];
 
+    /* -- despesas do mês vs. teto -- */
+    var mesStr = hoje.slice(0, 7);
+    var gastoMes = despesas.filter(function(d){ return String(d.data || "").slice(0,7) === mesStr; })
+      .reduce(function(s, d){ return s + (Number(d.valor) || 0); }, 0);
+    var expPct = teto ? gastoMes / teto * 100 : 0;
+    var expColor = !teto ? "#8C8C8C" : expPct > 100 ? "#FF6B5C" : expPct > 75 ? "#E7B84B" : "#5FBE82";
+
     box.innerHTML = ""
       + '<div class="dash-h">Negócio</div>'
       + '<div class="fin-card">'
@@ -1187,6 +1213,13 @@ function loadNegocio(box){
       +   '</div>'
       +   '<div class="fin-col">' + finRing("Em aberto", aberto, pctAberto, tot.atraso ? "#FF6B5C" : "#E7B84B") + '</div>'
       + '</div>'
+      + '<div class="exp-card" id="expCard">'
+      +   '<div class="exp-ring">' + ringSvg(Math.min(100, expPct), expColor) + '<div class="exp-ring-c">' + ICN.euro + '</div></div>'
+      +   '<div class="exp-body"><div class="exp-l">Despesas do mês</div>'
+      +     '<div class="exp-v">' + fmtMoney(gastoMes) + (teto ? ' <small>/ ' + fmtMoney(teto) + '</small>' : '') + '</div>'
+      +     '<div class="exp-sub">' + (teto ? (expPct > 100 ? "acima do teto" : Math.round(100 - expPct) + "% do teto por gastar") : "sem teto definido") + ' · ' + despesas.filter(function(d){ return String(d.data||"").slice(0,7)===mesStr; }).length + ' lançamento' + (despesas.filter(function(d){ return String(d.data||"").slice(0,7)===mesStr; }).length===1?'':'s') + ' este mês</div>'
+      +   '</div>'
+      + '</div>'
       + '<div class="op-row">' + op.map(function(o){ return '<div class="op-item"><div class="op-v">' + o.v + '</div><div class="op-l">' + esc(o.l) + '</div></div>'; }).join("") + '</div>'
       + '<div class="dest-grid">'
       +   destCard("Maior cliente", topReceita && topReceita.nome, topReceita && fmtMoney(topReceita.receita))
@@ -1194,7 +1227,87 @@ function loadNegocio(box){
       +   destCard("Maior valor em atraso", topAtraso && topAtraso.nome, topAtraso && fmtMoney(topAtraso.maiorAtraso))
       +   destCard("Mais tarefas por fazer", topTarefas && topTarefas.nome, topTarefas && (topTarefas.tarefasPendentes + " tarefa" + (topTarefas.tarefasPendentes===1?"":"s")))
       + '</div>';
+    box.querySelector("#expCard").onclick = function(){ despesasModal(despesas, teto); };
   }).catch(function(){ box.innerHTML = '<div class="dash-h">Negócio</div><div class="wide-empty">Não foi possível carregar.</div>'; });
+}
+
+/* ============================ DESPESAS ============================ */
+var CAT_DESPESA = ["Equipamento", "Software", "Deslocação", "Marketing", "Impostos", "Renda / escritório", "Outro"];
+function despesasModal(despesas, teto){
+  modal(function(box, close){
+    function render(){
+      var list = despesas.slice().sort(function(a,b){ return (b.data||"").localeCompare(a.data||""); });
+      var total = list.reduce(function(s,d){ return s + (Number(d.valor)||0); }, 0);
+      box.innerHTML = '<h4>Despesas</h4>'
+        + '<div class="row"><div class="field"><label>Teto mensal (EUR)</label><input id="dp-teto" type="number" step="0.01" value="' + (teto || "") + '" placeholder="sem limite definido"></div>'
+        +   '<div class="field"><label>Total registado</label><input value="' + fmtMoney(total) + '" disabled></div></div>'
+        + '<button type="button" class="btn gold" id="dp-add" style="width:100%;margin-top:4px">' + ICO_PLUS + 'Nova despesa</button>'
+        + '<div class="exp-list" id="dp-list"></div>'
+        + '<div class="mrow"><button class="btn ghost" id="dp-x">Fechar</button></div>';
+      var wrap = box.querySelector("#dp-list");
+      if(!list.length){ wrap.appendChild(el("div","wide-empty","Sem despesas registadas.")); }
+      list.forEach(function(d){
+        var row = el("div","exp-row");
+        row.innerHTML = '<div class="exp-row-nm"><div class="exp-row-t">' + esc(d.descricao || "Despesa") + '</div>'
+          + '<div class="exp-row-sub">' + esc(d.categoria || "Outro") + ' · ' + fmtDate(d.data) + '</div></div>'
+          + '<div class="exp-row-v">' + fmtMoney(d.valor) + '</div>'
+          + '<button class="menu-btn" aria-label="Ações">&#8942;</button>';
+        var mb = row.querySelector(".menu-btn");
+        mb.onclick = function(e){
+          e.stopPropagation();
+          openMenu(mb, [
+            { label:"Editar", onClick:function(){ despesaForm(d, function(novo){ var i = despesas.indexOf(d); despesas[i] = novo; render(); }); } },
+            { sep:true },
+            { label:"Apagar", danger:true, onClick:function(){
+                confirmModal({ title:"Apagar despesa?", message:"Não dá para desfazer.", ok:"Apagar", danger:true }).then(function(y){
+                  if(!y) return;
+                  colDel("despesas", d.id).then(function(){ despesas.splice(despesas.indexOf(d), 1); render(); });
+                });
+              } }
+          ]);
+        };
+        wrap.appendChild(row);
+      });
+      box.querySelector("#dp-x").onclick = function(){ close(); openView("painel"); };
+      box.querySelector("#dp-teto").onchange = function(){
+        teto = parseFloat(box.querySelector("#dp-teto").value) || 0;
+        api("PUT","config",{ tetoDespesas: teto }).then(function(){ toast("Teto atualizado"); });
+      };
+      box.querySelector("#dp-add").onclick = function(){
+        despesaForm(null, function(novo){ despesas.push(novo); render(); });
+      };
+    }
+    render();
+  }, { cls:"lg" });
+}
+function despesaForm(d, onSaved){
+  d = d || {};
+  modal(function(box, close){
+    box.innerHTML = '<h4>' + (d.id ? "Editar despesa" : "Nova despesa") + '</h4>'
+      + frow("Descrição","de-desc",d.descricao)
+      + '<div class="row"><div class="field"><label>Categoria</label><select id="de-cat">' + CAT_DESPESA.map(function(c){ return '<option' + (d.categoria===c?" selected":"") + '>' + c + '</option>'; }).join("") + '</select></div>'
+      +   '<div class="field"><label>Valor (EUR)</label><input id="de-val" type="number" step="0.01" value="' + (d.valor != null ? d.valor : "") + '"></div></div>'
+      + '<div class="field"><label>Data</label><input type="date" id="de-data" value="' + esc(d.data || new Date().toISOString().slice(0,10)) + '"></div>'
+      + scopeRow(d.scope)
+      + '<div class="err" id="de-err"></div>'
+      + '<div class="mrow"><button class="btn ghost" id="de-x">Cancelar</button><button class="btn gold" id="de-ok">Guardar</button></div>';
+    var getScope = bindScope(box);
+    box.querySelector("#de-x").onclick = function(){ close(); };
+    box.querySelector("#de-ok").onclick = function(){
+      var desc = box.querySelector("#de-desc").value.trim();
+      var val = parseFloat(box.querySelector("#de-val").value);
+      if(!desc){ box.querySelector("#de-err").textContent = "Dá uma descrição à despesa."; return; }
+      if(!isFinite(val)){ box.querySelector("#de-err").textContent = "Põe o valor."; return; }
+      var id = d.id || newId();
+      var rec = { descricao:desc, categoria: box.querySelector("#de-cat").value, valor: val, data: box.querySelector("#de-data").value, scope: getScope() };
+      colPut("despesas", id, rec).then(function(r){
+        if(!r || !r.ok){ box.querySelector("#de-err").textContent = (r && r.j && r.j.error) || "Não foi possível guardar."; return; }
+        toast("Guardado"); close();
+        onSaved && onSaved(Object.assign({ id: id }, rec));
+      });
+    };
+    box.querySelector("#de-desc").focus();
+  }, { cls:"lg" });
 }
 
 function logView(){

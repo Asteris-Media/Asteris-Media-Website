@@ -767,7 +767,7 @@ if(b) b.onclick=function(){
   // PUT  /api/col/<nome>/<id>       -> upsert
   // DELETE /api/col/<nome>/<id>     -> apaga
   if (seg[0] === "col") {
-    const COLS = ["clientes", "tarefas", "contratos", "agenda", "notas", "prospeccao", "workspaces", "pagamentos"];
+    const COLS = ["clientes", "tarefas", "contratos", "agenda", "notas", "prospeccao", "workspaces", "pagamentos", "despesas"];
     const name = (seg[1] || "").toLowerCase();
     if (!COLS.includes(name)) return json({ error: "coleção desconhecida" }, 404);
     const kvKey = "col:" + name;
@@ -812,6 +812,21 @@ if(b) b.onclick=function(){
 
   // ---- upload de ficheiro ----
   // dest="r2" (entregas)  |  dest="cloudinary" (portfólio, seleção)  |  sem dest = o que estiver ligado
+  // ---- configurações gerais (hoje só o teto mensal de despesas) ----
+  // GET /api/config  -> { tetoDespesas }
+  // PUT /api/config  -> body faz merge no que já estava guardado
+  if (seg[0] === "config" && method === "GET") {
+    const raw = await env.ASTERIS_KV.get("config:geral");
+    return json(raw ? JSON.parse(raw) : {});
+  }
+  if (seg[0] === "config" && method === "PUT") {
+    const b = await request.json().catch(() => ({}));
+    const raw = await env.ASTERIS_KV.get("config:geral");
+    const cfg = Object.assign({}, raw ? JSON.parse(raw) : {}, b);
+    await env.ASTERIS_KV.put("config:geral", JSON.stringify(cfg));
+    return json({ ok: true, config: cfg });
+  }
+
   // ---- limpeza automática: marca uma pasta (R2 ou FFmpegLab) para apagar sozinha ao fim de X dias ----
   // GET  /api/limpezas          -> lista o que está agendado
   // POST /api/limpezas          -> { folder, cloud, dias }  agenda/atualiza
