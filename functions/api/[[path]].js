@@ -430,6 +430,15 @@ if(b) b.onclick=function(){
       } catch (e) { r2.error = String(e); }
     }
 
+    const ffmpeglab = { bound: !!s3Conf(env), objects: null, bytes: null };
+    if (ffmpeglab.bound) {
+      try {
+        const objs = await s3List(s3Conf(env), "");
+        ffmpeglab.objects = objs.length;
+        ffmpeglab.bytes = objs.reduce((s, x) => s + (x.size || 0), 0);
+      } catch (e) { ffmpeglab.error = String(e).slice(0, 120); }
+    }
+
     const cloudinary = { configured: !!(env.CLOUDINARY_CLOUD && env.CLOUDINARY_KEY && env.CLOUDINARY_SECRET) };
     if (cloudinary.configured) {
       try {
@@ -452,10 +461,12 @@ if(b) b.onclick=function(){
       generated: new Date().toISOString(),
       pages: { total: idx.length, kvKeys, byType, expired, soon },
       r2,
+      ffmpeglab,
       cloudinary,
       limits: {
         kv: { storageMB: 1024, readsDia: 100000, escritasDia: 1000, apagarDia: 1000 },
         r2: { storageGB: 10, classAmes: 1000000, classBmes: 10000000 },
+        ffmpeglab: { storageGB: +env.FFMPEGLAB_QUOTA_GB || 50 },
         pagesBuildsMes: 500,
         cloudinaryCreditosMes: 25
       }
