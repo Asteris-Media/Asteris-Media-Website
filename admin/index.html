@@ -115,11 +115,14 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
 .side-nav button .badge.mut{background:var(--panel2);color:var(--dim);border:1px solid var(--edge2)}
 .side-nav button.on .badge.mut{background:var(--panel);color:var(--ink)}
 .side-create svg{width:14px;height:14px;flex-shrink:0}
-.side-foot{margin-top:auto;height:65px;padding:0 16px;border-top:1px solid var(--edge);display:flex;align-items:center;gap:10px}
+.side-foot{margin-top:auto;padding:10px 16px 14px;border-top:1px solid var(--edge);display:flex;flex-direction:column;gap:8px}
+.who-row{background:none;border:0;padding:6px 4px;border-radius:4px;display:flex;align-items:center;gap:10px;text-align:left;cursor:pointer;width:100%}
+.who-row:hover{background:var(--panel2)}
+.who-av{width:30px;height:30px;border-radius:50%;flex-shrink:0;background:var(--panel2);border:1px solid var(--edge2);display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;color:var(--dim);overflow:hidden;background-size:cover;background-position:center}
 .side-foot .who{flex:1;font-size:12.5px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.side-foot button{background:var(--panel2);border:1px solid var(--edge2);color:var(--ink);font-size:13.5px;font-weight:600;padding:9px 18px;border-radius:4px;display:flex;align-items:center;gap:8px}
-.side-foot button svg{width:14px;height:14px}
-.side-foot button:hover{border-color:var(--ink)}
+.side-foot > button:not(.who-row){width:100%;justify-content:center;background:var(--panel2);border:1px solid var(--edge2);color:var(--ink);font-size:13.5px;font-weight:600;padding:9px 18px;border-radius:4px;display:flex;align-items:center;gap:8px}
+.side-foot > button:not(.who-row) svg{width:14px;height:14px}
+.side-foot > button:not(.who-row):hover{border-color:var(--ink)}
 
 .main{min-width:0;display:flex;flex-direction:column;overflow:hidden}
 .page-head{flex-shrink:0;padding:20px clamp(16px,4vw,40px) 0}
@@ -656,7 +659,11 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
       <button data-v="biblioteca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9L9.6 3.9A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>Biblioteca</button>
     </nav>
     <div class="side-foot">
-      <span class="who" id="whoami"></span>
+      <button class="who-row" id="whoRow" type="button" title="Alterar foto de perfil">
+        <span class="who-av" id="whoAv"></span>
+        <span class="who" id="whoami"></span>
+      </button>
+      <input type="file" id="avaFile" accept="image/*" hidden>
       <button id="btnLogout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></svg>Sair</button>
     </div>
   </aside>
@@ -665,7 +672,6 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
     <div class="page-head"><h1 id="ttl">Painel</h1></div>
     <div id="view"></div>
     <footer class="adm-foot">
-      <span class="af-brand"><img src="/assets/logos/asteris.png" alt="">Asteris</span>
       <span class="af-copy">&copy; <span id="year">2026</span> Asteris. Todos os direitos reservados.</span>
       <span class="af-end"><button class="af-logs" id="btnLogs" type="button" aria-label="Registo de atividade" title="Registo de atividade">&#10022;</button></span>
     </footer>
@@ -874,11 +880,43 @@ if("serviceWorker" in navigator){
   window.addEventListener("load", function(){ navigator.serviceWorker.register("/admin/sw.js").catch(function(){}); });
 }
 
+var CONFIG_CACHE = null;
+function loadConfig(force){
+  if(CONFIG_CACHE && !force) return Promise.resolve(CONFIG_CACHE);
+  return api("GET","config").then(function(r){ CONFIG_CACHE = (r && r.j) || {}; return CONFIG_CACHE; });
+}
+function initials(name){
+  var parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+  if(!parts.length) return "?";
+  return (parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : "")).toUpperCase();
+}
+function renderWho(){
+  $("#whoami").textContent = ME ? ME : "";
+  var av = $("#whoAv");
+  var url = CONFIG_CACHE && CONFIG_CACHE.avatars && ME ? CONFIG_CACHE.avatars[ME] : null;
+  if(url){ av.style.backgroundImage = "url('" + url.replace(/'/g,"%27") + "')"; av.textContent = ""; }
+  else { av.style.backgroundImage = "none"; av.textContent = initials(ME); }
+}
 function boot(){
   $("#login").hidden = true;
   $("#app").hidden = false;
   $("#year").textContent = new Date().getFullYear();
-  $("#whoami").textContent = ME ? ME : "";
+  loadConfig().then(renderWho);
+  $("#whoRow").onclick = function(){ $("#avaFile").click(); };
+  $("#avaFile").onchange = function(){
+    var f = this.files && this.files[0]; this.value = "";
+    if(!f) return;
+    var fd = new FormData(); fd.append("file", f); fd.append("folder", "avatars");
+    fetch("/api/upload", { method:"POST", body: fd }).then(function(r){ return r.json(); }).then(function(j){
+      if(!j || !j.url){ toast("Não foi possível enviar a foto."); return; }
+      var avatars = Object.assign({}, (CONFIG_CACHE && CONFIG_CACHE.avatars) || {});
+      avatars[ME] = j.url;
+      return api("PUT","config", { avatars: avatars }).then(function(r){
+        CONFIG_CACHE = (r && r.j && r.j.config) || Object.assign({}, CONFIG_CACHE, { avatars: avatars });
+        renderWho(); toast("Foto atualizada");
+      });
+    }).catch(function(){ toast("Não foi possível enviar a foto."); });
+  };
   $("#btnLogs").onclick = function(){ openView("log"); };
   $("#btnCreate").onclick = function(){ newPageModal(); };
   $("#nav").addEventListener("click", function(e){
