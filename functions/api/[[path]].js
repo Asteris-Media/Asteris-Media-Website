@@ -267,6 +267,18 @@ export async function onRequest(context) {
     return new Response(obj.body, { headers: h });
   }
 
+  // ---- diagnóstico simples da ligação ao FFmpegLab (não expõe segredos, só se está a funcionar) ----
+  if (seg[0] === "ffmpeglab-check" && method === "GET") {
+    if (!env.FFMPEGLAB_API_KEY) return json({ hasKey: false, ok: false, motivo: "FFMPEGLAB_API_KEY não está definida" });
+    try {
+      const r = await fetch("https://api.ffmpeglab.com/files/s3config", { headers: { authorization: "Bearer " + env.FFMPEGLAB_API_KEY } });
+      if (!r.ok) return json({ hasKey: true, ok: false, motivo: "s3config respondeu " + r.status });
+      const j = await r.json().catch(() => null);
+      if (!j || !j.endpoint || !j.bucketId || !j.credentials || !j.credentials.accessKeyId) return json({ hasKey: true, ok: false, motivo: "resposta do s3config não tem o formato esperado" });
+      return json({ hasKey: true, ok: true, bucket: j.bucketId, region: j.region || "auto", hasSessionToken: !!j.credentials.sessionToken });
+    } catch (e) { return json({ hasKey: true, ok: false, motivo: String(e).slice(0, 200) }); }
+  }
+
   // ---- servir ficheiro do FFmpegLab (S3) — mesma lógica do R2 acima ----
   if (seg[0] === "ffmpeglab" && method === "GET") {
     const conf = await s3Conf(env);
