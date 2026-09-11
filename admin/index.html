@@ -2526,7 +2526,8 @@ function contratosView(){
         + '</div></div>'
         + cbar(
             (nF ? '<span>' + ICN.ficheiro + nF + '</span>' : ''),
-            dateChip(c.fim, 14) + (c.pagina ? linkIconChip(c.pagina) : '') + scopeChip(c.scope)
+            (c.pag && c.pag.tipo && c.pag.tipo !== "nenhum" ? '<span class="chip"><span>' + (c.pag.tipo === "recorrente" ? "Recorrente" : "Único") + '</span></span>' : '')
+            + dateChip(c.fim, 14) + (c.pagina ? linkIconChip(c.pagina) : '') + scopeChip(c.scope)
           );
       var mb = card.querySelector(".menu-btn");
       mb.onclick = function(e){ e.stopPropagation(); rowMenu(mb, function(){ contratoForm(c); }, "contratos", c.id, contratosView, "Apagar contrato?"); };
@@ -2538,19 +2539,48 @@ function contratosView(){
 function contratoForm(c){
   c = c || {};
   var ficheiros = (c.ficheiros || []).slice();
+  var pag = c.pag || { tipo:"nenhum" };
   modal(function(box, close){
     box.innerHTML = '<h4>' + (c.id ? "Editar contrato" : "Novo contrato") + '</h4>'
       + frow("Título","kf-t",c.titulo) + frow("Cliente","kf-cli",c.cliente)
       + '<div class="row"><div class="field"><label>Início</label><input type="date" id="kf-ini" value="'+esc(c.inicio||"")+'"></div>'
       +   '<div class="field"><label>Fim</label><input type="date" id="kf-fim" value="'+esc(c.fim||"")+'"></div></div>'
-      + frow("Valor (ex.: 990 EUR / mês)","kf-val",c.valor)
+      + frow("Valor (ex.: 990 EUR / mês, texto livre)","kf-val",c.valor)
       + frow("Código da página associada (opcional)","kf-pag",c.pagina)
       + '<div class="field"><label>Ficheiros na nuvem</label><div id="kf-files"></div>'
       +   '<button type="button" class="np-fromlib" id="kf-addfile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Anexar ficheiro (colar link)</button></div>'
+      + '<div class="field"><label>Pagamento</label><div class="radio-row" id="kf-pt">'
+      +   '<label data-s="nenhum"' + (pag.tipo === "nenhum" || !pag.tipo ? ' class="on"' : '') + '>Sem cobrança</label>'
+      +   '<label data-s="unico"' + (pag.tipo === "unico" ? ' class="on"' : '') + '>Único</label>'
+      +   '<label data-s="recorrente"' + (pag.tipo === "recorrente" ? ' class="on"' : '') + '>Recorrente</label>'
+      + '</div></div>'
+      + '<div id="kf-pgbox"' + (pag.tipo && pag.tipo !== "nenhum" ? '' : ' hidden') + '>'
+      +   '<div class="row"><div class="field"><label id="kf-pvall">' + (pag.tipo === "recorrente" ? "Valor por mês (EUR)" : "Valor (EUR)") + '</label><input id="kf-pval" type="number" step="0.01" value="' + esc(pag.valor != null ? pag.valor : "") + '"></div>'
+      +     '<div class="field"><label>Método de pagamento</label>' + metSelect("kf-pmet", pag.metodo) + '</div></div>'
+      +   '<div class="row">'
+      +     '<div class="field" id="kf-pdata-f"' + (pag.tipo === "unico" ? '' : ' hidden') + '><label>Data de vencimento</label><input id="kf-pdata" type="date" value="' + esc(pag.data || "") + '"></div>'
+      +     '<div class="field" id="kf-pdia-f"' + (pag.tipo === "recorrente" ? '' : ' hidden') + '><label>Dia de vencimento</label><input id="kf-pdia" type="number" min="1" max="28" value="' + esc(pag.dia || 1) + '"></div>'
+      +     '<div class="field" id="kf-pmeses-f"' + (pag.tipo === "recorrente" ? '' : ' hidden') + '><label>Nº de meses (se sem data de fim)</label><input id="kf-pmeses" type="number" min="1" max="36" value="' + esc(pag.meses || 12) + '"></div>'
+      +   '</div>'
+      +   '<p class="hint">Recorrente usa o início e o fim do contrato para gerar as cobranças mensais; sem data de fim, usa o nº de meses.</p>'
+      + '</div>'
       + scopeRow(c.scope)
       + '<div class="err" id="kf-err"></div>'
       + '<div class="mrow"><button class="btn ghost" id="kf-x">Cancelar</button><button class="btn gold" id="kf-ok">Guardar</button></div>';
     var getScope = bindScope(box);
+    var ptTipo = pag.tipo || "nenhum";
+    var ptRow = box.querySelector("#kf-pt");
+    ptRow.querySelectorAll("label").forEach(function(l){
+      l.onclick = function(){
+        ptRow.querySelectorAll("label").forEach(function(x){ x.classList.toggle("on", x === l); });
+        ptTipo = l.dataset.s;
+        box.querySelector("#kf-pgbox").hidden = (ptTipo === "nenhum");
+        box.querySelector("#kf-pdata-f").hidden = (ptTipo !== "unico");
+        box.querySelector("#kf-pdia-f").hidden = (ptTipo !== "recorrente");
+        box.querySelector("#kf-pmeses-f").hidden = (ptTipo !== "recorrente");
+        box.querySelector("#kf-pvall").textContent = ptTipo === "recorrente" ? "Valor por mês (EUR)" : "Valor (EUR)";
+      };
+    });
     var fl = box.querySelector("#kf-files");
     function drawFiles(){
       fl.innerHTML = "";
@@ -2575,13 +2605,33 @@ function contratoForm(c){
       var titulo = box.querySelector("#kf-t").value.trim();
       var cli = box.querySelector("#kf-cli").value.trim();
       if(!titulo && !cli){ box.querySelector("#kf-err").textContent = "Põe pelo menos um título ou cliente."; return; }
-      afterSave(colPut("contratos", c.id || newId(), {
+      var pagOut = { tipo: ptTipo };
+      if(ptTipo !== "nenhum"){
+        var pv = parseFloat(box.querySelector("#kf-pval").value);
+        if(!isFinite(pv)){ box.querySelector("#kf-err").textContent = "Põe o valor do pagamento, ou muda para \"Sem cobrança\"."; return; }
+        pagOut.valor = pv; pagOut.metodo = box.querySelector("#kf-pmet").value;
+        if(ptTipo === "unico") pagOut.data = box.querySelector("#kf-pdata").value;
+        else { pagOut.dia = parseInt(box.querySelector("#kf-pdia").value, 10) || 1; pagOut.meses = parseInt(box.querySelector("#kf-pmeses").value, 10) || 12; }
+      }
+      var cid = c.id || newId();
+      var novo = {
         titulo: titulo, cliente: cli,
         inicio: box.querySelector("#kf-ini").value, fim: box.querySelector("#kf-fim").value,
         valor: box.querySelector("#kf-val").value.trim(),
         pagina: box.querySelector("#kf-pag").value.trim().toUpperCase(),
-        ficheiros: ficheiros, scope: getScope()
-      }), close, contratosView);
+        ficheiros: ficheiros, scope: getScope(), pag: pagOut
+      };
+      box.querySelector("#kf-ok").disabled = true;
+      col("pagamentos").then(function(existentes){
+        colPut("contratos", cid, novo).then(function(r){
+          if(!r || !r.ok){ box.querySelector("#kf-err").textContent = (r && r.j && r.j.error) || "Não foi possível guardar."; box.querySelector("#kf-ok").disabled = false; return; }
+          var ops = buildContratoPagamentos(Object.assign({ id:cid }, novo), existentes);
+          Promise.all(ops).then(function(){
+            toast(ops.length ? "Guardado · pagamentos atualizados" : "Guardado");
+            close(); contratosView(); refreshNotifs();
+          });
+        });
+      });
     };
     box.querySelector("#kf-t").focus();
   }, { cls:"lg" });
@@ -2943,16 +2993,56 @@ function pagEstado(p){
 }
 var PAG_LBL = { pago:"Pago", pendente:"Pendente", atraso:"Em atraso" };
 var PAG_CHIP = { pago:"chip ok", pendente:"chip", atraso:"chip bad" };
+var MET_PAG = ["Transferência bancária", "MB Way", "Multibanco", "Numerário", "Cartão", "Outro"];
+function metSelect(id, cur){
+  return '<select id="' + id + '"><option value="">—</option>'
+    + MET_PAG.map(function(m){ return '<option' + (cur === m ? " selected" : "") + '>' + m + '</option>'; }).join("")
+    + '</select>';
+}
+function ymd(y, m, d){ var dt = new Date(y, m, d); return dt.getFullYear() + "-" + String(dt.getMonth()+1).padStart(2,"0") + "-" + String(dt.getDate()).padStart(2,"0"); }
+function mesNome(y, m){ return new Date(y, m, 1).toLocaleDateString("pt-PT", { month:"long", year:"numeric" }); }
+/* dado um contrato com c.pag, devolve as operações (Promises) para sincronizar
+   os pagamentos que ele gera. Regenera os pendentes, nunca toca nos pagos. */
+function buildContratoPagamentos(c, existentes){
+  var ops = [];
+  var mine = (existentes || []).filter(function(p){ return p.contrato === c.id && p.origem === "contrato"; });
+  mine.forEach(function(p){ if(pagEstado(p) !== "pago") ops.push(colDel("pagamentos", p.id)); });
+  var pagos = mine.filter(function(p){ return pagEstado(p) === "pago"; });
+  var pg = c.pag;
+  if(!pg || pg.tipo === "nenhum" || !pg.tipo || !(Number(pg.valor) > 0)) return ops;
+  var jaTem = function(venc){ return pagos.some(function(p){ return String(p.vencimento).slice(0,7) === String(venc).slice(0,7); }); };
+  var base = { contrato:c.id, contratoTitulo:c.titulo || c.cliente || "", cliente:c.cliente || "",
+    valor:Number(pg.valor), metodo:pg.metodo || "", origem:"contrato", scope:c.scope || "partilhado",
+    emitido:"", estado:"pendente", pago:false, dataPagamento:"", notas:"" };
+  if(pg.tipo === "unico"){
+    var venc = pg.data || c.inicio || "";
+    if(venc && !jaTem(venc)) ops.push(colPut("pagamentos", newId(), Object.assign({}, base, { descricao:(c.titulo || "Contrato"), vencimento:venc })));
+    return ops;
+  }
+  // recorrente
+  var dia = Math.min(28, Math.max(1, parseInt(pg.dia, 10) || 1));
+  var start = String(c.inicio || "").slice(0, 7);
+  if(!start){ var t = new Date(); start = t.getFullYear() + "-" + String(t.getMonth()+1).padStart(2,"0"); }
+  var sp = start.split("-"), y = +sp[0], mo = +sp[1] - 1, n;
+  if(c.fim){ var ep = String(c.fim).slice(0,7).split("-"); n = (+ep[0] - y) * 12 + (+ep[1] - 1 - mo) + 1; }
+  else { n = parseInt(pg.meses, 10) || 12; }
+  n = Math.min(36, Math.max(1, n));
+  for(var i = 0; i < n; i++){
+    var vc = ymd(y, mo + i, dia);
+    if(jaTem(vc)) continue;
+    ops.push(colPut("pagamentos", newId(), Object.assign({}, base, {
+      descricao:(c.titulo || "Contrato") + " · " + mesNome(y, mo + i), vencimento:vc, recorrente:true
+    })));
+  }
+  return ops;
+}
 
 function pagamentosView(){
   var v = $("#view"); v.innerHTML = "";
   var head = el("div","view-head");
   head.appendChild(scopeTabs(pagamentosView));
-  var wrapBtn = el("div"); wrapBtn.style.cssText = "display:flex;gap:8px;flex-wrap:wrap";
-  var gen = el("button","btn ghost", ICO_PLUS + "Plano de contrato"); gen.onclick = function(){ pagPlanoModal(); };
   var add = el("button","btn gold", ICO_PLUS + "Pagamento"); add.onclick = function(){ pagamentoForm(); };
-  wrapBtn.appendChild(gen); wrapBtn.appendChild(add);
-  head.appendChild(wrapBtn); v.appendChild(head);
+  head.appendChild(add); v.appendChild(head);
 
   var sum = el("div","pag-sum"); v.appendChild(sum);
   var chips = el("div","filter-row"); v.appendChild(chips);
@@ -2984,7 +3074,7 @@ function pagamentosView(){
     show.forEach(function(p){
       var est = pagEstado(p);
       var row = el("div","lcard");
-      var sub = [p.cliente, p.contratoTitulo].filter(Boolean).join(" · ");
+      var sub = [p.cliente, p.contratoTitulo, p.metodo].filter(Boolean).join(" · ");
       row.innerHTML =
         '<div class="lc-lead"><span class="itag">' + ICN.euro + '</span></div>'
         + '<div class="lc-nm">' + esc(p.descricao || p.cliente || "Pagamento") + '</div>'
@@ -3022,105 +3112,108 @@ function pagRowMenu(anchor, p){
 }
 function pagamentoForm(p){
   p = p || {};
+  var editing = !!p.id;
   modal(function(box, close){
-    box.innerHTML = '<h4>' + (p.id ? "Editar pagamento" : "Novo pagamento") + '</h4>'
+    box.innerHTML = '<h4>' + (editing ? "Editar pagamento" : "Novo pagamento") + '</h4>'
+      + (editing ? '' :
+        '<div class="field"><label>Tipo</label><div class="radio-row" id="pg-tp">'
+        +   '<label data-s="unico" class="on">Único</label>'
+        +   '<label data-s="recorrente">Recorrente</label>'
+        + '</div></div>')
       + '<div class="field"><label>Contrato (opcional)</label><select id="pg-k"><option value="">— nenhum —</option></select></div>'
-      + frow("Descrição","pg-desc",p.descricao)
       + '<div class="row"><div class="field"><label>Cliente</label><input id="pg-cli" value="' + esc(p.cliente || "") + '"></div>'
-      +   '<div class="field"><label>Valor (EUR)</label><input id="pg-val" type="number" step="0.01" value="' + esc(p.valor != null ? p.valor : "") + '"></div></div>'
-      + '<div class="row"><div class="field"><label>Emitido</label><input type="date" id="pg-emit" value="' + esc(p.emitido || "") + '"></div>'
-      +   '<div class="field"><label>Vencimento</label><input type="date" id="pg-venc" value="' + esc(p.vencimento || "") + '"></div></div>'
-      + '<div class="row"><div class="field"><label>Estado</label><select id="pg-est"><option value="pendente"' + (!p.pago && p.estado!=="pago" ? " selected" : "") + '>Pendente</option><option value="pago"' + (p.pago || p.estado==="pago" ? " selected" : "") + '>Pago</option></select></div>'
-      +   '<div class="field"><label>Data de pagamento</label><input type="date" id="pg-dp" value="' + esc(p.dataPagamento || "") + '"></div></div>'
-      + frow("Método (transferência, MB Way…)","pg-met",p.metodo)
+      +   '<div class="field"><label>Descrição' + (editing ? "" : " base") + '</label><input id="pg-desc" value="' + esc(p.descricao || "") + '"></div></div>'
+      + '<div class="row"><div class="field"><label id="pg-vall">Valor (EUR)</label><input id="pg-val" type="number" step="0.01" value="' + esc(p.valor != null ? p.valor : "") + '"></div>'
+      +   '<div class="field"><label>Método de pagamento</label>' + metSelect("pg-met", p.metodo) + '</div></div>'
+      + '<div id="pg-uni">'
+      +   '<div class="row"><div class="field"><label>Vencimento</label><input type="date" id="pg-venc" value="' + esc(p.vencimento || "") + '"></div>'
+      +     '<div class="field"><label>Estado</label><select id="pg-est"><option value="pendente"' + (!p.pago && p.estado!=="pago" ? " selected" : "") + '>Pendente</option><option value="pago"' + (p.pago || p.estado==="pago" ? " selected" : "") + '>Pago</option></select></div></div>'
+      +   '<div class="field"><label>Data de pagamento (se pago)</label><input type="date" id="pg-dp" value="' + esc(p.dataPagamento || "") + '"></div>'
+      + '</div>'
+      + '<div id="pg-rec" hidden>'
+      +   '<div class="row"><div class="field"><label>Dia de vencimento</label><input id="pg-dia" type="number" min="1" max="28" value="1"></div>'
+      +     '<div class="field"><label>Primeiro mês</label><input id="pg-mes" type="month"></div>'
+      +     '<div class="field"><label>Nº de meses</label><input id="pg-n" type="number" min="1" max="36" value="6"></div></div>'
+      + '</div>'
       + '<div class="field"><label>Notas</label><textarea id="pg-notas">' + esc(p.notas || "") + '</textarea></div>'
       + scopeRow(p.scope)
       + '<div class="err" id="pg-err"></div>'
       + '<div class="mrow"><button class="btn ghost" id="pg-x">Cancelar</button><button class="btn gold" id="pg-ok">Guardar</button></div>';
     var getScope = bindScope(box);
+    var tp = "unico";
+    var tpRow = box.querySelector("#pg-tp");
+    if(tpRow){
+      tpRow.querySelectorAll("label").forEach(function(l){
+        l.onclick = function(){
+          tpRow.querySelectorAll("label").forEach(function(x){ x.classList.toggle("on", x === l); });
+          tp = l.dataset.s;
+          box.querySelector("#pg-uni").hidden = (tp === "recorrente");
+          box.querySelector("#pg-rec").hidden = (tp !== "recorrente");
+          box.querySelector("#pg-vall").textContent = tp === "recorrente" ? "Valor por mês (EUR)" : "Valor (EUR)";
+        };
+      });
+    }
     var sel = box.querySelector("#pg-k");
+    var kmap = {};
     col("contratos").then(function(ks){
       ks.forEach(function(k){
-        var o = el("option"); o.value = k.id; o.textContent = (k.titulo || k.cliente || "Contrato"); o.dataset.cli = k.cliente || ""; o.dataset.val = parseValor(k.valor) || ""; o.dataset.tit = k.titulo || k.cliente || "";
+        kmap[k.id] = k;
+        var o = el("option"); o.value = k.id; o.textContent = (k.titulo || k.cliente || "Contrato");
         if(p.contrato === k.id) o.selected = true;
         sel.appendChild(o);
       });
     });
     sel.onchange = function(){
-      var o = sel.selectedOptions[0]; if(!o || !o.value) return;
-      if(!box.querySelector("#pg-cli").value) box.querySelector("#pg-cli").value = o.dataset.cli || "";
-      if(!box.querySelector("#pg-val").value && o.dataset.val) box.querySelector("#pg-val").value = o.dataset.val;
+      var k = kmap[sel.value]; if(!k) return;
+      if(!box.querySelector("#pg-cli").value) box.querySelector("#pg-cli").value = k.cliente || "";
+      var kv = (k.pag && k.pag.valor) || parseValor(k.valor);
+      if(!box.querySelector("#pg-val").value && kv) box.querySelector("#pg-val").value = kv;
+      if(!box.querySelector("#pg-met").value && k.pag && k.pag.metodo) box.querySelector("#pg-met").value = k.pag.metodo;
+      if(tp === "recorrente" && k.inicio && !box.querySelector("#pg-mes").value) box.querySelector("#pg-mes").value = String(k.inicio).slice(0,7);
     };
     box.querySelector("#pg-x").onclick = function(){ close(); };
     box.querySelector("#pg-ok").onclick = function(){
       var val = parseFloat(box.querySelector("#pg-val").value);
       if(!isFinite(val)){ box.querySelector("#pg-err").textContent = "Põe o valor."; return; }
+      var scope = getScope();
+      var kid = sel.value || "";
+      var ktit = (kid && kmap[kid]) ? (kmap[kid].titulo || kmap[kid].cliente || "") : "";
+      var cliente = box.querySelector("#pg-cli").value.trim();
+      var descBase = box.querySelector("#pg-desc").value.trim();
+      var metodo = box.querySelector("#pg-met").value;
+      var notas = box.querySelector("#pg-notas").value.trim();
+
+      if(tp === "recorrente" && !editing){
+        var dia = Math.min(28, Math.max(1, parseInt(box.querySelector("#pg-dia").value, 10) || 1));
+        var mes = box.querySelector("#pg-mes").value;
+        var nn = Math.min(36, Math.max(1, parseInt(box.querySelector("#pg-n").value, 10) || 1));
+        if(!mes){ box.querySelector("#pg-err").textContent = "Escolhe o primeiro mês."; return; }
+        var sp = mes.split("-"), y = +sp[0], mo = +sp[1] - 1;
+        var jobs = [];
+        for(var i = 0; i < nn; i++){
+          jobs.push(colPut("pagamentos", newId(), {
+            contrato: kid, contratoTitulo: ktit, origem:"manual",
+            descricao: (descBase || "Pagamento") + " · " + mesNome(y, mo + i),
+            cliente: cliente, valor: val, emitido:"", vencimento: ymd(y, mo + i, dia),
+            estado:"pendente", pago:false, dataPagamento:"", metodo: metodo, notas: notas, scope: scope
+          }));
+        }
+        box.querySelector("#pg-ok").disabled = true;
+        Promise.all(jobs).then(function(){ toast(nn + " cobranças criadas"); close(); pagamentosView(); refreshNotifs(); });
+        return;
+      }
+
       var est = box.querySelector("#pg-est").value;
-      var o = sel.selectedOptions[0];
       afterSave(colPut("pagamentos", p.id || newId(), {
-        contrato: sel.value || "", contratoTitulo: (sel.value && o) ? o.dataset.tit : "",
-        descricao: box.querySelector("#pg-desc").value.trim(),
-        cliente: box.querySelector("#pg-cli").value.trim(),
-        valor: val, emitido: box.querySelector("#pg-emit").value, vencimento: box.querySelector("#pg-venc").value,
+        contrato: kid, contratoTitulo: ktit, origem: p.origem || "manual",
+        descricao: descBase, cliente: cliente, valor: val,
+        emitido: p.emitido || "", vencimento: box.querySelector("#pg-venc").value,
         estado: est, pago: est === "pago",
         dataPagamento: est === "pago" ? (box.querySelector("#pg-dp").value || new Date().toISOString().slice(0,10)) : "",
-        metodo: box.querySelector("#pg-met").value.trim(), notas: box.querySelector("#pg-notas").value.trim(),
-        scope: getScope()
+        metodo: metodo, notas: notas, scope: scope
       }), close, function(){ pagamentosView(); refreshNotifs(); });
     };
-    box.querySelector("#pg-desc").focus();
-  }, { cls:"lg" });
-}
-function pagPlanoModal(){
-  modal(function(box, close){
-    box.innerHTML = '<h4>Gerar plano de pagamentos</h4>'
-      + '<p class="hint">Cria uma cobrança pendente por mês a partir de um contrato.</p>'
-      + '<div class="field"><label>Contrato</label><select id="pl-k"><option value="">— escolher —</option></select></div>'
-      + '<div class="row"><div class="field"><label>Valor por mês (EUR)</label><input id="pl-val" type="number" step="0.01"></div>'
-      +   '<div class="field"><label>Dia de vencimento</label><input id="pl-dia" type="number" min="1" max="28" value="1"></div></div>'
-      + '<div class="row"><div class="field"><label>Primeiro mês</label><input id="pl-ini" type="month"></div>'
-      +   '<div class="field"><label>Nº de meses</label><input id="pl-n" type="number" min="1" max="24" value="6"></div></div>'
-      + scopeRow()
-      + '<div class="err" id="pl-err"></div>'
-      + '<div class="mrow"><button class="btn ghost" id="pl-x">Cancelar</button><button class="btn gold" id="pl-ok">Gerar</button></div>';
-    var getScope = bindScope(box);
-    var kmap = {};
-    col("contratos").then(function(ks){
-      var sel = box.querySelector("#pl-k");
-      ks.forEach(function(k){
-        kmap[k.id] = k;
-        var o = el("option"); o.value = k.id; o.textContent = (k.titulo || k.cliente || "Contrato"); sel.appendChild(o);
-      });
-      sel.onchange = function(){
-        var k = kmap[sel.value]; if(!k) return;
-        if(parseValor(k.valor)) box.querySelector("#pl-val").value = parseValor(k.valor);
-        if(k.inicio) box.querySelector("#pl-ini").value = String(k.inicio).slice(0,7);
-      };
-    });
-    box.querySelector("#pl-x").onclick = function(){ close(); };
-    box.querySelector("#pl-ok").onclick = function(){
-      var k = kmap[box.querySelector("#pl-k").value];
-      var val = parseFloat(box.querySelector("#pl-val").value);
-      var dia = Math.min(28, Math.max(1, parseInt(box.querySelector("#pl-dia").value, 10) || 1));
-      var ini = box.querySelector("#pl-ini").value;
-      var n = Math.min(24, Math.max(1, parseInt(box.querySelector("#pl-n").value, 10) || 1));
-      if(!k || !isFinite(val) || !ini){ box.querySelector("#pl-err").textContent = "Falta contrato, valor ou mês."; return; }
-      var scope = getScope();
-      var parts = ini.split("-"), y = +parts[0], mo = +parts[1] - 1;
-      var jobs = [];
-      for(var i = 0; i < n; i++){
-        var d = new Date(y, mo + i, dia);
-        var venc = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
-        jobs.push(colPut("pagamentos", newId(), {
-          contrato: k.id, contratoTitulo: k.titulo || k.cliente || "",
-          descricao: (k.titulo || "Contrato") + " · " + d.toLocaleDateString("pt-PT",{ month:"long", year:"numeric" }),
-          cliente: k.cliente || "", valor: val, emitido:"", vencimento: venc,
-          estado:"pendente", pago:false, dataPagamento:"", metodo:"", notas:"", scope: scope
-        }));
-      }
-      box.querySelector("#pl-ok").disabled = true;
-      Promise.all(jobs).then(function(){ toast(n + " cobranças criadas"); close(); pagamentosView(); refreshNotifs(); });
-    };
+    box.querySelector("#pg-cli").focus();
   }, { cls:"lg" });
 }
 
