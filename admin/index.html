@@ -290,17 +290,23 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
 
 /* ===== painel — negócio ===== */
 .fin-card{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:24px;background:var(--panel);border:1px solid var(--edge);border-radius:4px;padding:22px 26px;margin-bottom:16px}
-@media(max-width:640px){.fin-card{grid-template-columns:1fr;text-align:center;gap:14px}}
-.fin-col{display:flex;flex-direction:column;align-items:center;gap:9px}
-.fin-ring{position:relative;width:104px;height:104px}
+@media(max-width:640px){.fin-card{gap:8px;padding:16px 10px}}
+.fin-col{display:flex;flex-direction:column;align-items:center;gap:9px;min-width:0}
+.fin-ring{position:relative;width:104px;height:104px;flex-shrink:0}
+@media(max-width:640px){.fin-ring{width:72px;height:72px}}
 .fin-ring .ring-svg{width:100%;height:100%}
 .fin-ring .fin-ring-c{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 8px}
 .fin-ring .fin-ring-c b{font-size:15px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.fin-ring-l{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
-.fin-mid{text-align:center}
+@media(max-width:640px){.fin-ring .fin-ring-c b{font-size:11.5px}.fin-ring .fin-ring-c{padding:0 3px}}
+.fin-ring-l{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);text-align:center}
+@media(max-width:640px){.fin-ring-l{font-size:9px;letter-spacing:.04em}}
+.fin-mid{text-align:center;min-width:0}
 .fin-mid .fin-mid-l{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:8px}
 .fin-mid .fin-mid-v{font-size:28px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+@media(max-width:640px){.fin-mid .fin-mid-l{font-size:8.5px;margin-bottom:4px}.fin-mid .fin-mid-v{font-size:17px}}
+.fin-mid .fin-mid-v.bad{color:#FF7A6B}
 .fin-mid .fin-mid-sub{font-size:12px;color:var(--dim);margin-top:6px}
+@media(max-width:640px){.fin-mid .fin-mid-sub{font-size:9.5px;margin-top:3px}}
 .fin-mid .fin-mid-sub.bad{color:#FF7A6B}
 .op-row{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:16px}
 @media(max-width:900px){.op-row{grid-template-columns:repeat(3,1fr)}}
@@ -1329,28 +1335,26 @@ function loadNegocio(box){
     var topAtraso = agg.filter(function(c){ return c.maiorAtraso > 0; }).sort(function(a,b){ return b.maiorAtraso - a.maiorAtraso; })[0];
     var topTarefas = agg.filter(function(c){ return c.tarefasPendentes > 0; }).sort(function(a,b){ return b.tarefasPendentes - a.tarefasPendentes; })[0];
 
-    /* -- despesas do mês vs. teto -- */
+    /* -- despesas do mês vs. teto, e lucro (recebido - despesas totais) vs. meta -- */
     var mesStr = hoje.slice(0, 7);
-    var gastoMes = despesas.filter(function(d){ return String(d.data || "").slice(0,7) === mesStr; })
-      .reduce(function(s, d){ return s + (Number(d.valor) || 0); }, 0);
+    var despesasMes = despesas.filter(function(d){ return String(d.data || "").slice(0,7) === mesStr; });
+    var gastoMes = despesasMes.reduce(function(s, d){ return s + (Number(d.valor) || 0); }, 0);
     var expPct = teto ? gastoMes / teto * 100 : 0;
     var expColor = !teto ? "#8C8C8C" : expPct > 100 ? "#FF6B5C" : expPct > 75 ? "#E7B84B" : "#5FBE82";
+    var despesasTotal = despesas.reduce(function(s, d){ return s + (Number(d.valor) || 0); }, 0);
+    var lucro = tot.pago - despesasTotal;
+    var meta = Number(CFG.metaLucro) || 0;
+    var pctMeta = meta ? Math.max(0, lucro / meta * 100) : 0;
 
     box.innerHTML = ""
       + '<div class="dash-h">Negócio</div>'
       + '<div class="fin-card">'
-      +   '<div class="fin-col">' + finRing("Recebido", tot.pago, pctPago, "#5FBE82") + '</div>'
-      +   '<div class="fin-mid"><div class="fin-mid-l">Movimentado</div><div class="fin-mid-v">' + fmtMoney(movimento) + '</div>'
-      +     (tot.atraso ? '<div class="fin-mid-sub bad">' + fmtMoney(tot.atraso) + ' em atraso</div>' : '<div class="fin-mid-sub">tudo em dia</div>')
+      +   '<div class="fin-col">' + finRing("Recebido / Esperado", tot.pago, pctPago, "#5FBE82") + '</div>'
+      +   '<div class="fin-mid" id="finMid" style="cursor:pointer" title="Clica para definir a meta de lucro">'
+      +     '<div class="fin-mid-l">Lucro</div><div class="fin-mid-v' + (lucro < 0 ? ' bad' : '') + '">' + fmtMoney(lucro) + '</div>'
+      +     (meta ? '<div class="fin-mid-sub">' + Math.round(pctMeta) + '% da meta · ' + fmtMoney(meta) + '</div>' : '<div class="fin-mid-sub">meta não definida</div>')
       +   '</div>'
-      +   '<div class="fin-col">' + finRing("Em aberto", aberto, pctAberto, tot.atraso ? "#FF6B5C" : "#E7B84B") + '</div>'
-      + '</div>'
-      + '<div class="exp-card" id="expCard">'
-      +   '<div class="exp-ring">' + ringSvg(Math.min(100, expPct), expColor) + '<div class="exp-ring-c">' + ICN.euro + '</div></div>'
-      +   '<div class="exp-body"><div class="exp-l">Despesas do mês</div>'
-      +     '<div class="exp-v">' + fmtMoney(gastoMes) + (teto ? ' <small>/ ' + fmtMoney(teto) + '</small>' : '') + '</div>'
-      +     '<div class="exp-sub">' + (teto ? (expPct > 100 ? "acima do teto" : Math.round(100 - expPct) + "% do teto por gastar") : "sem teto definido") + ' · ' + despesas.filter(function(d){ return String(d.data||"").slice(0,7)===mesStr; }).length + ' lançamento' + (despesas.filter(function(d){ return String(d.data||"").slice(0,7)===mesStr; }).length===1?'':'s') + ' este mês</div>'
-      +   '</div>'
+      +   '<div class="fin-col" id="expCard" style="cursor:pointer">' + finRing("Despesas do mês", gastoMes, Math.min(100, expPct), expColor) + '</div>'
       + '</div>'
       + '<div class="op-row">' + op.map(function(o){ return '<div class="op-item"><div class="op-v">' + o.v + '</div><div class="op-l">' + esc(o.l) + '</div></div>'; }).join("") + '</div>'
       + '<div class="dest-grid">'
@@ -1360,6 +1364,13 @@ function loadNegocio(box){
       +   destCard("Mais tarefas por fazer", topTarefas && topTarefas.nome, topTarefas && (topTarefas.tarefasPendentes + " tarefa" + (topTarefas.tarefasPendentes===1?"":"s")))
       + '</div>';
     box.querySelector("#expCard").onclick = function(){ despesasModal(despesas, teto); };
+    box.querySelector("#finMid").onclick = function(){
+      promptModal({ title:"Meta de lucro", label:"Meta (EUR) — deixa em branco para tirar", value: meta || "", type:"number" }).then(function(v){
+        if(v == null) return;
+        var novaMeta = parseFloat(v) || 0;
+        api("PUT","config",{ metaLucro: novaMeta }).then(function(){ toast("Meta atualizada"); loadNegocio(box); });
+      });
+    };
   }).catch(function(){ box.innerHTML = '<div class="dash-h">Negócio</div><div class="wide-empty">Não foi possível carregar.</div>'; });
 }
 
