@@ -729,6 +729,130 @@ if(b) b.onclick=function(){
     return json({ ok: true, movidos: n });
   }
 
+  // ---- migrar uma pasta inteira de uma nuvem para outra ----
+  // body: { folder, fromCloud, toCloud, items? (só se fromCloud="cloudinary": [{publicId,resourceType}]) }
+  // copia cada ficheiro pra nuvem de destino primeiro; só apaga da nuvem de origem depois
+  // de confirmar que TODOS foram copiados com sucesso (se algum falhar, nada é apagado).
+  if (seg[0] === "media" && seg[1] === "migrate-folder" && method === "POST") {
+    const b = await request.json().catch(() => ({}));
+    const folder = String(b.folder || "").replace(/^\/+|\/+$/g, "");
+    const fromCloud = String(b.fromCloud || "");
+    const toCloud = String(b.toCloud || "");
+    if (!folder || !fromCloud || !toCloud || fromCloud === toCloud) return json({ error: "parâmetros inválidos" }, 400);
+
+    const cloudOK = !!(env.CLOUDINARY_CLOUD && env.CLOUDINARY_KEY && env.CLOUDINARY_SECRET);
+    if (toCloud === "r2" && !env.ASTERIS_R2) return json({ error: "R2 não está ligado" }, 501);
+    if (toCloud === "cloudinary" && !cloudOK) return json({ error: "Cloudinary não está ligado" }, 501);
+    const s3confDest = toCloud === "ffmpeglab" ? await s3Conf(env) : null;
+    if (toCloud === "ffmpeglab" && !s3confDest) return json({ error: "FFmpegLab não está ligado" }, 501);
+
+    // 1) reúne a lista de ficheiros de origem
+    let sourceList = [];
+    let s3confSrc = null;
+    if (fromCloud === "r2") {
+      if (!env.ASTERIS_R2) return json({ error: "R2 não está ligado" }, 501);
+      let cursor;
+      do {
+        const r = await env.ASTERIS_R2.list({ cursor, prefix: folder + "/", limit: 1000 });
+        for (const o of r.objects) sourceList.push({ key: o.key });
+        cursor = r.truncated ? r.cursor : null;
+      } while (cursor);
+    } else if (fromCloud === "ffmpeglab") {
+      s3confSrc = await s3Conf(env);
+      if (!s3confSrc) return json({ error: "FFmpegLab não está ligado" }, 501);
+      const objs = await s3List(s3confSrc, folder + "/");
+      for (const o of objs) sourceList.push({ key: o.key });
+    } else if (fromCloud === "cloudinary") {
+      if (!cloudOK) return json({ error: "Cloudinary não está ligado" }, 501);
+      const items = Array.isArray(b.items) ? b.items : [];
+      if (!items.length) return json({ error: "faltam os ficheiros de origem" }, 400);
+      sourceList = items.map(it => ({ publicId: it.publicId, resourceType: it.resourceType || "image" }));
+    } else {
+      return json({ error: "nuvem de origem inválida" }, 400);
+    }
+    if (!sourceList.length) return json({ error: "pasta vazia" }, 400);
+
+    // 2) copia cada ficheiro pra nuvem de destino (lê da origem, escreve no destino)
+    const falhas = [];
+    for (const it of sourceList) {
+      try {
+        let bytes, contentType, baseName;
+        if (fromCloud === "r2") {
+          const obj = await env.ASTERIS_R2.get(it.key);
+          if (!obj) throw new Error("não encontrado no R2");
+          bytes = obj.body;
+          contentType = (obj.httpMetadata && obj.httpMetadata.contentType) || "application/octet-stream";
+          baseName = it.key.split("/").pop();
+        } else if (fromCloud === "ffmpeglab") {
+          const r = await s3Get(s3confSrc, it.key);
+          if (!r.ok) throw new Error("não encontrado no FFmpegLab");
+          bytes = r.body;
+          contentType = r.headers.get("content-type") || "application/octet-stream";
+          baseName = it.key.split("/").pop();
+        } else {
+          const url = `https://res.cloudinary.com/${env.CLOUDINARY_CLOUD}/${it.resourceType}/upload/${it.publicId}`;
+          const r = await fetch(url);
+          if (!r.ok) throw new Error("não encontrado na Cloudinary");
+          bytes = r.body;
+          contentType = r.headers.get("content-type") || "application/octet-stream";
+          baseName = it.publicId.split("/").pop();
+        }
+
+        if (toCloud === "r2") {
+          await env.ASTERIS_R2.put(folder + "/" + baseName, bytes, { httpMetadata: { contentType } });
+        } else if (toCloud === "ffmpeglab") {
+          await s3Put(s3confDest, folder + "/" + baseName, bytes, contentType);
+        } else {
+          const buf = await new Response(bytes).arrayBuffer();
+          const ts = Math.floor(Date.now() / 1000);
+          const params = { folder, timestamp: ts };
+          const toSign = Object.keys(params).sort().map(k => `${k}=${params[k]}`).join("&");
+          const hb = await crypto.subtle.digest("SHA-1", enc.encode(toSign + env.CLOUDINARY_SECRET));
+          const sig = [...new Uint8Array(hb)].map(x => x.toString(16).padStart(2, "0")).join("");
+          const up = new FormData();
+          up.append("file", new Blob([buf], { type: contentType }), baseName);
+          up.append("api_key", env.CLOUDINARY_KEY);
+          up.append("timestamp", String(ts));
+          up.append("folder", folder);
+          up.append("signature", sig);
+          const rr = await fetch(`https://api.cloudinary.com/v1_1/${env.CLOUDINARY_CLOUD}/auto/upload`, { method: "POST", body: up });
+          const jr = await rr.json();
+          if (!jr.secure_url) throw new Error((jr.error && jr.error.message) || "upload falhou");
+        }
+      } catch (e) {
+        falhas.push({ item: it.key || it.publicId, erro: String(e.message || e).slice(0, 150) });
+      }
+    }
+
+    if (falhas.length) {
+      return json({
+        ok: false,
+        error: (sourceList.length - falhas.length) + " de " + sourceList.length + " ficheiro(s) copiados — a pasta original não foi tocada.",
+        falhas
+      }, 207);
+    }
+
+    // 3) tudo copiado com sucesso -> só agora apaga da nuvem de origem
+    if (fromCloud === "r2") {
+      for (const it of sourceList) { try { await env.ASTERIS_R2.delete(it.key); } catch (e) {} }
+    } else if (fromCloud === "ffmpeglab") {
+      for (const it of sourceList) { try { await s3Delete(s3confSrc, it.key); } catch (e) {} }
+    } else {
+      const auth = btoa(`${env.CLOUDINARY_KEY}:${env.CLOUDINARY_SECRET}`);
+      const byRt = {};
+      for (const it of sourceList) { (byRt[it.resourceType] = byRt[it.resourceType] || []).push(it.publicId); }
+      for (const rt of Object.keys(byRt)) {
+        const params = new URLSearchParams();
+        byRt[rt].forEach(id => params.append("public_ids[]", id));
+        await fetch(`https://api.cloudinary.com/v1_1/${env.CLOUDINARY_CLOUD}/resources/${rt}/upload?${params.toString()}`, { method: "DELETE", headers: { authorization: `Basic ${auth}` } }).catch(() => {});
+      }
+    }
+
+    // 4) tag/projeto guardados por nome de pasta continuam a valer (o nome não muda)
+    await logAction(env, ME, "moveu a pasta \"" + folder + "\" de " + fromCloud + " para " + toCloud + " (" + sourceList.length + " ficheiros)");
+    return json({ ok: true, copiados: sourceList.length });
+  }
+
   // ---- páginas ----
   if (seg[0] === "pages") {
     if (!seg[1]) {

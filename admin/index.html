@@ -96,7 +96,7 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
 .ab-bell:hover,.ab-bell.on{color:var(--ink);background:var(--panel)}
 .bell-dot{position:absolute;top:15px;right:16px;width:7px;height:7px;border-radius:50%;background:var(--neg);border:1.5px solid #000}
 
-.search-results{position:absolute;top:calc(100% + 1px);left:0;right:0;background:rgba(18,18,18,.82);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);border:1px solid var(--edge2);border-radius:0 0 4px 4px;box-shadow:0 24px 60px rgba(0,0,0,.6);max-height:60vh;overflow-y:auto;padding:6px}
+.search-results{position:absolute;z-index:20;top:calc(100% + 1px);left:0;right:0;background:var(--panel2);border:1px solid var(--edge2);border-radius:0 0 4px 4px;box-shadow:0 24px 60px rgba(0,0,0,.6);max-height:60vh;overflow-y:auto;padding:6px}
 .search-results .sr-group{font-size:9.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);padding:9px 10px 4px}
 .search-results button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;color:var(--ink);font-size:13.5px;padding:8px 10px;border-radius:4px}
 .search-results button:hover{background:var(--panel2)}
@@ -2699,6 +2699,18 @@ function loadLib(force){
   if(LIB_CACHE && !force) return Promise.resolve(LIB_CACHE);
   return api("GET","media").then(function(r){ LIB_CACHE = r.ok ? r.j : null; return LIB_CACHE; });
 }
+/* nuvens realmente disponíveis (ligadas), pra escolher onde guardar uma pasta —
+   em vez de assumir "entrega=R2, resto=Cloudinary" */
+function availableClouds(lib){
+  var list = [];
+  if(lib){
+    if(lib.r2 && lib.r2.bound) list.push(["r2","R2 · Entregas"]);
+    if(lib.cloudinary && lib.cloudinary.configured) list.push(["cloudinary","Cloudinary · Portfólio/Seleção"]);
+    if(FFMPEGLAB_ATIVO && lib.ffmpeglab && lib.ffmpeglab.configured) list.push(["ffmpeglab","FFmpegLab · Entregas grandes"]);
+  }
+  if(!list.length) list = [["r2","R2 · Entregas"],["cloudinary","Cloudinary · Portfólio/Seleção"]];
+  return list;
+}
 function allFolders(lib){
   if(!lib) return [];
   return [].concat((lib.r2 && lib.r2.folders) || [], (lib.ffmpeglab && lib.ffmpeglab.folders) || [], (lib.cloudinary && lib.cloudinary.folders) || []);
@@ -2876,36 +2888,58 @@ function wireMediaTagFields(box, cfg, projetos, curTag, curProjetoId){
     getProjetoTitulo: function(){ var p = projetos.filter(function(x){ return x.id === projSel.value; })[0]; return p ? (p.titulo || p.cliente || "") : ""; }
   };
 }
-/* modal único de edição da pasta — nome, tag, projeto e os atalhos que antes eram
-   itens soltos no menu "⋮" (abrir, usar numa página nova, copiar link) */
-/* mesma estrutura do modal de criação (Nova pasta) — só os campos que fazem sentido
-   editar depois: nome, tag e projeto. Nada de atalhos/ações soltas aqui dentro. */
+/* mesma estrutura do modal de criação (Nova pasta) — nome, nuvem, tag e projeto.
+   Nada de atalhos/ações soltas aqui dentro (isso fica no menu "⋮").
+   Trocar a nuvem migra os ficheiros: copia tudo pro destino primeiro, só apaga da
+   nuvem antiga depois de confirmar que copiou tudo sem falhas (nunca move direto). */
 function editFolderModal(f){
-  Promise.all([loadConfig(), col("projetos")]).then(function(res){
-    var cfg = res[0], projetos = res[1];
+  Promise.all([loadConfig(), col("projetos"), loadLib()]).then(function(res){
+    var cfg = res[0], projetos = res[1], clouds = availableClouds(res[2]);
+    if(!clouds.some(function(c){ return c[0] === f.cloud; })) clouds = clouds.concat([[f.cloud, cloudLabel(f.cloud)]]);
     modal(function(box, close){
       box.innerHTML = '<h4>Editar pasta</h4>'
         + '<div class="field"><label>Nome da pasta</label><input id="ef-name" value="' + esc(f.name) + '"></div>'
+        + '<div class="field"><label>Nuvem</label><select id="ef-cloud">' + clouds.map(function(c){ return '<option value="' + c[0] + '"' + (c[0] === f.cloud ? " selected" : "") + '>' + esc(c[1]) + '</option>'; }).join("") + '</select></div>'
         + mediaTagFieldsHTML()
         + '<div class="err" id="ef-err"></div>'
+        + '<div id="ef-prog" style="font-size:12.5px;color:var(--dim);margin-top:8px"></div>'
         + '<div class="mrow"><button class="btn ghost" id="ef-c">Cancelar</button><button class="btn gold" id="ef-ok">Guardar</button></div>';
       var fields = wireMediaTagFields(box, cfg, projetos, f.tag || "", f.projeto || "");
       box.querySelector("#ef-c").onclick = function(){ close(); };
       box.querySelector("#ef-ok").onclick = function(){
         var novoNome = box.querySelector("#ef-name").value.trim();
         if(!novoNome){ box.querySelector("#ef-err").textContent = "Dá um nome à pasta."; return; }
+        var novaNuvem = box.querySelector("#ef-cloud").value;
         var tag = fields.getTag(), projeto = fields.getProjeto(), projetoTitulo = fields.getProjetoTitulo();
         var btn = box.querySelector("#ef-ok"); btn.disabled = true;
+        var prog = box.querySelector("#ef-prog");
         function saveTagProjeto(folderName){
           return api("PUT","media/tag",{ folder: folderName, tag: tag, projeto: projeto, projetoTitulo: projetoTitulo });
         }
         function done(){ close(); toast("Pasta atualizada"); LIB_CACHE = null; libraryView(); }
-        if(novoNome === f.name){ saveTagProjeto(f.name).then(done); return; }
-        var body = { cloud:f.cloud, from:f.name, to:novoNome };
+        function renomearSePreciso(nomeAtual){
+          if(novoNome === nomeAtual) return Promise.resolve(nomeAtual);
+          var body = { cloud: novaNuvem, from: nomeAtual, to: novoNome };
+          if(novaNuvem === "cloudinary") body.items = (f.files||[]).map(function(x){ return { publicId:x.publicId, resourceType:x.resourceType }; });
+          return api("POST","media/rename-folder", body).then(function(r){
+            if(!r.ok) throw new Error((r.j && r.j.error) || "Não deu para renomear.");
+            return novoNome;
+          });
+        }
+        if(novaNuvem === f.cloud){
+          renomearSePreciso(f.name).then(function(nome){ saveTagProjeto(nome).then(done); })
+            .catch(function(e){ btn.disabled = false; box.querySelector("#ef-err").textContent = e.message; });
+          return;
+        }
+        // troca de nuvem: copia tudo pro destino primeiro, só apaga da origem se der tudo certo
+        prog.textContent = "a copiar ficheiros para a nova nuvem…";
+        var body = { folder: f.name, fromCloud: f.cloud, toCloud: novaNuvem };
         if(f.cloud === "cloudinary") body.items = (f.files||[]).map(function(x){ return { publicId:x.publicId, resourceType:x.resourceType }; });
-        api("POST","media/rename-folder", body).then(function(r){
-          if(!r.ok){ btn.disabled = false; box.querySelector("#ef-err").textContent = (r.j && r.j.error) || "Não deu para renomear."; return; }
-          saveTagProjeto(novoNome).then(done);
+        api("POST","media/migrate-folder", body).then(function(r){
+          if(!r.ok){ btn.disabled = false; prog.textContent = ""; box.querySelector("#ef-err").textContent = (r.j && r.j.error) || "Não deu para mudar de nuvem."; return; }
+          prog.textContent = "";
+          renomearSePreciso(f.name).then(function(nome){ saveTagProjeto(nome).then(done); })
+            .catch(function(e){ btn.disabled = false; box.querySelector("#ef-err").textContent = e.message; });
         });
       };
     }, { cls: "lg" });
@@ -3125,16 +3159,14 @@ function folderModal(f){
   });
 }
 function newFolderModal(){
-  Promise.all([loadConfig(), col("projetos")]).then(function(res){
-    var cfg = res[0], projetos = res[1];
+  Promise.all([loadConfig(), col("projetos"), loadLib()]).then(function(res){
+    var cfg = res[0], projetos = res[1], clouds = availableClouds(res[2]);
     modal(function(box, close){
       box.innerHTML =
         '<h4>Nova pasta</h4>'
-        + '<p>Uma pasta na nuvem precisa de pelo menos um ficheiro. Escolhe o nome, onde guardar e os primeiros ficheiros.</p>'
+        + '<p>Uma pasta na nuvem precisa de pelo menos um ficheiro. Escolhe o nome, a nuvem e os primeiros ficheiros.</p>'
         + '<div class="field"><label>Nome da pasta</label><input id="nf-name" placeholder="ex. fasano-institucional"></div>'
-        + '<label style="margin-top:12px">Onde guardar</label><div class="radio-row" id="nf-kind">'
-        +   '<label data-k="entregas">Entrega (ficheiros grandes)</label><label data-k="portfolio">Portfólio / imagens</label>'
-        + '</div>'
+        + '<div class="field"><label>Nuvem</label><select id="nf-cloud">' + clouds.map(function(c){ return '<option value="' + c[0] + '">' + esc(c[1]) + '</option>'; }).join("") + '</select></div>'
         + mediaTagFieldsHTML()
         + '<button type="button" class="np-fromlib" id="nf-pick">' + ICO_PLUS + ' Escolher ficheiros</button>'
         + '<div id="nf-count" style="font-size:12.5px;color:var(--dim);margin-top:6px"></div>'
@@ -3142,12 +3174,8 @@ function newFolderModal(){
         + '<div class="err" id="nf-err"></div>'
         + '<div id="nf-prog" style="font-size:12.5px;color:var(--dim);margin-top:8px"></div>'
         + '<div class="mrow"><button class="btn ghost" id="nf-x">Cancelar</button><button class="btn gold" id="nf-ok">Criar pasta</button></div>';
-      var kind = "entregas", picked = [];
+      var picked = [];
       var fields = wireMediaTagFields(box, cfg, projetos, "", "");
-      box.querySelectorAll("#nf-kind label").forEach(function(l){
-        l.onclick = function(){ kind = l.dataset.k; box.querySelectorAll("#nf-kind label").forEach(function(x){ x.classList.toggle("on", x === l); }); };
-      });
-      box.querySelector("#nf-kind label").classList.add("on");
       var inp = el("input"); inp.type = "file"; inp.multiple = true; inp.style.display = "none"; box.appendChild(inp);
       box.querySelector("#nf-pick").onclick = function(){ inp.click(); };
       inp.onchange = function(){ picked = [].slice.call(inp.files); box.querySelector("#nf-count").textContent = picked.length ? (picked.length + " ficheiro" + (picked.length===1?"":"s") + " selecionado" + (picked.length===1?"":"s")) : ""; };
@@ -3156,10 +3184,10 @@ function newFolderModal(){
         var name = box.querySelector("#nf-name").value.trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
         if(!name){ box.querySelector("#nf-err").textContent = "Dá um nome à pasta."; return; }
         if(!picked.length){ box.querySelector("#nf-err").textContent = "Escolhe pelo menos um ficheiro."; return; }
-        var dest = kind === "entregas" ? destForEntrega(picked) : "cloudinary";
+        var dest = box.querySelector("#nf-cloud").value;
         var fallback = dest === "ffmpeglab" ? "r2" : "";
         var dias = parseInt(box.querySelector("#nf-dias").value, 10) || 0;
-        var folder = kind + "/" + name;
+        var folder = name;
         var tag = fields.getTag(), projeto = fields.getProjeto(), projetoTitulo = fields.getProjetoTitulo();
         var ok = box.querySelector("#nf-ok"); ok.disabled = true;
         var prog = box.querySelector("#nf-prog");
@@ -3177,35 +3205,27 @@ function newFolderModal(){
   });
 }
 function startFolderUpload(files, nameHint){
-  // 1 pergunta: nome + tipo
-  Promise.all([loadConfig(), col("projetos")]).then(function(res){
-    var cfg = res[0], projetos = res[1];
+  Promise.all([loadConfig(), col("projetos"), loadLib()]).then(function(res){
+    var cfg = res[0], projetos = res[1], clouds = availableClouds(res[2]);
     modal(function(box, close){
       box.innerHTML =
         '<h4>Enviar ' + files.length + ' ficheiro' + (files.length===1?"":"s") + '</h4>'
         + '<div class="field"><label>Nome da pasta</label><input id="fu-name" value="' + esc(nameHint || "") + '" placeholder="ex. everton-institucional"></div>'
-        + '<label style="margin-top:12px">Onde guardar</label><div class="radio-row" id="fu-kind">'
-        +   '<label data-k="entregas">Entrega (ficheiros grandes)</label><label data-k="portfolio">Portfólio / imagens</label>'
-        + '</div>'
+        + '<div class="field"><label>Nuvem</label><select id="fu-cloud">' + clouds.map(function(c){ return '<option value="' + c[0] + '">' + esc(c[1]) + '</option>'; }).join("") + '</select></div>'
         + mediaTagFieldsHTML()
         + '<div class="field" style="margin-top:12px"><label>Apagar sozinho depois de quantos dias (opcional)</label><input id="fu-dias" type="number" min="1" max="365" placeholder="deixa vazio para nunca apagar"></div>'
         + '<div class="err" id="fu-err"></div>'
         + '<div id="fu-prog" style="font-size:12.5px;color:var(--dim);margin-top:10px"></div>'
         + '<div class="mrow"><button class="btn ghost" id="fu-cancel">Cancelar</button><button class="btn gold" id="fu-ok">Enviar</button></div>';
-      var kind = "entregas";
       var fields = wireMediaTagFields(box, cfg, projetos, "", "");
-      box.querySelectorAll("#fu-kind label").forEach(function(l){
-        l.onclick = function(){ kind = l.dataset.k; box.querySelectorAll("#fu-kind label").forEach(function(x){ x.classList.toggle("on", x === l); }); };
-      });
-      box.querySelector("#fu-kind label").classList.add("on");
       box.querySelector("#fu-cancel").onclick = function(){ close(); };
       box.querySelector("#fu-ok").onclick = function(){
         var name = box.querySelector("#fu-name").value.trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
         if(!name){ box.querySelector("#fu-err").textContent = "Dá um nome à pasta."; return; }
-        var dest = kind === "entregas" ? destForEntrega(files) : "cloudinary";
+        var dest = box.querySelector("#fu-cloud").value;
         var fallback = dest === "ffmpeglab" ? "r2" : "";
         var dias = parseInt(box.querySelector("#fu-dias").value, 10) || 0;
-        var folder = kind + "/" + name;
+        var folder = name;
         var tag = fields.getTag(), projeto = fields.getProjeto(), projetoTitulo = fields.getProjetoTitulo();
         var ok = box.querySelector("#fu-ok"); ok.disabled = true;
         var prog = box.querySelector("#fu-prog");
@@ -3228,13 +3248,6 @@ function startFolderUpload(files, nameHint){
    no README.md do repo para o porquê e o que já foi tentado. Tudo o resto (upload-url,
    media/ffmpeglab-*, limpezas, etc.) continua no código, só não é chamado por aqui. */
 var FFMPEGLAB_ATIVO = false;
-var FFMPEGLAB_LIMIAR = 10 * 1024 * 1024 * 1024; // 10GB
-function destForEntrega(files){
-  if(!FFMPEGLAB_ATIVO) return "r2";
-  var total = 0;
-  for(var i = 0; i < files.length; i++) total += files[i].size || 0;
-  return total > FFMPEGLAB_LIMIAR ? "ffmpeglab" : "r2";
-}
 function cloudLabel(dest){ return dest === "r2" ? "R2" : dest === "ffmpeglab" ? "FFmpegLab" : "Cloudinary"; }
 /* varre as pastas agendadas (ver "apagar sozinho depois de X dias") e apaga as vencidas.
    `manual`=true mostra um toast do resultado (botão "Limpar expirados"); senão corre em silêncio
