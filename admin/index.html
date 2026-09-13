@@ -24,11 +24,13 @@
   --ink:#F5F5F5; --dim:#BDBDBD; --faint:#9E9E9E;
   --gold:#F2F2F2; --gold-lo:rgba(255,255,255,.08);
   --accent:#F2F2F2; --accent-ink:#000000; --accent-lo:rgba(242,242,242,.16);
+  --pal-1:#F2F2F2; --pal-2:#D2D2D2; --pal-3:#B0B0B0; --pal-4:#7E7E7E; --pal-5:#5A5A5A;
   --pos:#DADADA; --neg:#FF7A6B; --warn:#C6C6C6;
   --c0:#F2F2F2; --c1:#D2D2D2; --c2:#B0B0B0; --c3:#9A9A9A; --c4:#7E7E7E; --c5:#5A5A5A;
   --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",monospace;
 }
-body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.55;-webkit-font-smoothing:antialiased;font-size:15px;letter-spacing:-.005em}
+html{height:100%;overscroll-behavior:none}
+body{height:100%;overscroll-behavior:none;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.55;-webkit-font-smoothing:antialiased;font-size:15px;letter-spacing:-.005em}
 *{scrollbar-color:var(--edge2) transparent;scrollbar-width:thin}
 ::-webkit-scrollbar{width:10px;height:10px}
 ::-webkit-scrollbar-track{background:transparent}
@@ -78,6 +80,7 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
   .side{display:none!important}
   .side-scrim{display:none!important}
   .adm-foot{display:none}
+  .ab-search input{font-size:16px}
 }
 .appbar .ab-brand{display:flex;align-items:center;gap:9px;padding:0 18px;height:100%;border-right:1px solid var(--edge)}
 .appbar .ab-brand img{height:15px;width:auto}
@@ -118,11 +121,11 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
 .side-nav button.on{color:var(--ink);background:var(--panel2)}
 .side-nav button svg{width:15px;height:15px;flex-shrink:0;opacity:.85}
 .side-nav button.on svg{opacity:1}
-.side-nav button .cnt{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--faint)}
-.side-nav button .badge{margin-left:auto;min-width:18px;height:18px;padding:0 5px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;font-weight:700;line-height:1;box-sizing:border-box}
-.side-nav button .badge.red{background:#FF6B5C;color:#000}
-.side-nav button .badge.amber{background:#E7B84B;color:#000}
-.side-nav button .badge.mut{background:var(--panel2);color:var(--dim);border:1px solid var(--edge2)}
+.cnt{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--faint)}
+.badge{margin-left:auto;flex-shrink:0;min-width:18px;height:18px;padding:0 5px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;font-weight:700;line-height:1;box-sizing:border-box}
+.badge.red{background:#FF6B5C;color:#000}
+.badge.amber{background:#E7B84B;color:#000}
+.badge.mut{background:var(--panel2);color:var(--dim);border:1px solid var(--edge2)}
 .side-nav button.on .badge.mut{background:var(--panel);color:var(--ink)}
 .side-create svg{width:14px;height:14px;flex-shrink:0}
 .side-foot{margin-top:auto;height:65px;padding:0 16px;border-top:1px solid var(--edge);display:flex;align-items:center}
@@ -143,7 +146,8 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
 .mobnav button svg{width:19px;height:19px}
 .mobnav button span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
 .mobnav button.on{color:var(--ink)}
-.mobnav button.mobnav-create{color:var(--accent-ink);background:var(--accent)}
+.mobnav button.mobnav-create{flex:0 0 46px;width:46px;height:46px;padding:0;border-radius:50%;color:var(--accent-ink);background:var(--accent)}
+.mobnav button.mobnav-create svg{width:21px;height:21px}
 .nav-sheet{display:flex;flex-direction:column;gap:2px;margin-top:6px;max-height:60vh;overflow-y:auto}
 .nav-sheet button{display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:none;border:0;color:var(--dim);font-size:14.5px;font-weight:500;padding:12px 10px;border-radius:6px}
 .nav-sheet button:hover{color:var(--ink);background:var(--panel2)}
@@ -154,8 +158,9 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
 .page-head h1{font-size:24px;font-weight:700;letter-spacing:-.025em;line-height:1}
 #view{flex:1;overflow-y:auto;padding:20px clamp(16px,4vw,40px) 40px}
 @media(max-width:860px){
-  .main{overflow:visible}
-  #view{overflow:visible;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))}
+  #app{height:100dvh;overflow:hidden}
+  .main{overflow:hidden}
+  #view{overflow-y:auto;overscroll-behavior:contain;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))}
   .page-head h1{font-size:21px}
 }
 
@@ -198,13 +203,15 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
 .notif-item .ni-sub{font-size:12.5px;color:var(--faint);margin-top:2px}
 .notif-empty{color:var(--faint);font-size:13px;text-align:center;padding:40px 20px}
 
-/* chat de equipa — balão flutuante + painel, vidro escuro com blur */
-.chatbub{position:fixed;right:20px;bottom:20px;z-index:75;width:52px;height:52px;border-radius:50%;
+/* chat de equipa — balão flutuante (arrastável, 3 tamanhos/estados) + painel, vidro escuro com blur */
+.chatbub{position:fixed;right:20px;bottom:20px;z-index:75;width:38px;height:38px;border-radius:50%;
   background:var(--accent);color:var(--accent-ink);border:0;display:flex;align-items:center;justify-content:center;
-  box-shadow:0 12px 30px rgba(0,0,0,.5);cursor:pointer;transition:transform .15s}
-.chatbub:hover{transform:scale(1.05)}
-.chatbub svg{width:22px;height:22px}
-.chatbub-dot{position:absolute;top:5px;right:5px;width:11px;height:11px;border-radius:50%;background:var(--neg);border:2px solid var(--bg)}
+  box-shadow:0 12px 30px rgba(0,0,0,.5);cursor:grab;transition:width .18s,height .18s;touch-action:none}
+.chatbub:active{cursor:grabbing}
+.chatbub svg{width:17px;height:17px;transition:width .18s,height .18s}
+.chatbub.big{width:52px;height:52px}
+.chatbub.big svg{width:22px;height:22px}
+.chatbub-dot{position:absolute;top:2px;right:2px;width:11px;height:11px;border-radius:50%;background:var(--neg);border:2px solid var(--bg)}
 @media(max-width:860px){.chatbub{right:16px;bottom:calc(78px + env(safe-area-inset-bottom,0px))}}
 .chatpanel{position:fixed;right:20px;bottom:84px;z-index:75;width:320px;max-height:min(460px,68vh);
   display:flex;flex-direction:column;background:rgba(16,16,16,.78);backdrop-filter:blur(26px) saturate(1.5);-webkit-backdrop-filter:blur(26px) saturate(1.5);
@@ -344,16 +351,16 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
 .fin-card{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:24px;background:var(--panel);border:1px solid var(--edge);border-radius:4px;padding:22px 26px;margin-bottom:16px}
 @media(max-width:640px){.fin-card{gap:8px;padding:16px 10px}}
 .fin-col{display:flex;flex-direction:column;align-items:center;gap:9px;min-width:0}
-.fin-ring{position:relative;width:104px;height:104px;flex-shrink:0}
-@media(max-width:640px){.fin-ring{width:72px;height:72px}}
+.fin-ring{position:relative;width:124px;height:124px;flex-shrink:0}
+@media(max-width:640px){.fin-ring{width:86px;height:86px}}
 .fin-ring .ring-svg{width:100%;height:100%}
-.fin-ring .fin-ring-c{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 8px}
-.fin-ring .fin-ring-c b{font-size:15px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-@media(max-width:640px){.fin-ring .fin-ring-c b{font-size:11.5px}.fin-ring .fin-ring-c{padding:0 3px}}
+.fin-ring .fin-ring-c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 8px}
+.fin-ring .fin-ring-c b{font-size:16px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+@media(max-width:640px){.fin-ring .fin-ring-c b{font-size:12.5px}.fin-ring .fin-ring-c{padding:0 3px}}
 .fin-ring-l{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);text-align:center}
 @media(max-width:640px){.fin-ring-l{font-size:9px;letter-spacing:.04em}}
-.fin-ring-sub{font-size:11px;color:var(--faint);text-align:center;margin-top:2px;font-variant-numeric:tabular-nums}
-@media(max-width:640px){.fin-ring-sub{font-size:8.5px}}
+.fin-ring-c .fin-ring-sub{font-size:10.5px;color:var(--faint);text-align:center;margin-top:2px;font-variant-numeric:tabular-nums}
+@media(max-width:640px){.fin-ring-c .fin-ring-sub{font-size:8px;margin-top:1px}}
 .fin-mid{text-align:center;min-width:0}
 .fin-mid .fin-mid-l{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:8px}
 .fin-mid .fin-mid-v{font-size:28px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
@@ -365,7 +372,12 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
 .op-row{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:16px}
 @media(max-width:900px){.op-row{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:480px){.op-row{grid-template-columns:repeat(2,1fr)}}
-.op-item{background:var(--panel);border:1px solid var(--edge);border-radius:4px;padding:16px 14px;text-align:center;transition:border-color .15s}
+.op-item{background:var(--panel);border:1px solid var(--edge);border-left:3px solid var(--pal-1);border-radius:4px;padding:16px 14px;text-align:center;transition:border-color .15s}
+.op-item:nth-child(2){border-left-color:var(--pal-2)}
+.op-item:nth-child(3){border-left-color:var(--pal-3)}
+.op-item:nth-child(4){border-left-color:var(--pal-4)}
+.op-item:nth-child(5){border-left-color:var(--pal-5)}
+.op-item:nth-child(6){border-left-color:var(--pal-2)}
 .op-item:hover{border-color:var(--c4)}
 .op-item .op-v{font-size:22px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .op-item .op-l{font-size:10.5px;color:var(--faint);margin-top:6px;line-height:1.4}
@@ -548,6 +560,10 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
 .cfg-note{font-size:12.5px;color:var(--dim);line-height:1.65}
 .cfg-note code{font-family:var(--mono);font-size:11.5px;color:var(--ink)}
 .cor-pick button.sel{border-color:var(--ink)!important}
+.pal-preview{display:flex;gap:6px;margin-top:8px}
+.pal-preview span{width:28px;height:28px;border-radius:6px;flex-shrink:0;border:1px solid var(--edge2)}
+.pal-edit-row{display:flex;gap:8px;flex-wrap:wrap}
+.pal-edit-row input[type=color]{width:40px;height:40px;padding:0;border:1px solid var(--edge2);border-radius:8px;background:none;cursor:pointer}
 
 /* ===== modal ===== */
 .modal-ov{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px}
@@ -756,7 +772,7 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
 <div id="app" hidden>
   <header class="appbar">
     <button class="ab-burger" id="navToggle" type="button" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
-    <div class="ab-brand"><img src="/assets/logos/asteris.png" alt=""><b>Asteris</b><span>Systems</span></div>
+    <div class="ab-brand"><img src="/assets/logos/asteris.png" alt="Asteris"></div>
     <div class="ab-search">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
       <input id="search" type="text" placeholder="Pesquisar clientes, links, tarefas, contratos…" autocomplete="off">
@@ -807,7 +823,7 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
   <nav class="mobnav" id="mobNav">
     <button data-mob="painel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg><span>Painel</span></button>
     <button data-mob="paginas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8M16 17H8M10 9H8"/></svg><span>Páginas</span></button>
-    <button data-mob="criar" class="mobnav-create"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Criar</span></button>
+    <button data-mob="criar" class="mobnav-create" aria-label="Criar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
     <button data-mob="gestao"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5z"/><path d="m2 12 10 5 10-5M2 17l10 5 10-5"/></svg><span>Gestão</span></button>
     <button data-mob="conta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg><span>Conta</span></button>
   </nav>
@@ -815,7 +831,7 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
     <div class="page-head"><h1 id="ttl">Painel</h1></div>
     <div id="view"></div>
     <footer class="adm-foot">
-      <span class="af-copy">&copy; <span id="year">2026</span> Asteris. Todos os direitos reservados.</span>
+      <span class="af-copy">&copy; <span id="year">2026</span> Todos os direitos reservados.</span>
       <span class="af-end"><button class="af-logs" id="btnLogs" type="button" aria-label="Registo de atividade" title="Registo de atividade">&#10022;</button></span>
     </footer>
   </main>
@@ -925,7 +941,9 @@ function configModal(){
   loadConfig().then(function(cfg){
     modal(function(box, close){
       function render(){
-        var accent = (cfg.accentColor || "#F2F2F2").toLowerCase();
+        var pal = activePalette(cfg);
+        var all = allPalettes(cfg);
+        var isPreset = pal.id.indexOf("preset-") === 0;
         box.innerHTML = '<h4>' + ICO_GEAR + 'Configurações</h4>'
           + '<div class="cfg-sec"><div class="cfg-h">Layout do site</div>'
           +   '<div class="cfg-row">'
@@ -936,9 +954,14 @@ function configModal(){
           +     '</div>'
           +     '<input type="file" id="cfgLogoFile" accept="image/*" hidden>'
           +   '</div>'
-          +   '<div class="field"><label>Cor de destaque (botões, cartões, gráficos)</label><div class="cor-pick" id="cfgAccent">'
-          +     ACCENT_PRESETS.map(function(c){ return '<button type="button" class="' + (accent === c[0].toLowerCase() ? "sel" : "") + '" data-c="' + c[0] + '" title="' + esc(c[1]) + '" style="background:' + c[0] + '"></button>'; }).join("")
-          +   '</div></div>'
+          +   '<div class="field"><label>Paleta de cores (cartões e gráficos)</label>'
+          +     '<select id="cfg-pal">' + all.map(function(p){ return '<option value="' + p.id + '"' + (p.id === pal.id ? " selected" : "") + '>' + esc(p.nome) + (p.id.indexOf("preset-") === 0 ? "" : " · minha") + '</option>'; }).join("") + '</select>'
+          +   '</div>'
+          +   '<div class="pal-preview">' + pal.cores.map(function(c){ return '<span style="background:' + esc(c) + '"></span>'; }).join("") + '</div>'
+          +   '<div class="cfg-logo-actions">'
+          +     '<button type="button" class="btn ghost" id="cfgPalNew">+ Criar nova paleta</button>'
+          +     (isPreset ? '' : '<button type="button" class="btn ghost" id="cfgPalDel">Apagar esta paleta</button>')
+          +   '</div>'
           + '</div>'
           + '<div class="cfg-sec"><div class="cfg-h">Geral</div>'
           +   '<div class="row"><div class="field"><label>Fuso horário</label><select id="cfg-tz">' + TIMEZONES.map(function(t){ return '<option' + ((cfg.timezone||"Europa/Lisboa")===t?" selected":"") + '>' + t + '</option>'; }).join("") + '</select></div>'
@@ -979,15 +1002,30 @@ function configModal(){
             });
           }).catch(function(){ toast("Não foi possível enviar o logo."); });
         };
-        box.querySelectorAll("#cfgAccent button").forEach(function(b){
-          b.onclick = function(){
-            var c = b.dataset.c;
-            api("PUT","config",{ accentColor:c }).then(function(r){
-              cfg = CONFIG_CACHE = (r && r.j && r.j.config) || Object.assign({}, CONFIG_CACHE, { accentColor:c });
-              applyBrandCustomization(cfg); render();
+        box.querySelector("#cfg-pal").onchange = function(){
+          var id = this.value;
+          api("PUT","config",{ paletteId:id }).then(function(r){
+            cfg = CONFIG_CACHE = (r && r.j && r.j.config) || Object.assign({}, CONFIG_CACHE, { paletteId:id });
+            applyBrandCustomization(cfg); render();
+          });
+        };
+        box.querySelector("#cfgPalNew").onclick = function(){
+          paletteEditorModal(null, function(nova){
+            var lista = (cfg.palettes || []).concat([nova]);
+            api("PUT","config",{ palettes:lista, paletteId:nova.id }).then(function(r){
+              cfg = CONFIG_CACHE = (r && r.j && r.j.config) || Object.assign({}, CONFIG_CACHE, { palettes:lista, paletteId:nova.id });
+              applyBrandCustomization(cfg); toast("Paleta criada"); render();
             });
-          };
-        });
+          });
+        };
+        var palDelBtn = box.querySelector("#cfgPalDel");
+        if(palDelBtn) palDelBtn.onclick = function(){
+          var lista = (cfg.palettes || []).filter(function(p){ return p.id !== pal.id; });
+          api("PUT","config",{ palettes:lista, paletteId:"preset-mono" }).then(function(r){
+            cfg = CONFIG_CACHE = (r && r.j && r.j.config) || Object.assign({}, CONFIG_CACHE, { palettes:lista, paletteId:"preset-mono" });
+            applyBrandCustomization(cfg); toast("Paleta apagada"); render();
+          });
+        };
         box.querySelector("#cfg-tz").onchange = function(){
           var v = this.value;
           api("PUT","config",{ timezone:v }).then(function(r){ cfg = CONFIG_CACHE = (r && r.j && r.j.config) || Object.assign({}, CONFIG_CACHE, { timezone:v }); toast("Fuso horário atualizado"); });
@@ -999,6 +1037,27 @@ function configModal(){
       }
       render();
     }, { cls:"lg" });
+  });
+}
+/* editor de paleta nova — nome + 5 cores livres (input[type=color], sem restrição de opções) */
+function paletteEditorModal(existing, onSave){
+  return modal(function(box, close){
+    var cores = (existing && existing.cores) || ["#F2F2F2","#C9A166","#7FA9CF","#63C08A","#A98BD6"];
+    box.innerHTML = '<h4>' + ICO_GEAR + (existing ? "Editar paleta" : "Nova paleta") + '</h4>'
+      + frow("Nome", "pal-nome", existing ? existing.nome : "")
+      + '<div class="field"><label>Cores (5)</label><div class="pal-edit-row">'
+      +   [0,1,2,3,4].map(function(i){ return '<input type="color" class="pal-c" value="' + esc(cores[i] || "#F2F2F2") + '">'; }).join("")
+      + '</div></div>'
+      + '<div class="err" id="pal-err"></div>'
+      + '<div class="mrow"><button class="btn ghost" id="pal-x">Cancelar</button><button class="btn gold" id="pal-ok">Guardar</button></div>';
+    box.querySelector("#pal-x").onclick = function(){ close(); };
+    box.querySelector("#pal-ok").onclick = function(){
+      var nome = box.querySelector("#pal-nome").value.trim();
+      if(!nome){ box.querySelector("#pal-err").textContent = "Dá um nome à paleta."; return; }
+      var novasCores = Array.prototype.map.call(box.querySelectorAll(".pal-c"), function(i){ return i.value; });
+      close();
+      onSave({ id: (existing && existing.id) || ("pal-" + newId()), nome: nome, cores: novasCores });
+    };
   });
 }
 var _toastT = null;
@@ -1278,23 +1337,39 @@ function renderWho(){
   if(url){ av.style.backgroundImage = "url('" + url.replace(/'/g,"%27") + "')"; av.textContent = ""; }
   else { av.style.backgroundImage = "none"; av.textContent = initials(ME); }
 }
-var ACCENT_PRESETS = [
-  ["#F2F2F2","Branco"], ["#C9A166","Âmbar"], ["#7FA9CF","Azul"], ["#63C08A","Verde"],
-  ["#A98BD6","Roxo"], ["#D97A6C","Vermelho"], ["#E091B0","Rosa"], ["#E0A458","Laranja"],
-  ["#DFCB5C","Amarelo"], ["#5CC9B8","Turquesa"]
+/* paletas pré-definidas — o utilizador pode usar uma destas ou criar as suas.
+   Cada paleta tem 5 cores; a primeira vira a cor de destaque (botões, estados
+   selecionados); o conjunto todo fica disponível em --pal-1..--pal-5 pros
+   cartões/gráficos aplicarem automaticamente. Isto é só a padronização visual
+   do sistema — onde já existe escolha de cor por item (etiqueta do workspace,
+   por ex.), essa escolha continua existindo, sem relação com a paleta. */
+var PALETTE_PRESETS = [
+  { id:"preset-mono", nome:"Monocromático", cores:["#F2F2F2","#D2D2D2","#B0B0B0","#7E7E7E","#5A5A5A"] },
+  { id:"preset-ambar", nome:"Âmbar", cores:["#F2C94C","#E0A458","#C9A166","#8C6D3F","#5A4425"] },
+  { id:"preset-oceano", nome:"Oceano", cores:["#7FA9CF","#5CC9B8","#63C08A","#3E7C99","#1F4E63"] },
+  { id:"preset-terra", nome:"Terra", cores:["#D97A6C","#C9A166","#8C8C6D","#6E5B45","#40342A"] },
+  { id:"preset-noturno", nome:"Noturno", cores:["#A98BD6","#7A85D6","#5CC9B8","#4A4A6A","#2A2A3E"] },
+  { id:"preset-rosa", nome:"Rosa Antigo", cores:["#E091B0","#D97A6C","#C9A166","#8C6D6D","#4A3236"] }
 ];
+function allPalettes(cfg){ return PALETTE_PRESETS.concat((cfg && cfg.palettes) || []); }
+function activePalette(cfg){
+  var all = allPalettes(cfg);
+  return all.filter(function(p){ return p.id === (cfg && cfg.paletteId); })[0] || all[0];
+}
 function hexToRgba(hex, a){
   var m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || "");
   if(!m) return "rgba(242,242,242," + a + ")";
   return "rgba(" + parseInt(m[1],16) + "," + parseInt(m[2],16) + "," + parseInt(m[3],16) + "," + a + ")";
 }
-/* aplica o logo e a cor de destaque personalizados (Configurações > Layout do site) */
+/* aplica o logo e a paleta de cores personalizados (Configurações > Layout do site) */
 function applyBrandCustomization(cfg){
   cfg = cfg || {};
-  var accent = cfg.accentColor || "#F2F2F2";
+  var pal = activePalette(cfg);
   var root = document.documentElement.style;
+  var accent = pal.cores[0] || "#F2F2F2";
   root.setProperty("--accent", accent);
   root.setProperty("--accent-lo", hexToRgba(accent, .16));
+  for(var i = 0; i < 5; i++) root.setProperty("--pal-" + (i + 1), pal.cores[i] || accent);
   var logo = cfg.logoUrl || "/assets/logos/asteris.png";
   document.querySelectorAll(".ab-brand img").forEach(function(img){ img.src = logo; });
 }
@@ -1379,9 +1454,10 @@ function wireMobNav(){
 var CHAT_SEEN_KEY = "asteris_chat_seen";
 function chatLastSeen(){ try{ return Number(localStorage.getItem(CHAT_SEEN_KEY)) || 0; }catch(e){ return 0; } }
 function chatSetSeen(ts){ try{ localStorage.setItem(CHAT_SEEN_KEY, String(ts)); }catch(e){} }
+var CHAT_POS_KEY = "asteris_chat_pos";
 function wireChat(){
   var bub = $("#chatBub"), panel = $("#chatPanel"), body = $("#chatBody"), form = $("#chatForm"), input = $("#chatMsg");
-  var open = false;
+  var state = "small"; /* small -> big -> open -> big ; duplo-clique sempre volta a small */
   function renderMsgs(items){
     var sorted = items.slice().sort(function(a,b){ return (a.ts||0) - (b.ts||0); });
     body.innerHTML = "";
@@ -1400,18 +1476,92 @@ function wireChat(){
   }
   function refresh(){
     return col("chat").then(function(items){
-      if(open){ renderMsgs(items); return items; }
+      if(state === "open"){ renderMsgs(items); return items; }
       var last = items.slice().sort(function(a,b){ return (a.ts||0) - (b.ts||0); }).pop();
       if(last && last.autor !== ME && (last.ts || 0) > chatLastSeen()) $("#chatDot").hidden = false;
       return items;
     });
   }
-  bub.onclick = function(){
-    open = !open;
-    panel.hidden = !open;
-    if(open){ refresh(); setTimeout(function(){ input.focus(); }, 60); }
-  };
-  $("#chatClose").onclick = function(){ open = false; panel.hidden = true; };
+
+  /* posição arrastável — clamp aos limites do ecrã, guardada por dispositivo */
+  function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+  function loadPos(){ try{ var p = JSON.parse(localStorage.getItem(CHAT_POS_KEY)); return (p && typeof p.x === "number") ? p : null; }catch(e){ return null; } }
+  function savePos(x, y){ try{ localStorage.setItem(CHAT_POS_KEY, JSON.stringify({ x:x, y:y })); }catch(e){} }
+  function applyPos(x, y){
+    var w = bub.offsetWidth || 52, h = bub.offsetHeight || 52;
+    x = clamp(x, 8, window.innerWidth - w - 8);
+    y = clamp(y, 8, window.innerHeight - h - 8);
+    bub.style.left = x + "px"; bub.style.top = y + "px";
+    bub.style.right = "auto"; bub.style.bottom = "auto";
+    if(state === "open") positionPanel();
+  }
+  function positionPanel(){
+    var r = bub.getBoundingClientRect();
+    var pw = Math.min(panel.offsetWidth || 320, window.innerWidth - 16);
+    var spaceAbove = r.top - 16, spaceBelow = window.innerHeight - r.bottom - 16;
+    var top, maxH;
+    if(spaceAbove >= 200 || spaceAbove >= spaceBelow){
+      maxH = Math.max(160, spaceAbove);
+      top = Math.max(8, r.top - Math.min(460, maxH) - 10);
+    } else {
+      maxH = Math.max(160, spaceBelow);
+      top = r.bottom + 10;
+    }
+    panel.style.maxHeight = Math.min(460, maxH) + "px";
+    var left = clamp(r.left, 8, window.innerWidth - pw - 8);
+    panel.style.left = left + "px"; panel.style.top = top + "px";
+    panel.style.right = "auto"; panel.style.bottom = "auto";
+  }
+  var savedPos = loadPos();
+  if(savedPos) applyPos(savedPos.x, savedPos.y);
+  window.addEventListener("resize", function(){ if(bub.style.left) applyPos(parseFloat(bub.style.left), parseFloat(bub.style.top)); });
+
+  function setState(s){
+    state = s;
+    bub.classList.toggle("big", s !== "small");
+    panel.hidden = s !== "open";
+    if(s === "open"){ positionPanel(); refresh(); setTimeout(function(){ input.focus(); }, 60); }
+  }
+
+  /* arrastar (pointer events) — só conta como arrasto se mover além de um limiar,
+     senão é um clique normal (tratado pelo listener de click abaixo) */
+  var dragging = false, moved = false, startX = 0, startY = 0, origX = 0, origY = 0;
+  bub.addEventListener("pointerdown", function(e){
+    dragging = true; moved = false;
+    startX = e.clientX; startY = e.clientY;
+    var r = bub.getBoundingClientRect();
+    origX = r.left; origY = r.top;
+    try{ bub.setPointerCapture(e.pointerId); }catch(err){}
+  });
+  bub.addEventListener("pointermove", function(e){
+    if(!dragging) return;
+    var dx = e.clientX - startX, dy = e.clientY - startY;
+    if(Math.abs(dx) > 5 || Math.abs(dy) > 5) moved = true;
+    if(moved) applyPos(origX + dx, origY + dy);
+  });
+  function endDrag(){
+    if(!dragging) return;
+    dragging = false;
+    if(moved) savePos(parseFloat(bub.style.left), parseFloat(bub.style.top));
+  }
+  bub.addEventListener("pointerup", endDrag);
+  bub.addEventListener("pointercancel", endDrag);
+
+  /* clique único (com atraso pra distinguir de duplo-clique) avança o estado;
+     duplo-clique volta sempre a "small"; um arrasto nunca conta como clique */
+  var clickTimer = null;
+  bub.addEventListener("click", function(){
+    if(moved){ moved = false; return; }
+    if(clickTimer){ clearTimeout(clickTimer); clickTimer = null; setState("small"); return; }
+    clickTimer = setTimeout(function(){
+      clickTimer = null;
+      if(state === "small") setState("big");
+      else if(state === "big") setState("open");
+      else setState("big");
+    }, 260);
+  });
+
+  $("#chatClose").onclick = function(){ setState("big"); };
   form.addEventListener("submit", function(e){
     e.preventDefault();
     var txt = input.value.trim();
@@ -1758,9 +1908,8 @@ function ringSvg(pct, color){
 }
 function finRing(label, value, pct, color, sub){
   return '<div class="fin-ring">' + ringSvg(pct, color)
-    + '<div class="fin-ring-c"><b>' + fmtMoney(value) + '</b></div></div>'
-    + '<div class="fin-ring-l">' + esc(label) + '</div>'
-    + (sub != null ? '<div class="fin-ring-sub">' + esc(sub) + '</div>' : '');
+    + '<div class="fin-ring-c"><b>' + fmtMoney(value) + '</b>' + (sub != null ? '<span class="fin-ring-sub">' + esc(sub) + '</span>' : '') + '</div></div>'
+    + '<div class="fin-ring-l">' + esc(label) + '</div>';
 }
 function destCard(label, nome, val){
   return '<div class="dest-card"><div class="dest-l">' + esc(label) + '</div>'
@@ -1831,12 +1980,12 @@ function loadNegocio(box){
     box.innerHTML = ""
       + '<div class="dash-h">Negócio</div>'
       + '<div class="fin-card">'
-      +   '<div class="fin-col" id="recCard" style="cursor:pointer">' + finRing("Receitas", totMes.pago, pctPagoMes, "#5FBE82", "esperado " + fmtMoney(movimentoMes)) + '</div>'
+      +   '<div class="fin-col" id="recCard" style="cursor:pointer">' + finRing("Receitas", totMes.pago, pctPagoMes, "#5FBE82", fmtMoney(movimentoMes)) + '</div>'
       +   '<div class="fin-mid" id="finMid" style="cursor:pointer" title="Clica para definir a meta de lucro">'
       +     '<div class="fin-mid-l">Lucro</div><div class="fin-mid-v' + (lucro < 0 ? ' bad' : '') + '">' + fmtMoney(lucro) + '</div>'
       +     (meta ? '<div class="fin-mid-sub">' + Math.round(pctMeta) + '% da meta · ' + fmtMoney(meta) + '</div>' : '<div class="fin-mid-sub">meta não definida</div>')
       +   '</div>'
-      +   '<div class="fin-col" id="expCard" style="cursor:pointer">' + finRing("Despesas", gastoMes, Math.min(100, expPct), expColor, teto ? ("teto " + fmtMoney(teto)) : "sem teto definido") + '</div>'
+      +   '<div class="fin-col" id="expCard" style="cursor:pointer">' + finRing("Despesas", gastoMes, Math.min(100, expPct), expColor, teto ? fmtMoney(teto) : "sem teto") + '</div>'
       + '</div>'
       + '<div class="op-row">' + op.map(function(o){ return '<div class="op-item" data-view="' + o.view + '" style="cursor:pointer"><div class="op-v">' + o.v + '</div><div class="op-l">' + esc(o.l) + '</div></div>'; }).join("") + '</div>'
       + '<div class="dest-grid">'
