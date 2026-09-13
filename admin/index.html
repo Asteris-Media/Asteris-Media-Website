@@ -970,6 +970,10 @@ function configModal(){
           +   '<div class="row"><div class="field"><label>Fuso horário</label><select id="cfg-tz">' + TIMEZONES.map(function(t){ return '<option' + ((cfg.timezone||"Europa/Lisboa")===t?" selected":"") + '>' + t + '</option>'; }).join("") + '</select></div>'
           +   '<div class="field"><label>Moeda</label><select id="cfg-moeda">' + MOEDAS.map(function(m){ return '<option value="' + m[0] + '"' + ((cfg.moeda||"EUR")===m[0]?" selected":"") + '>' + m[1] + '</option>'; }).join("") + '</select></div></div>'
           + '</div>'
+          + '<div class="cfg-sec"><div class="cfg-h">Exportar dados</div>'
+          +   '<p class="cfg-note">Resumo financeiro (entradas e saídas, com data e detalhe de cada movimento) num período à escolha — em PDF ou Excel, para IRS ou conferência.</p>'
+          +   '<button type="button" class="btn ghost" id="cfgExportFin" style="margin-top:6px">Exportar resumo financeiro…</button>'
+          + '</div>'
           + '<div class="cfg-sec"><div class="cfg-h">Alterar senha</div>'
           +   '<p class="cfg-note">A password de acesso é gerida fora da app, nas variáveis de ambiente do deployment (<code>ADMIN_PW</code> / <code>ADMIN_USERS</code>). Para trocar, pede a quem tem acesso ao painel do Cloudflare Pages.</p>'
           + '</div>'
@@ -985,6 +989,7 @@ function configModal(){
           + '<div class="mrow"><button class="btn ghost" id="cfg-x">Fechar</button></div>';
 
         box.querySelector("#cfg-x").onclick = function(){ close(); };
+        box.querySelector("#cfgExportFin").onclick = function(){ exportFinanceiroModal(); };
         box.querySelector("#cfgLogoBtn").onclick = function(){ box.querySelector("#cfgLogoFile").click(); };
         var resetBtn = box.querySelector("#cfgLogoReset");
         if(resetBtn) resetBtn.onclick = function(){
@@ -1101,6 +1106,149 @@ function saveBlob(blob, name){
   var u = URL.createObjectURL(blob), a = document.createElement("a");
   a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(function(){ URL.revokeObjectURL(u); }, 4000);
+}
+/* ===== exportação financeira (PDF/Excel) — Configurações > Exportar dados ===== */
+function loadXLSX(){
+  if(window.XLSX) return Promise.resolve(window.XLSX);
+  return new Promise(function(res, rej){
+    var s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+    s.onload = function(){ res(window.XLSX); }; s.onerror = rej;
+    document.head.appendChild(s);
+  });
+}
+function loadJSPDF(){
+  if(window.jspdf && window.jspdf.jsPDF) return Promise.resolve(window.jspdf.jsPDF);
+  return new Promise(function(res, rej){
+    var s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+    s.onload = function(){
+      var s2 = document.createElement("script");
+      s2.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js";
+      s2.onload = function(){ res(window.jspdf.jsPDF); }; s2.onerror = rej;
+      document.head.appendChild(s2);
+    };
+    s.onerror = rej;
+    document.head.appendChild(s);
+  });
+}
+/* entradas = pagamentos com estado "pago" (data = dataPagamento, a data real em que entrou);
+   saídas = despesas (data = data do registo). Só isto conta — pendentes/em atraso não são
+   dinheiro que já entrou. Filtra por [de, ate] inclusive, comparando strings ISO (YYYY-MM-DD),
+   sem passar por Date/fuso horário nenhum, pra não haver erro de dia a mais/a menos. */
+function buildFinanceiroData(de, ate){
+  return Promise.all([col("pagamentos"), col("despesas")]).then(function(res){
+    var pagamentos = res[0], despesas = res[1];
+    var movimentos = [];
+    pagamentos.forEach(function(p){
+      if(pagEstado(p) !== "pago") return;
+      var d = p.dataPagamento || "";
+      if(!d || d < de || d > ate) return;
+      movimentos.push({
+        data: d, tipo: "Entrada",
+        descricao: p.descricao || p.contratoTitulo || p.projetoTitulo || "Pagamento",
+        detalhe: p.cliente || "",
+        valor: Number(p.valor) || 0
+      });
+    });
+    despesas.forEach(function(d){
+      var dt = d.data || "";
+      if(!dt || dt < de || dt > ate) return;
+      movimentos.push({
+        data: dt, tipo: "Saída",
+        descricao: d.descricao || "Despesa",
+        detalhe: d.categoria || "",
+        valor: -(Number(d.valor) || 0)
+      });
+    });
+    movimentos.sort(function(a, b){ return a.data < b.data ? -1 : a.data > b.data ? 1 : 0; });
+    var totalEntradas = 0, totalSaidas = 0;
+    movimentos.forEach(function(m){ if(m.valor > 0) totalEntradas += m.valor; else totalSaidas += -m.valor; });
+    var mesesMap = {};
+    movimentos.forEach(function(m){
+      var mk = m.data.slice(0, 7);
+      if(!mesesMap[mk]) mesesMap[mk] = { mes: mk, entradas: 0, saidas: 0 };
+      if(m.valor > 0) mesesMap[mk].entradas += m.valor; else mesesMap[mk].saidas += -m.valor;
+    });
+    var meses = Object.keys(mesesMap).sort().map(function(k){ return mesesMap[k]; });
+    return { movimentos: movimentos, totalEntradas: totalEntradas, totalSaidas: totalSaidas, saldo: totalEntradas - totalSaidas, meses: meses };
+  });
+}
+function exportFinanceiroPDF(data, range){
+  return loadJSPDF().then(function(jsPDF){
+    var doc = new jsPDF();
+    doc.setFontSize(14); doc.text("Resumo financeiro", 14, 16);
+    doc.setFontSize(10);
+    doc.text("Período: " + fmtDateDMY(range.de) + " a " + fmtDateDMY(range.ate), 14, 23);
+    doc.text("Entradas: " + fmtMoney(data.totalEntradas) + "    Saídas: " + fmtMoney(data.totalSaidas) + "    Saldo: " + fmtMoney(data.saldo), 14, 29);
+    var rows = data.movimentos.map(function(m){ return [fmtDateDMY(m.data), m.tipo, m.descricao, m.detalhe, fmtMoney(Math.abs(m.valor))]; });
+    doc.autoTable({
+      startY: 35, head: [["Data","Tipo","Descrição","Cliente/Categoria","Valor"]], body: rows,
+      styles: { fontSize: 8 }, headStyles: { fillColor: [30,30,30] },
+      columnStyles: { 4: { halign: "right" } }
+    });
+    var y = (doc.lastAutoTable ? doc.lastAutoTable.finalY : 35) + 10;
+    if(y > 260){ doc.addPage(); y = 16; }
+    doc.setFontSize(11); doc.text("Totais por mês", 14, y);
+    var monthRows = data.meses.map(function(m){ return [m.mes, fmtMoney(m.entradas), fmtMoney(m.saidas), fmtMoney(m.entradas - m.saidas)]; });
+    doc.autoTable({
+      startY: y + 4, head: [["Mês","Entradas","Saídas","Saldo"]], body: monthRows,
+      styles: { fontSize: 8 }, headStyles: { fillColor: [30,30,30] },
+      columnStyles: { 1: { halign: "right" }, 2: { halign: "right" }, 3: { halign: "right" } }
+    });
+    doc.save("resumo-financeiro_" + range.de + "_a_" + range.ate + ".pdf");
+  });
+}
+function exportFinanceiroXLSX(data, range){
+  return loadXLSX().then(function(XLSX){
+    var rows = [["Data","Tipo","Descrição","Cliente/Categoria","Valor (EUR)"]];
+    data.movimentos.forEach(function(m){ rows.push([m.data, m.tipo, m.descricao, m.detalhe, m.valor]); });
+    rows.push([]);
+    rows.push(["","","","Total entradas", data.totalEntradas]);
+    rows.push(["","","","Total saídas", -data.totalSaidas]);
+    rows.push(["","","","Saldo", data.saldo]);
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), "Movimentos");
+    var mrows = [["Mês","Entradas","Saídas","Saldo"]];
+    data.meses.forEach(function(m){ mrows.push([m.mes, m.entradas, m.saidas, m.entradas - m.saidas]); });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(mrows), "Por mês");
+    XLSX.writeFile(wb, "resumo-financeiro_" + range.de + "_a_" + range.ate + ".xlsx");
+  });
+}
+function exportFinanceiroModal(){
+  modal(function(box, close){
+    var hoje = new Date().toISOString().slice(0, 10);
+    var inicioMes = hoje.slice(0, 8) + "01";
+    box.innerHTML = '<h4>' + ICO_GEAR + 'Exportar resumo financeiro</h4>'
+      + '<p>Entradas (pagamentos recebidos) e saídas (despesas) no período escolhido, com data e detalhe de cada movimento — para conferência e IRS.</p>'
+      + '<div class="row"><div class="field"><label>De</label><input type="date" id="ex-de" value="' + esc(inicioMes) + '"></div>'
+      +   '<div class="field"><label>Até</label><input type="date" id="ex-ate" value="' + esc(hoje) + '"></div></div>'
+      + '<div class="err" id="ex-err"></div>'
+      + '<div id="ex-prog" style="font-size:12.5px;color:var(--dim);margin-top:8px"></div>'
+      + '<div class="mrow"><button class="btn ghost" id="ex-x">Fechar</button><button class="btn ghost" id="ex-xls">Exportar Excel</button><button class="btn gold" id="ex-pdf">Exportar PDF</button></div>';
+    box.querySelector("#ex-x").onclick = function(){ close(); };
+    function getRange(){
+      var de = box.querySelector("#ex-de").value, ate = box.querySelector("#ex-ate").value;
+      box.querySelector("#ex-err").textContent = "";
+      if(!de || !ate){ box.querySelector("#ex-err").textContent = "Escolhe as duas datas."; return null; }
+      if(de > ate){ box.querySelector("#ex-err").textContent = 'A data "De" tem de ser antes de "Até".'; return null; }
+      return { de: de, ate: ate };
+    }
+    function run(btn, prog, gerar){
+      var r = getRange(); if(!r) return;
+      btn.disabled = true; prog.textContent = "a preparar…";
+      buildFinanceiroData(r.de, r.ate).then(function(data){
+        return gerar(data, r);
+      }).then(function(){
+        prog.textContent = "";
+      }).catch(function(){
+        prog.textContent = "Não foi possível gerar o ficheiro.";
+      }).then(function(){ btn.disabled = false; });
+    }
+    var prog = box.querySelector("#ex-prog");
+    box.querySelector("#ex-pdf").onclick = function(e){ run(e.currentTarget, prog, exportFinanceiroPDF); };
+    box.querySelector("#ex-xls").onclick = function(e){ run(e.currentTarget, prog, exportFinanceiroXLSX); };
+  }, { cls: "lg" });
 }
 function isVidUrl(u){ return /\.(mp4|webm|mov|m4v)(\?|$)/i.test(u || ""); }
 function fileName(url){
