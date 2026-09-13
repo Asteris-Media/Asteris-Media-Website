@@ -300,6 +300,8 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
 @media(max-width:640px){.fin-ring .fin-ring-c b{font-size:11.5px}.fin-ring .fin-ring-c{padding:0 3px}}
 .fin-ring-l{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);text-align:center}
 @media(max-width:640px){.fin-ring-l{font-size:9px;letter-spacing:.04em}}
+.fin-ring-sub{font-size:11px;color:var(--faint);text-align:center;margin-top:2px;font-variant-numeric:tabular-nums}
+@media(max-width:640px){.fin-ring-sub{font-size:8.5px}}
 .fin-mid{text-align:center;min-width:0}
 .fin-mid .fin-mid-l{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:8px}
 .fin-mid .fin-mid-v{font-size:28px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
@@ -1280,10 +1282,11 @@ function ringSvg(pct, color){
     + '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="9" stroke-linecap="round" stroke-dasharray="' + dash + ' ' + c.toFixed(1) + '" transform="rotate(-90 50 50)"/>'
     + '</svg>';
 }
-function finRing(label, value, pct, color){
+function finRing(label, value, pct, color, sub){
   return '<div class="fin-ring">' + ringSvg(pct, color)
     + '<div class="fin-ring-c"><b>' + fmtMoney(value) + '</b></div></div>'
-    + '<div class="fin-ring-l">' + esc(label) + '</div>';
+    + '<div class="fin-ring-l">' + esc(label) + '</div>'
+    + (sub != null ? '<div class="fin-ring-sub">' + esc(sub) + '</div>' : '');
 }
 function destCard(label, nome, val){
   return '<div class="dest-card"><div class="dest-l">' + esc(label) + '</div>'
@@ -1304,9 +1307,11 @@ function loadNegocio(box){
     /* -- financeiro -- */
     var tot = { pago:0, pendente:0, atraso:0 };
     pagamentos.forEach(function(p){ tot[pagEstado(p)] += Number(p.valor) || 0; });
-    var aberto = tot.pendente + tot.atraso, movimento = tot.pago + aberto;
-    var pctPago = movimento ? tot.pago / movimento * 100 : 0;
-    var pctAberto = movimento ? aberto / movimento * 100 : 0;
+    var mesRefStr = hoje.slice(0, 7);
+    var totMes = { pago:0, pendente:0, atraso:0 };
+    pagamentos.forEach(function(p){ if(String(p.data || "").slice(0,7) === mesRefStr) totMes[pagEstado(p)] += Number(p.valor) || 0; });
+    var abertoMes = totMes.pendente + totMes.atraso, movimentoMes = totMes.pago + abertoMes;
+    var pctPagoMes = movimentoMes ? totMes.pago / movimentoMes * 100 : 0;
 
     /* -- operacional -- */
     var op = [
@@ -1336,11 +1341,10 @@ function loadNegocio(box){
     var topTarefas = agg.filter(function(c){ return c.tarefasPendentes > 0; }).sort(function(a,b){ return b.tarefasPendentes - a.tarefasPendentes; })[0];
 
     /* -- despesas do mês vs. teto, e lucro (recebido - despesas totais) vs. meta -- */
-    var mesStr = hoje.slice(0, 7);
-    var despesasMes = despesas.filter(function(d){ return String(d.data || "").slice(0,7) === mesStr; });
+    var despesasMes = despesas.filter(function(d){ return String(d.data || "").slice(0,7) === mesRefStr; });
     var gastoMes = despesasMes.reduce(function(s, d){ return s + (Number(d.valor) || 0); }, 0);
     var expPct = teto ? gastoMes / teto * 100 : 0;
-    var expColor = !teto ? "#8C8C8C" : expPct > 100 ? "#FF6B5C" : expPct > 75 ? "#E7B84B" : "#5FBE82";
+    var expColor = !teto ? "#8C8C8C" : expPct > 100 ? "#FF6B5C" : expPct > 75 ? "#E7B84B" : "#E0A458";
     var despesasTotal = despesas.reduce(function(s, d){ return s + (Number(d.valor) || 0); }, 0);
     var lucro = tot.pago - despesasTotal;
     var meta = Number(CFG.metaLucro) || 0;
@@ -1349,12 +1353,12 @@ function loadNegocio(box){
     box.innerHTML = ""
       + '<div class="dash-h">Negócio</div>'
       + '<div class="fin-card">'
-      +   '<div class="fin-col">' + finRing("Recebido / Esperado", tot.pago, pctPago, "#5FBE82") + '</div>'
+      +   '<div class="fin-col">' + finRing("Receitas", totMes.pago, pctPagoMes, "#5FBE82", "esperado " + fmtMoney(movimentoMes)) + '</div>'
       +   '<div class="fin-mid" id="finMid" style="cursor:pointer" title="Clica para definir a meta de lucro">'
       +     '<div class="fin-mid-l">Lucro</div><div class="fin-mid-v' + (lucro < 0 ? ' bad' : '') + '">' + fmtMoney(lucro) + '</div>'
       +     (meta ? '<div class="fin-mid-sub">' + Math.round(pctMeta) + '% da meta · ' + fmtMoney(meta) + '</div>' : '<div class="fin-mid-sub">meta não definida</div>')
       +   '</div>'
-      +   '<div class="fin-col" id="expCard" style="cursor:pointer">' + finRing("Despesas do mês", gastoMes, Math.min(100, expPct), expColor) + '</div>'
+      +   '<div class="fin-col" id="expCard" style="cursor:pointer">' + finRing("Despesas", gastoMes, Math.min(100, expPct), expColor, teto ? ("teto " + fmtMoney(teto)) : "sem teto definido") + '</div>'
       + '</div>'
       + '<div class="op-row">' + op.map(function(o){ return '<div class="op-item"><div class="op-v">' + o.v + '</div><div class="op-l">' + esc(o.l) + '</div></div>'; }).join("") + '</div>'
       + '<div class="dest-grid">'
