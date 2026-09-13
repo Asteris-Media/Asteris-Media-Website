@@ -2878,6 +2878,8 @@ function wireMediaTagFields(box, cfg, projetos, curTag, curProjetoId){
 }
 /* modal único de edição da pasta — nome, tag, projeto e os atalhos que antes eram
    itens soltos no menu "⋮" (abrir, usar numa página nova, copiar link) */
+/* mesma estrutura do modal de criação (Nova pasta) — só os campos que fazem sentido
+   editar depois: nome, tag e projeto. Nada de atalhos/ações soltas aqui dentro. */
 function editFolderModal(f){
   Promise.all([loadConfig(), col("projetos")]).then(function(res){
     var cfg = res[0], projetos = res[1];
@@ -2885,21 +2887,9 @@ function editFolderModal(f){
       box.innerHTML = '<h4>Editar pasta</h4>'
         + '<div class="field"><label>Nome da pasta</label><input id="ef-name" value="' + esc(f.name) + '"></div>'
         + mediaTagFieldsHTML()
-        + '<div class="cfg-logo-actions" style="margin-top:4px">'
-        +   '<button type="button" class="btn ghost" id="ef-open">Abrir pasta</button>'
-        +   '<button type="button" class="btn ghost" id="ef-page">Usar numa página nova</button>'
-        +   '<button type="button" class="btn ghost" id="ef-link">Copiar link</button>'
-        + '</div>'
         + '<div class="err" id="ef-err"></div>'
         + '<div class="mrow"><button class="btn ghost" id="ef-c">Cancelar</button><button class="btn gold" id="ef-ok">Guardar</button></div>';
       var fields = wireMediaTagFields(box, cfg, projetos, f.tag || "", f.projeto || "");
-      box.querySelector("#ef-open").onclick = function(){ close(); folderModal(f); };
-      box.querySelector("#ef-page").onclick = function(){ close(); newPageModal(f); };
-      box.querySelector("#ef-link").onclick = function(){
-        var u = folderLink(f);
-        if(navigator.clipboard) navigator.clipboard.writeText(u).then(function(){ toast("Link da pasta copiado"); });
-        else noticeModal("Link da pasta", u);
-      };
       box.querySelector("#ef-c").onclick = function(){ close(); };
       box.querySelector("#ef-ok").onclick = function(){
         var novoNome = box.querySelector("#ef-name").value.trim();
@@ -2925,6 +2915,12 @@ function folderMenuItems(f){
   return [
     { head: f.name.split("/").pop() },
     { label: "Editar…", onClick: function(){ editFolderModal(f); } },
+    { label: "Copiar link de download", onClick: function(){
+        var u = folderLink(f);
+        if(navigator.clipboard) navigator.clipboard.writeText(u).then(function(){ toast("Link da pasta copiado"); });
+        else noticeModal("Link da pasta", u);
+    } },
+    { label: "Usar numa página nova", onClick: function(){ newPageModal(f); } },
     { sep: true },
     { label: "Apagar pasta", danger: true, onClick: function(){ deleteFolder(f); } }
   ];
