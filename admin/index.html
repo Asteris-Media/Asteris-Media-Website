@@ -313,7 +313,8 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
 .op-row{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:16px}
 @media(max-width:900px){.op-row{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:480px){.op-row{grid-template-columns:repeat(2,1fr)}}
-.op-item{background:var(--panel);border:1px solid var(--edge);border-radius:4px;padding:16px 14px;text-align:center}
+.op-item{background:var(--panel);border:1px solid var(--edge);border-radius:4px;padding:16px 14px;text-align:center;transition:border-color .15s}
+.op-item:hover{border-color:var(--c4)}
 .op-item .op-v{font-size:22px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .op-item .op-l{font-size:10.5px;color:var(--faint);margin-top:6px;line-height:1.4}
 .dest-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
@@ -1309,18 +1310,22 @@ function loadNegocio(box){
     pagamentos.forEach(function(p){ tot[pagEstado(p)] += Number(p.valor) || 0; });
     var mesRefStr = hoje.slice(0, 7);
     var totMes = { pago:0, pendente:0, atraso:0 };
-    pagamentos.forEach(function(p){ if(String(p.data || "").slice(0,7) === mesRefStr) totMes[pagEstado(p)] += Number(p.valor) || 0; });
+    pagamentos.forEach(function(p){
+      var e = pagEstado(p);
+      var ref = e === "pago" ? p.dataPagamento : p.vencimento;
+      if(String(ref || "").slice(0,7) === mesRefStr) totMes[e] += Number(p.valor) || 0;
+    });
     var abertoMes = totMes.pendente + totMes.atraso, movimentoMes = totMes.pago + abertoMes;
     var pctPagoMes = movimentoMes ? totMes.pago / movimentoMes * 100 : 0;
 
     /* -- operacional -- */
     var op = [
-      { l:"Tarefas por fazer", v: tarefas.filter(function(t){ return t.estado !== "feito"; }).length },
-      { l:"Contratos ativos", v: contratos.filter(function(k){ return !k.fim || k.fim >= hoje; }).length },
-      { l:"Cobranças pendentes", v: pagamentos.filter(function(p){ return pagEstado(p) === "pendente"; }).length },
-      { l:"Cobranças em atraso", v: pagamentos.filter(function(p){ return pagEstado(p) === "atraso"; }).length },
-      { l:"Prospecção ativa", v: prospeccao.filter(function(p){ return ["abordar","contactado","conversa","proposta"].indexOf(p.estado || "abordar") >= 0; }).length },
-      { l:"Compromissos · 7 dias", v: agenda.filter(function(a){ return a.data && a.data >= hoje && a.data <= semanaStr; }).length }
+      { l:"Tarefas por fazer", v: tarefas.filter(function(t){ return t.estado !== "feito"; }).length, view:"tarefas" },
+      { l:"Contratos ativos", v: contratos.filter(function(k){ return !k.fim || k.fim >= hoje; }).length, view:"contratos" },
+      { l:"Cobranças pendentes", v: pagamentos.filter(function(p){ return pagEstado(p) === "pendente"; }).length, view:"pagamentos" },
+      { l:"Cobranças em atraso", v: pagamentos.filter(function(p){ return pagEstado(p) === "atraso"; }).length, view:"pagamentos" },
+      { l:"Prospecção ativa", v: prospeccao.filter(function(p){ return ["abordar","contactado","conversa","proposta"].indexOf(p.estado || "abordar") >= 0; }).length, view:"prospeccao" },
+      { l:"Compromissos · 7 dias", v: agenda.filter(function(a){ return a.data && a.data >= hoje && a.data <= semanaStr; }).length, view:"calendario" }
     ];
 
     /* -- destaques, por cliente -- */
@@ -1353,21 +1358,23 @@ function loadNegocio(box){
     box.innerHTML = ""
       + '<div class="dash-h">Negócio</div>'
       + '<div class="fin-card">'
-      +   '<div class="fin-col">' + finRing("Receitas", totMes.pago, pctPagoMes, "#5FBE82", "esperado " + fmtMoney(movimentoMes)) + '</div>'
+      +   '<div class="fin-col" id="recCard" style="cursor:pointer">' + finRing("Receitas", totMes.pago, pctPagoMes, "#5FBE82", "esperado " + fmtMoney(movimentoMes)) + '</div>'
       +   '<div class="fin-mid" id="finMid" style="cursor:pointer" title="Clica para definir a meta de lucro">'
       +     '<div class="fin-mid-l">Lucro</div><div class="fin-mid-v' + (lucro < 0 ? ' bad' : '') + '">' + fmtMoney(lucro) + '</div>'
       +     (meta ? '<div class="fin-mid-sub">' + Math.round(pctMeta) + '% da meta · ' + fmtMoney(meta) + '</div>' : '<div class="fin-mid-sub">meta não definida</div>')
       +   '</div>'
       +   '<div class="fin-col" id="expCard" style="cursor:pointer">' + finRing("Despesas", gastoMes, Math.min(100, expPct), expColor, teto ? ("teto " + fmtMoney(teto)) : "sem teto definido") + '</div>'
       + '</div>'
-      + '<div class="op-row">' + op.map(function(o){ return '<div class="op-item"><div class="op-v">' + o.v + '</div><div class="op-l">' + esc(o.l) + '</div></div>'; }).join("") + '</div>'
+      + '<div class="op-row">' + op.map(function(o){ return '<div class="op-item" data-view="' + o.view + '" style="cursor:pointer"><div class="op-v">' + o.v + '</div><div class="op-l">' + esc(o.l) + '</div></div>'; }).join("") + '</div>'
       + '<div class="dest-grid">'
       +   destCard("Maior cliente", topReceita && topReceita.nome, topReceita && fmtMoney(topReceita.receita))
       +   destCard("Mais contratos ativos", topContratos && topContratos.nome, topContratos && (topContratos.contratosAtivos + " contrato" + (topContratos.contratosAtivos===1?"":"s")))
       +   destCard("Maior valor em atraso", topAtraso && topAtraso.nome, topAtraso && fmtMoney(topAtraso.maiorAtraso))
       +   destCard("Mais tarefas por fazer", topTarefas && topTarefas.nome, topTarefas && (topTarefas.tarefasPendentes + " tarefa" + (topTarefas.tarefasPendentes===1?"":"s")))
       + '</div>';
+    box.querySelector("#recCard").onclick = function(){ receitasModal(pagamentos); };
     box.querySelector("#expCard").onclick = function(){ despesasModal(despesas, teto); };
+    box.querySelectorAll(".op-item").forEach(function(item){ item.onclick = function(){ openView(item.dataset.view); }; });
     box.querySelector("#finMid").onclick = function(){
       promptModal({ title:"Meta de lucro", label:"Meta (EUR) — deixa em branco para tirar", value: meta || "", type:"number" }).then(function(v){
         if(v == null) return;
@@ -1380,6 +1387,30 @@ function loadNegocio(box){
 
 /* ============================ DESPESAS ============================ */
 var CAT_DESPESA = ["Equipamento", "Software", "Deslocação", "Marketing", "Impostos", "Renda / escritório", "Outro"];
+function receitasModal(pagamentos){
+  modal(function(box, close){
+    var list = pagamentos.filter(function(p){ return pagEstado(p) === "pago"; })
+      .sort(function(a,b){ return (b.dataPagamento||"").localeCompare(a.dataPagamento||""); });
+    var total = list.reduce(function(s,p){ return s + (Number(p.valor)||0); }, 0);
+    box.innerHTML = '<h4>' + ICN.euro + 'Receitas</h4>'
+      + '<div class="field"><label>Total recebido</label><input value="' + fmtMoney(total) + '" disabled></div>'
+      + '<div class="exp-list" id="rc-list"></div>'
+      + '<div class="mrow"><button class="btn ghost" id="rc-x">Fechar</button></div>';
+    var wrap = box.querySelector("#rc-list");
+    if(!list.length){ wrap.appendChild(el("div","wide-empty","Ainda sem recebimentos registados.")); }
+    list.forEach(function(p){
+      var assoc = p.projetoTitulo || p.contratoTitulo || "";
+      var row = el("div","exp-row");
+      row.style.cursor = "pointer";
+      row.innerHTML = '<div class="exp-row-nm"><div class="exp-row-t">' + esc(p.cliente || p.descricao || "Recebimento") + '</div>'
+        + '<div class="exp-row-sub">' + [assoc, fmtDate(p.dataPagamento)].filter(Boolean).join(" · ") + '</div></div>'
+        + '<div class="exp-row-v">' + fmtMoney(p.valor) + '</div>';
+      row.onclick = function(){ close(); pagamentoForm(p); };
+      wrap.appendChild(row);
+    });
+    box.querySelector("#rc-x").onclick = function(){ close(); };
+  }, { cls:"lg" });
+}
 function despesasModal(despesas, teto){
   modal(function(box, close){
     function render(){
