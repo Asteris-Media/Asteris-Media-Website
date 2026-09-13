@@ -2876,51 +2876,58 @@ function wireMediaTagFields(box, cfg, projetos, curTag, curProjetoId){
     getProjetoTitulo: function(){ var p = projetos.filter(function(x){ return x.id === projSel.value; })[0]; return p ? (p.titulo || p.cliente || "") : ""; }
   };
 }
-function setFolderTag(f){
+/* modal único de edição da pasta — nome, tag, projeto e os atalhos que antes eram
+   itens soltos no menu "⋮" (abrir, usar numa página nova, copiar link) */
+function editFolderModal(f){
   Promise.all([loadConfig(), col("projetos")]).then(function(res){
     var cfg = res[0], projetos = res[1];
     modal(function(box, close){
-      box.innerHTML = '<h4>Tag e projeto da pasta</h4><p>' + esc(f.name) + '</p>'
+      box.innerHTML = '<h4>Editar pasta</h4>'
+        + '<div class="field"><label>Nome da pasta</label><input id="ef-name" value="' + esc(f.name) + '"></div>'
         + mediaTagFieldsHTML()
-        + '<div class="mrow"><button class="btn ghost" id="tg-c">Cancelar</button><button class="btn gold" id="tg-ok">Guardar</button></div>';
+        + '<div class="cfg-logo-actions" style="margin-top:4px">'
+        +   '<button type="button" class="btn ghost" id="ef-open">Abrir pasta</button>'
+        +   '<button type="button" class="btn ghost" id="ef-page">Usar numa página nova</button>'
+        +   '<button type="button" class="btn ghost" id="ef-link">Copiar link</button>'
+        + '</div>'
+        + '<div class="err" id="ef-err"></div>'
+        + '<div class="mrow"><button class="btn ghost" id="ef-c">Cancelar</button><button class="btn gold" id="ef-ok">Guardar</button></div>';
       var fields = wireMediaTagFields(box, cfg, projetos, f.tag || "", f.projeto || "");
-      box.querySelector("#tg-c").onclick = function(){ close(); };
-      box.querySelector("#tg-ok").onclick = function(){
-        api("PUT","media/tag",{ folder: f.name, tag: fields.getTag(), projeto: fields.getProjeto(), projetoTitulo: fields.getProjetoTitulo() })
-          .then(function(){ close(); LIB_CACHE = null; libraryView(); });
-      };
-    });
-  });
-}
-function folderMenuItems(f){
-  var items = [
-    { head: f.name.split("/").pop() },
-    { label: "Abrir pasta", onClick: function(){ folderModal(f); } },
-    { label: "Definir tag…", onClick: function(){ setFolderTag(f); } },
-    { label: "Copiar link de download", onClick: function(){
+      box.querySelector("#ef-open").onclick = function(){ close(); folderModal(f); };
+      box.querySelector("#ef-page").onclick = function(){ close(); newPageModal(f); };
+      box.querySelector("#ef-link").onclick = function(){
         var u = folderLink(f);
         if(navigator.clipboard) navigator.clipboard.writeText(u).then(function(){ toast("Link da pasta copiado"); });
         else noticeModal("Link da pasta", u);
-    } },
-    { label: "Usar numa página nova", onClick: function(){ newPageModal(f); } },
+      };
+      box.querySelector("#ef-c").onclick = function(){ close(); };
+      box.querySelector("#ef-ok").onclick = function(){
+        var novoNome = box.querySelector("#ef-name").value.trim();
+        if(!novoNome){ box.querySelector("#ef-err").textContent = "Dá um nome à pasta."; return; }
+        var tag = fields.getTag(), projeto = fields.getProjeto(), projetoTitulo = fields.getProjetoTitulo();
+        var btn = box.querySelector("#ef-ok"); btn.disabled = true;
+        function saveTagProjeto(folderName){
+          return api("PUT","media/tag",{ folder: folderName, tag: tag, projeto: projeto, projetoTitulo: projetoTitulo });
+        }
+        function done(){ close(); toast("Pasta atualizada"); LIB_CACHE = null; libraryView(); }
+        if(novoNome === f.name){ saveTagProjeto(f.name).then(done); return; }
+        var body = { cloud:f.cloud, from:f.name, to:novoNome };
+        if(f.cloud === "cloudinary") body.items = (f.files||[]).map(function(x){ return { publicId:x.publicId, resourceType:x.resourceType }; });
+        api("POST","media/rename-folder", body).then(function(r){
+          if(!r.ok){ btn.disabled = false; box.querySelector("#ef-err").textContent = (r.j && r.j.error) || "Não deu para renomear."; return; }
+          saveTagProjeto(novoNome).then(done);
+        });
+      };
+    }, { cls: "lg" });
+  });
+}
+function folderMenuItems(f){
+  return [
+    { head: f.name.split("/").pop() },
+    { label: "Editar…", onClick: function(){ editFolderModal(f); } },
     { sep: true },
-    { label: "Renomear pasta…", onClick: function(){ renameFolder(f); } },
     { label: "Apagar pasta", danger: true, onClick: function(){ deleteFolder(f); } }
   ];
-  return items;
-}
-function renameFolder(f){
-  promptModal({ title:"Renomear pasta", label:"Novo nome", value:f.name, ok:"Renomear" }).then(function(nome){
-    nome = (nome||"").trim();
-    if(!nome || nome === f.name) return;
-    toast("A renomear…");
-    var body = { cloud:f.cloud, from:f.name, to:nome };
-    if(f.cloud === "cloudinary") body.items = (f.files||[]).map(function(x){ return { publicId:x.publicId, resourceType:x.resourceType }; });
-    api("POST","media/rename-folder", body).then(function(r){
-      if(r.ok){ toast("Pasta renomeada"); LIB_CACHE=null; libraryView(); }
-      else noticeModal("Não deu para renomear", (r.j && r.j.error) || "Tenta outra vez.");
-    });
-  });
 }
 function deleteFolder(f){
   confirmModal({ title:"Apagar pasta?", message:'"'+f.name+'" e os '+f.count+' ficheiro(s) são apagados. Não dá para desfazer.', ok:"Apagar", danger:true })
