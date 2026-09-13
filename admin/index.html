@@ -213,10 +213,12 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
 .chatbub.big svg{width:22px;height:22px}
 .chatbub-dot{position:absolute;top:2px;right:2px;width:11px;height:11px;border-radius:50%;background:var(--neg);border:2px solid var(--bg)}
 @media(max-width:860px){.chatbub{right:16px;bottom:calc(78px + env(safe-area-inset-bottom,0px))}}
-.chatpanel{position:fixed;right:20px;bottom:84px;z-index:75;width:320px;max-height:min(460px,68vh);
+.chatpanel{position:fixed;right:20px;bottom:84px;z-index:76;width:320px;max-height:min(460px,68vh);
   display:flex;flex-direction:column;background:rgba(16,16,16,.78);backdrop-filter:blur(26px) saturate(1.5);-webkit-backdrop-filter:blur(26px) saturate(1.5);
   border:1px solid var(--edge2);border-radius:12px;box-shadow:0 24px 60px rgba(0,0,0,.6);overflow:hidden}
-@media(max-width:860px){.chatpanel{right:12px;left:12px;width:auto;bottom:calc(140px + env(safe-area-inset-bottom,0px))}}
+.chatpanel.centered{left:50%!important;top:50%!important;right:auto!important;bottom:auto!important;
+  transform:translate(-50%,-50%);width:min(360px,calc(100vw - 32px));max-height:min(520px,80vh)}
+.chat-scrim{position:fixed;inset:0;z-index:75;background:rgba(0,0,0,.55);backdrop-filter:blur(2px)}
 .chatpanel .cp-head{display:flex;align-items:center;justify-content:space-between;padding:13px 15px;border-bottom:1px solid var(--edge);flex-shrink:0}
 .chatpanel .cp-head b{font-size:13.5px;font-weight:700;letter-spacing:-.01em}
 .chatpanel .cp-head button{background:none;border:0;color:var(--faint);font-size:19px;line-height:1}
@@ -848,6 +850,7 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H12a8.3 8.3 0 0 1-4-1L3 20l1.2-3.8A8.5 8.5 0 1 1 21 11.5z"/></svg>
   <span class="chatbub-dot" id="chatDot" hidden></span>
 </button>
+<div class="chat-scrim" id="chatScrim" hidden></div>
 <div class="chatpanel" id="chatPanel" hidden>
   <div class="cp-head"><b>Chat da equipa</b><button id="chatClose" type="button" aria-label="Fechar">&times;</button></div>
   <div class="cp-body" id="chatBody"></div>
@@ -1493,11 +1496,17 @@ function wireChat(){
     y = clamp(y, 8, window.innerHeight - h - 8);
     bub.style.left = x + "px"; bub.style.top = y + "px";
     bub.style.right = "auto"; bub.style.bottom = "auto";
-    if(state === "open") positionPanel();
+    if(state === "open" && !isMobile()) positionPanel();
   }
+  function isMobile(){ return window.innerWidth <= 860; }
+  /* desktop: painel ancorado onde o balão está pousado, calculando o lado
+     (acima/abaixo) com mais espaço livre — nunca sobrepõe o balão.
+     mobile: ignora a posição do balão, o painel fica sempre centrado no
+     ecrã com um scrim por trás — mais simples e sem bugs de espaço. */
   function positionPanel(){
+    panel.style.maxHeight = "";
     var r = bub.getBoundingClientRect();
-    var pw = Math.min(panel.offsetWidth || 320, window.innerWidth - 16);
+    var pw = Math.min(320, window.innerWidth - 16);
     var spaceAbove = r.top - 16, spaceBelow = window.innerHeight - r.bottom - 16;
     var top, maxH;
     if(spaceAbove >= 200 || spaceAbove >= spaceBelow){
@@ -1514,13 +1523,29 @@ function wireChat(){
   }
   var savedPos = loadPos();
   if(savedPos) applyPos(savedPos.x, savedPos.y);
-  window.addEventListener("resize", function(){ if(bub.style.left) applyPos(parseFloat(bub.style.left), parseFloat(bub.style.top)); });
+  window.addEventListener("resize", function(){
+    if(bub.style.left) applyPos(parseFloat(bub.style.left), parseFloat(bub.style.top));
+    if(state === "open") layoutPanel();
+  });
 
+  function layoutPanel(){
+    var scrim = $("#chatScrim");
+    if(isMobile()){
+      panel.classList.add("centered");
+      panel.style.left = ""; panel.style.top = ""; panel.style.maxHeight = "";
+      scrim.hidden = false;
+    } else {
+      panel.classList.remove("centered");
+      scrim.hidden = true;
+      positionPanel();
+    }
+  }
   function setState(s){
     state = s;
     bub.classList.toggle("big", s !== "small");
     panel.hidden = s !== "open";
-    if(s === "open"){ positionPanel(); refresh(); setTimeout(function(){ input.focus(); }, 60); }
+    $("#chatScrim").hidden = s !== "open" || !isMobile();
+    if(s === "open"){ layoutPanel(); refresh(); setTimeout(function(){ input.focus(); }, 60); }
   }
 
   /* arrastar (pointer events) — só conta como arrasto se mover além de um limiar,
@@ -1562,6 +1587,7 @@ function wireChat(){
   });
 
   $("#chatClose").onclick = function(){ setState("big"); };
+  $("#chatScrim").onclick = function(){ setState("big"); };
   form.addEventListener("submit", function(e){
     e.preventDefault();
     var txt = input.value.trim();
