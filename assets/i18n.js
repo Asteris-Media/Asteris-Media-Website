@@ -16,11 +16,11 @@
   var DICT = {
     /* ---------------------------------------------------------- PT */
     pt: {
-      "META-TITLE": "Asteris — Content & Marketing Studio",
+      "META-TITLE": "Asteris - Media · Marketing · Management",
       "META-DESC": "Produzimos e estruturamos o conteúdo que uma empresa precisa para vender melhor. Fotografia, vídeo e estratégia numa só operação. Lisboa.",
-      "OG-TITLE": "Asteris — Content & Marketing Studio",
+      "OG-TITLE": "Asteris - Media · Marketing · Management",
       "OG-DESC": "Transformamos valor em percepção e percepção em procura.",
-      "LOGO-TAG": "Conteúdo & Marketing",
+      "LOGO-TAG": "Media · Marketing · Management",
       "NAV-ACESSO": "Acesso",
       "HERO-H1": "Quando a apresentação do produto falha,<br> até a excelência é percebida como desperdício.",
       "HERO-P1": "Seu crescimento começa naquilo que as pessoas percebem. Não é sobre o que você entrega, é sobre a forma como o seu cliente o vê.",
@@ -187,11 +187,11 @@
 
     /* ---------------------------------------------------------- EN */
     en: {
-      "META-TITLE": "Asteris — Content & Marketing Studio",
+      "META-TITLE": "Asteris - Media · Marketing · Management",
       "META-DESC": "We produce and structure the content a business needs to sell better. Photography, video and strategy in one operation. Lisbon.",
-      "OG-TITLE": "Asteris — Content & Marketing Studio",
+      "OG-TITLE": "Asteris - Media · Marketing · Management",
       "OG-DESC": "We turn value into perception, and perception into demand.",
-      "LOGO-TAG": "Content & Marketing",
+      "LOGO-TAG": "Media · Marketing · Management",
       "NAV-ACESSO": "Client access",
       "HERO-H1": "When a product is poorly presented,<br> even excellence can be perceived as a waste.",
       "HERO-P1": "Your growth starts with what people perceive. It is not just about what you deliver, but how your customer sees it.",
@@ -358,11 +358,11 @@
 
     /* ---------------------------------------------------------- ES */
     es: {
-      "META-TITLE": "Asteris — Estudio de Contenido y Marketing",
+      "META-TITLE": "Asteris - Media · Marketing · Management",
       "META-DESC": "Producimos y estructuramos el contenido que una empresa necesita para vender mejor. Fotografía, vídeo y estrategia en una sola operación. Lisboa.",
-      "OG-TITLE": "Asteris — Estudio de Contenido y Marketing",
+      "OG-TITLE": "Asteris - Media · Marketing · Management",
       "OG-DESC": "Convertimos el valor en percepción, y la percepción en demanda.",
-      "LOGO-TAG": "Contenido y Marketing",
+      "LOGO-TAG": "Media · Marketing · Management",
       "NAV-ACESSO": "Acceso",
       "HERO-H1": "Cuando la presentación de un producto falla,<br> hasta la excelencia puede percibirse como algo desperdiciado.",
       "HERO-P1": "Tu crecimiento empieza por lo que las personas perciben. No se trata solo de lo que ofreces, sino de cómo lo ve tu cliente.",
@@ -529,11 +529,11 @@
 
     /* ---------------------------------------------------------- FR */
     fr: {
-      "META-TITLE": "Asteris — Studio de contenu et marketing",
+      "META-TITLE": "Asteris - Media · Marketing · Management",
       "META-DESC": "Nous produisons et structurons le contenu dont une entreprise a besoin pour mieux vendre. Photographie, vidéo et stratégie au sein d'une même opération. Lisbonne.",
-      "OG-TITLE": "Asteris — Studio de contenu et marketing",
+      "OG-TITLE": "Asteris - Media · Marketing · Management",
       "OG-DESC": "Nous transformons la valeur en perception, et la perception en demande.",
-      "LOGO-TAG": "Contenu et marketing",
+      "LOGO-TAG": "Media · Marketing · Management",
       "NAV-ACESSO": "Accès",
       "HERO-H1": "Quand la présentation d'un produit fait défaut,<br> même l'excellence peut être perçue comme du gâchis.",
       "HERO-P1": "Votre croissance commence par ce que les gens perçoivent. Il ne s'agit pas seulement de ce que vous proposez, mais de la façon dont votre client le perçoit.",
