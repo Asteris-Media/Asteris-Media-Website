@@ -437,14 +437,29 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
 .glass{background:rgba(16,16,16,.68);backdrop-filter:blur(24px) saturate(1.5);-webkit-backdrop-filter:blur(24px) saturate(1.5)}
 
 /* popover de ações */
-.pop{position:fixed;z-index:85;min-width:190px;background:rgba(16,16,16,.7);backdrop-filter:blur(24px) saturate(1.5);-webkit-backdrop-filter:blur(24px) saturate(1.5);border:1px solid var(--edge2);border-radius:4px;padding:5px;box-shadow:0 14px 40px rgba(0,0,0,.6)}
-.pop button,.pop a{display:flex;width:100%;align-items:center;gap:9px;text-align:left;background:none;border:0;color:var(--ink);font-size:13.5px;padding:8px 10px;border-radius:4px;text-decoration:none}
+.pop{position:fixed;z-index:85;min-width:190px;max-height:min(360px,70vh);overflow-y:auto;background:rgba(16,16,16,.7);backdrop-filter:blur(24px) saturate(1.5);-webkit-backdrop-filter:blur(24px) saturate(1.5);border:1px solid var(--edge2);border-radius:4px;padding:5px;box-shadow:0 14px 40px rgba(0,0,0,.6)}
+.pop button,.pop a{display:flex;width:100%;align-items:center;gap:9px;text-align:left;background:none;border:0;color:var(--ink);font-size:13.5px;padding:8px 10px;border-radius:4px;text-decoration:none;flex-shrink:0}
 .ac-pop{max-width:none}
 .ac-pop .ac-sub{color:var(--faint);font-size:12px;margin-left:auto;padding-left:10px;flex-shrink:0}
 .pop button:hover,.pop a:hover{background:rgba(255,255,255,.06)}
-.pop .sep{height:1px;background:var(--edge);margin:4px 3px}
-.pop .head{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);padding:7px 10px 3px}
+.pop button.on{background:var(--gold-lo);color:var(--ink)}
+.pop button[disabled]{opacity:.4;cursor:default}
+.pop button[disabled]:hover{background:none}
+.pop .sep{height:1px;background:var(--edge);margin:4px 3px;flex-shrink:0}
+.pop .head{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);padding:7px 10px 3px;flex-shrink:0}
 .pop .danger{color:var(--neg)}
+
+/* select customizado — troca o <select> nativo (lista de opções cinza,
+   fora do controlo do CSS) por um botão + popover de vidro escuro */
+.csel{position:relative}
+.csel > select{display:none}
+.csel-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;font-family:var(--sans);font-size:14.5px;background:var(--panel2);border:1px solid var(--edge2);color:var(--ink);padding:9px 11px;border-radius:4px;text-align:left}
+.csel-btn:hover{border-color:var(--c4)}
+.csel-btn.open{outline:1px solid var(--ink);border-color:var(--ink)}
+.csel-btn:disabled{opacity:.5;cursor:default}
+.csel-lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+.csel-btn svg{width:14px;height:14px;flex-shrink:0;opacity:.7;transition:transform .15s}
+.csel-btn.open svg{transform:rotate(180deg)}
 
 /* ===== modal ===== */
 .modal-ov{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px}
@@ -745,8 +760,8 @@ function modal(build, opts){
   return new Promise(function(resolve){
     var ov = el("div","modal-ov"), box = el("div","modal" + (opts.cls ? " " + opts.cls : ""));
     ov.appendChild(box);
-    function close(val){ ov.remove(); document.removeEventListener("keydown", onKey); resolve(val); }
-    function onKey(e){ if(e.key === "Escape") close(undefined); }
+    function close(val){ closeMenu(); ov.remove(); document.removeEventListener("keydown", onKey); resolve(val); }
+    function onKey(e){ if(e.key !== "Escape") return; if($("#actpop")){ closeMenu(); return; } close(undefined); }
     document.addEventListener("keydown", onKey);
     ov.addEventListener("mousedown", function(e){ if(e.target === ov) close(undefined); });
     build(box, close);
@@ -845,20 +860,28 @@ function downloadUrl(file){
   if(u.indexOf("res.cloudinary.com") !== -1 && u.indexOf("/upload/") !== -1) return u.replace("/upload/", "/upload/fl_attachment/");
   return u;
 }
-function openMenu(anchor, items){
+function openMenu(anchor, items, opts){
   closeMenu();
-  var pop = el("div","pop"); pop.id = "actpop";
+  opts = opts || {};
+  var pop = el("div","pop" + (opts.cls ? " " + opts.cls : "")); pop.id = "actpop";
   items.forEach(function(it){
     if(it.sep){ pop.appendChild(el("div","sep")); return; }
     if(it.head != null){ pop.appendChild(el("div","head", esc(it.head))); return; }
-    var b;
-    if(it.href){ b = el("a", it.danger ? "danger" : "", esc(it.label)); b.href = it.href; b.target = "_blank"; b.onclick = function(){ closeMenu(); }; }
-    else { b = el("button", it.danger ? "danger" : "", esc(it.label)); b.onclick = function(){ closeMenu(); it.onClick(); }; }
+    var b, cls = (it.danger ? "danger" : "") + (it.on ? " on" : "");
+    if(it.href){ b = el("a", cls.trim(), esc(it.label)); b.href = it.href; b.target = "_blank"; b.onclick = function(){ closeMenu(); }; }
+    else {
+      b = el("button", cls.trim(), esc(it.label));
+      if(it.disabled){ b.disabled = true; }
+      else b.onclick = function(){ closeMenu(); it.onClick(); };
+    }
     pop.appendChild(b);
   });
   document.body.appendChild(pop);
-  var r = anchor.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
+  var r = anchor.getBoundingClientRect();
+  if(opts.matchWidth) pop.style.minWidth = Math.max(190, r.width) + "px";
+  var w = pop.offsetWidth, h = pop.offsetHeight;
   var left = Math.max(8, Math.min(r.right - w, window.innerWidth - w - 8));
+  if(opts.matchWidth) left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8));
   var top = r.bottom + 6;
   if(top + h > window.innerHeight - 8) top = Math.max(8, r.top - h - 6);
   pop.style.left = left + "px"; pop.style.top = top + "px";
@@ -868,6 +891,51 @@ function openMenu(anchor, items){
   setTimeout(function(){ document.addEventListener("mousedown", onDown); window.addEventListener("scroll", onScroll, true); }, 0);
   pop._cleanup = function(){ document.removeEventListener("mousedown", onDown); window.removeEventListener("scroll", onScroll, true); anchor.classList.remove("open"); };
 }
+var ICO_CHEVRON = _si('<path d="m6 9 6 6 6-6"/>');
+/* troca todo <select> nativo (root incluído, se ele próprio for um select) por um
+   botão que abre um popover .pop (vidro escuro com blur), em vez da lista cinza
+   nativa do sistema operativo. O <select> original fica escondido só a guardar o
+   valor — todo o código que já faz box.querySelector("#id").value continua igual. */
+function enhanceSelects(root){
+  if(!root) return;
+  var list = root.tagName === "SELECT" ? [root] : (root.querySelectorAll ? root.querySelectorAll("select") : []);
+  Array.prototype.forEach.call(list, function(sel){
+    if(sel.dataset.cselDone || sel.multiple) return;
+    sel.dataset.cselDone = "1";
+    var wrap = el("div","csel");
+    sel.parentNode.insertBefore(wrap, sel);
+    wrap.appendChild(sel);
+    var btn = el("button","csel-btn"); btn.type = "button";
+    var lbl = el("span","csel-lbl");
+    btn.appendChild(lbl);
+    btn.insertAdjacentHTML("beforeend", ICO_CHEVRON);
+    wrap.appendChild(btn);
+    function sync(){
+      var opt = sel.options[sel.selectedIndex];
+      lbl.textContent = opt ? opt.textContent : "";
+      btn.disabled = sel.disabled;
+    }
+    sync();
+    sel.addEventListener("change", sync);
+    btn.onclick = function(){
+      if(sel.disabled) return;
+      var items = Array.prototype.map.call(sel.options, function(opt){
+        return { label: opt.textContent, on: opt.value === sel.value, disabled: opt.disabled,
+          onClick: function(){
+            if(sel.value === opt.value) return;
+            sel.value = opt.value;
+            sel.dispatchEvent(new Event("change", { bubbles:true }));
+          } };
+      });
+      openMenu(btn, items, { matchWidth:true });
+    };
+  });
+}
+new MutationObserver(function(muts){
+  muts.forEach(function(m){
+    m.addedNodes.forEach(function(n){ if(n.nodeType === 1) enhanceSelects(n); });
+  });
+}).observe(document.body, { childList:true, subtree:true });
 function randCode(n){ var a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789", s=""; for(var i=0;i<(n||6);i++) s+=a[Math.floor(Math.random()*a.length)]; return s; }
 function isVid(u){ return /\.(mp4|webm|mov|m4v)(\?|$)/i.test(u||""); }
 function linesToArr(v){ return (v||"").replace(/\r/g,"").split("\n").map(function(x){return x.trim();}).filter(Boolean); }
