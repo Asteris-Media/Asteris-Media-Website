@@ -533,15 +533,24 @@ if(b) b.onclick=function(){
     });
   }
 
-  // ---- tags das pastas da biblioteca (KV) ----
+  // ---- tags + projeto das pastas da biblioteca (KV) ----
+  // cada entrada guarda { tag, projeto, projetoTitulo } — tag é texto livre (catálogo de
+  // tags fica em config.mediaTags), projeto é o id de um registo da coleção "projetos"
   if (seg[0] === "media" && seg[1] === "tag" && method === "PUT") {
     const b = await request.json().catch(() => ({}));
     if (!b.folder) return json({ error: "pasta em falta" }, 400);
     const raw = await env.ASTERIS_KV.get("mediatags");
     const tags = raw ? JSON.parse(raw) : {};
-    if (b.tag) tags[b.folder] = b.tag; else delete tags[b.folder];
+    const prev = tags[b.folder];
+    const prevObj = prev && typeof prev === "object" ? prev : { tag: prev || "" };
+    const next = {
+      tag: b.tag !== undefined ? b.tag : (prevObj.tag || ""),
+      projeto: b.projeto !== undefined ? b.projeto : (prevObj.projeto || ""),
+      projetoTitulo: b.projetoTitulo !== undefined ? b.projetoTitulo : (prevObj.projetoTitulo || "")
+    };
+    if (!next.tag && !next.projeto) delete tags[b.folder]; else tags[b.folder] = next;
     await env.ASTERIS_KV.put("mediatags", JSON.stringify(tags));
-    await logAction(env, ME, b.tag ? "marcou pasta como " + b.tag : "tirou a tag da pasta", { detail: b.folder });
+    await logAction(env, ME, next.tag ? "marcou pasta como " + next.tag : "atualizou a pasta", { detail: b.folder });
     return json({ ok: true });
   }
 
@@ -550,7 +559,12 @@ if(b) b.onclick=function(){
     const isVidExt = (s) => /\.(mp4|webm|mov|m4v)$/i.test(s || "");
     const tagsRaw = await env.ASTERIS_KV.get("mediatags");
     const TAGS = tagsRaw ? JSON.parse(tagsRaw) : {};
-    const tagOf = (name) => TAGS[name] || (/entrega/i.test(name) ? "entrega" : /selec/i.test(name) ? "selecao" : /portf/i.test(name) ? "portfolio" : "");
+    const metaOf = (name) => {
+      const v = TAGS[name];
+      if (v && typeof v === "object") return { tag: v.tag || "", projeto: v.projeto || "", projetoTitulo: v.projetoTitulo || "" };
+      const guess = v || (/entrega/i.test(name) ? "entrega" : /selec/i.test(name) ? "selecao" : /portf/i.test(name) ? "portfolio" : "");
+      return { tag: guess, projeto: "", projetoTitulo: "" };
+    };
     const ffConfMedia = await s3Conf(env);
     const out = { r2: { bound: !!env.ASTERIS_R2, folders: [] }, cloudinary: { configured: !!(env.CLOUDINARY_CLOUD && env.CLOUDINARY_KEY && env.CLOUDINARY_SECRET), folders: [] }, ffmpeglab: { configured: !!ffConfMedia, folders: [] } };
 
@@ -562,7 +576,7 @@ if(b) b.onclick=function(){
         for (const o of objs) {
           const parts = o.key.split("/");
           const folder = parts.length > 1 ? parts.slice(0, -1).join("/") : "(raiz)";
-          const f = map[folder] || (map[folder] = { name: folder, cloud: "ffmpeglab", tag: tagOf(folder), count: 0, bytes: 0, files: [] });
+          const f = map[folder] || (map[folder] = Object.assign({ name: folder, cloud: "ffmpeglab", count: 0, bytes: 0, files: [] }, metaOf(folder)));
           f.count++; f.bytes += o.size || 0;
           f.files.push({ url: "/api/ffmpeglab/" + o.key.split("/").map(encodeURIComponent).join("/"), key: o.key, tipo: isVidExt(o.key) ? "video" : "foto", bytes: o.size || 0 });
         }
@@ -579,7 +593,7 @@ if(b) b.onclick=function(){
           for (const o of r.objects) {
             const parts = o.key.split("/");
             const folder = parts.length > 1 ? parts.slice(0, -1).join("/") : "(raiz)";
-            const f = map[folder] || (map[folder] = { name: folder, cloud: "r2", tag: tagOf(folder), count: 0, bytes: 0, files: [] });
+            const f = map[folder] || (map[folder] = Object.assign({ name: folder, cloud: "r2", count: 0, bytes: 0, files: [] }, metaOf(folder)));
             f.count++; f.bytes += o.size || 0;
             f.files.push({ url: "/api/r2/" + o.key.split("/").map(encodeURIComponent).join("/"), key: o.key, tipo: isVidExt(o.key) ? "video" : "foto", bytes: o.size || 0 });
           }
@@ -599,7 +613,7 @@ if(b) b.onclick=function(){
           const cj = await cr.json();
           for (const res of (cj.resources || [])) {
             const folder = res.asset_folder || res.folder || "(raiz)";
-            const f = map[folder] || (map[folder] = { name: folder, cloud: "cloudinary", tag: tagOf(folder), count: 0, bytes: 0, files: [] });
+            const f = map[folder] || (map[folder] = Object.assign({ name: folder, cloud: "cloudinary", count: 0, bytes: 0, files: [] }, metaOf(folder)));
             f.count++; f.bytes += res.bytes || 0;
             f.files.push({ url: res.secure_url, publicId: res.public_id, resourceType: rt, tipo: rt === "video" ? "video" : "foto", bytes: res.bytes || 0 });
           }

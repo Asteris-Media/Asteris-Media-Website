@@ -562,7 +562,7 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;text-tra
 .cfg-note{font-size:12.5px;color:var(--dim);line-height:1.65}
 .cfg-note code{font-family:var(--mono);font-size:11.5px;color:var(--ink)}
 .cor-pick button.sel{border-color:var(--ink)!important}
-.pal-preview{display:flex;gap:6px;margin-top:8px}
+.pal-preview{display:flex;gap:6px;margin-top:8px;margin-bottom:14px}
 .pal-preview span{width:28px;height:28px;border-radius:6px;flex-shrink:0;border:1px solid var(--edge2)}
 .pal-edit-row{display:flex;gap:8px;flex-wrap:wrap}
 .pal-edit-row input[type=color]{width:40px;height:40px;padding:0;border:1px solid var(--edge2);border-radius:8px;background:none;cursor:pointer}
@@ -2614,6 +2614,7 @@ function libraryView(){
       if(!folders.length){ body.appendChild(el("div","lib-empty","Ainda sem pastas. Envia ficheiros acima.")); return; }
 
       var P = libPrefs();
+      var usedTags = Object.keys(folders.reduce(function(acc, f){ if(f.tag) acc[f.tag] = true; return acc; }, {})).sort();
       var tools = el("div","lib-tools");
       tools.innerHTML =
         '<select id="lt-sort">'
@@ -2621,9 +2622,9 @@ function libraryView(){
         +   '<option value="count">Mais ficheiros</option><option value="size">Maior tamanho</option>'
         + '</select>'
         + '<select id="lt-tag">'
-        +   '<option value="">Todas as tags</option><option value="entrega">Entrega</option>'
-        +   '<option value="selecao">Seleção</option><option value="portfolio">Portfólio</option>'
-        +   '<option value="outro">Outro</option><option value="none">Sem tag</option>'
+        +   '<option value="">Todas as tags</option>'
+        +   usedTags.map(function(t){ return '<option value="' + esc(t) + '">' + esc(TAG_LABEL[t] || t) + '</option>'; }).join("")
+        +   '<option value="none">Sem tag</option>'
         + '</select>'
         + '<span class="spacer"></span>'
         + '<span class="vm"><button data-vm="card" title="Cartões">&#9638;</button><button data-vm="list" title="Lista">&#9776;</button></span>';
@@ -2687,21 +2688,60 @@ function folderLink(f){
   return location.origin + "/api/media/view?f=" + encodeURIComponent(f.name) + "&c=" + f.cloud;
 }
 var TAG_LABEL = { entrega:"Entrega", selecao:"Seleção", portfolio:"Portfólio", outro:"Outro" };
+/* markup dos campos de tag (catálogo pessoal, cria nova na hora) + projeto (opcional) —
+   reutilizado na criação da pasta e na edição, pra manter as duas opções sempre disponíveis */
+function mediaTagFieldsHTML(){
+  return '<div class="field"><label>Tag</label><select id="mt-tag"></select></div>'
+    + '<div class="field"><label>Projeto (opcional)</label><select id="mt-projeto"></select></div>';
+}
+function wireMediaTagFields(box, cfg, projetos, curTag, curProjetoId){
+  var tagSel = box.querySelector("#mt-tag");
+  function fillTags(sel){
+    var tags = (cfg.mediaTags || []).slice();
+    tagSel.innerHTML = '<option value="">Sem tag</option>'
+      + tags.map(function(t){ return '<option value="' + esc(t) + '"' + (t === sel ? " selected" : "") + '>' + esc(t) + '</option>'; }).join("")
+      + '<option value="__new__">+ Criar nova tag…</option>';
+    /* o select vira um dropdown custom (enhanceSelects) que sincroniza o rótulo visível
+       só ao ouvir "change" — como aqui reescrevemos o innerHTML na mão, tem de disparar */
+    tagSel.dispatchEvent(new Event("change"));
+  }
+  fillTags(curTag || "");
+  tagSel.addEventListener("change", function(){
+    if(tagSel.value !== "__new__") return;
+    promptModal({ title:"Nova tag", label:"Nome da tag" }).then(function(nome){
+      nome = (nome || "").trim();
+      if(!nome){ fillTags(""); return; }
+      var lista = (cfg.mediaTags || []).indexOf(nome) >= 0 ? cfg.mediaTags : (cfg.mediaTags || []).concat([nome]);
+      api("PUT","config",{ mediaTags: lista }).then(function(r){
+        cfg.mediaTags = (r && r.j && r.j.config && r.j.config.mediaTags) || lista;
+        CONFIG_CACHE = Object.assign({}, CONFIG_CACHE, { mediaTags: cfg.mediaTags });
+        fillTags(nome);
+      });
+    });
+  });
+  var projSel = box.querySelector("#mt-projeto");
+  projSel.innerHTML = '<option value="">— nenhum —</option>'
+    + projetos.map(function(p){ return '<option value="' + p.id + '"' + (p.id === curProjetoId ? " selected" : "") + '>' + esc(p.titulo || p.cliente || "(sem título)") + '</option>'; }).join("");
+  return {
+    getTag: function(){ return tagSel.value === "__new__" ? "" : tagSel.value; },
+    getProjeto: function(){ return projSel.value; },
+    getProjetoTitulo: function(){ var p = projetos.filter(function(x){ return x.id === projSel.value; })[0]; return p ? (p.titulo || p.cliente || "") : ""; }
+  };
+}
 function setFolderTag(f){
-  modal(function(box, close){
-    box.innerHTML = '<h4>Tag da pasta</h4><p>' + esc(f.name) + '</p><div class="radio-row" id="tg" style="flex-wrap:wrap">'
-      + '<label data-t="entrega">Entrega</label><label data-t="selecao">Seleção</label>'
-      + '<label data-t="portfolio">Portfólio</label><label data-t="outro">Outro</label>'
-      + '<label data-t="">Sem tag</label></div>'
-      + '<div class="mrow"><button class="btn ghost" id="tg-c">Cancelar</button><button class="btn gold" id="tg-ok">Guardar</button></div>';
-    var pick = f.tag || "";
-    function sync(){ box.querySelectorAll("#tg label").forEach(function(l){ l.classList.toggle("on", (l.dataset.t||"") === pick); }); }
-    box.querySelectorAll("#tg label").forEach(function(l){ l.onclick = function(){ pick = l.dataset.t || ""; sync(); }; });
-    sync();
-    box.querySelector("#tg-c").onclick = function(){ close(); };
-    box.querySelector("#tg-ok").onclick = function(){
-      api("PUT","media/tag",{ folder: f.name, tag: pick }).then(function(){ close(); LIB_CACHE = null; libraryView(); });
-    };
+  Promise.all([loadConfig(), col("projetos")]).then(function(res){
+    var cfg = res[0], projetos = res[1];
+    modal(function(box, close){
+      box.innerHTML = '<h4>Tag e projeto da pasta</h4><p>' + esc(f.name) + '</p>'
+        + mediaTagFieldsHTML()
+        + '<div class="mrow"><button class="btn ghost" id="tg-c">Cancelar</button><button class="btn gold" id="tg-ok">Guardar</button></div>';
+      var fields = wireMediaTagFields(box, cfg, projetos, f.tag || "", f.projeto || "");
+      box.querySelector("#tg-c").onclick = function(){ close(); };
+      box.querySelector("#tg-ok").onclick = function(){
+        api("PUT","media/tag",{ folder: f.name, tag: fields.getTag(), projeto: fields.getProjeto(), projetoTitulo: fields.getProjetoTitulo() })
+          .then(function(){ close(); LIB_CACHE = null; libraryView(); });
+      };
+    });
   });
 }
 function folderMenuItems(f){
@@ -2764,6 +2804,7 @@ function libFolderCard(f){
   var bodyEl = el("div","lf-body");
   bodyEl.appendChild(Object.assign(el("div","lf-name"), { textContent: f.name.split("/").pop() }));
   bodyEl.appendChild(Object.assign(el("div","lf-meta"), { textContent: f.count + " ficheiro" + (f.count===1?"":"s") + " · " + fmtBytes(f.bytes) }));
+  if(f.projetoTitulo){ bodyEl.appendChild(Object.assign(el("div","lf-meta"), { textContent: "Projeto: " + f.projetoTitulo })); }
   c.appendChild(bodyEl);
   c.title = "Duplo clique para abrir";
   c.addEventListener("dblclick", function(){ folderModal(f); });
@@ -2781,7 +2822,7 @@ function libFolderRow(f){
   r.appendChild(th);
   r.appendChild(Object.assign(el("div","lr-name"), { textContent: f.name.split("/").pop() }));
   if(f.tag) r.appendChild(Object.assign(el("span","lr-tag " + f.tag), { textContent: TAG_LABEL[f.tag] || f.tag }));
-  r.appendChild(Object.assign(el("div","lr-meta"), { textContent: f.count + " · " + fmtBytes(f.bytes) }));
+  r.appendChild(Object.assign(el("div","lr-meta"), { textContent: f.count + " · " + fmtBytes(f.bytes) + (f.projetoTitulo ? " · " + f.projetoTitulo : "") }));
   var mb = el("button","lf-menu","&#8942;");
   mb.onclick = function(e){ e.stopPropagation(); openMenu(mb, folderMenuItems(f)); };
   r.appendChild(mb);
@@ -2933,90 +2974,104 @@ function folderModal(f){
   });
 }
 function newFolderModal(){
-  modal(function(box, close){
-    box.innerHTML =
-      '<h4>Nova pasta</h4>'
-      + '<p>Uma pasta na nuvem precisa de pelo menos um ficheiro. Escolhe o nome, o tipo e os primeiros ficheiros.</p>'
-      + '<div class="field"><label>Nome da pasta</label><input id="nf-name" placeholder="ex. fasano-institucional"></div>'
-      + '<label style="margin-top:12px">Para que é</label><div class="radio-row" id="nf-kind">'
-      +   '<label data-k="entregas">Entrega</label><label data-k="selecao">Seleção</label><label data-k="portfolio">Portfólio</label>'
-      + '</div>'
-      + '<button type="button" class="np-fromlib" id="nf-pick">' + ICO_PLUS + ' Escolher ficheiros</button>'
-      + '<div id="nf-count" style="font-size:12.5px;color:var(--dim);margin-top:6px"></div>'
-      + '<div class="field" style="margin-top:12px"><label>Apagar sozinho depois de quantos dias (opcional)</label><input id="nf-dias" type="number" min="1" max="365" placeholder="deixa vazio para nunca apagar"></div>'
-      + '<div class="err" id="nf-err"></div>'
-      + '<div id="nf-prog" style="font-size:12.5px;color:var(--dim);margin-top:8px"></div>'
-      + '<div class="mrow"><button class="btn ghost" id="nf-x">Cancelar</button><button class="btn gold" id="nf-ok">Criar pasta</button></div>';
-    var kind = "entregas", picked = [];
-    box.querySelectorAll("#nf-kind label").forEach(function(l){
-      l.onclick = function(){ kind = l.dataset.k; box.querySelectorAll("#nf-kind label").forEach(function(x){ x.classList.toggle("on", x === l); }); };
-    });
-    box.querySelector("#nf-kind label").classList.add("on");
-    var inp = el("input"); inp.type = "file"; inp.multiple = true; inp.style.display = "none"; box.appendChild(inp);
-    box.querySelector("#nf-pick").onclick = function(){ inp.click(); };
-    inp.onchange = function(){ picked = [].slice.call(inp.files); box.querySelector("#nf-count").textContent = picked.length ? (picked.length + " ficheiro" + (picked.length===1?"":"s") + " selecionado" + (picked.length===1?"":"s")) : ""; };
-    box.querySelector("#nf-x").onclick = function(){ close(); };
-    box.querySelector("#nf-ok").onclick = function(){
-      var name = box.querySelector("#nf-name").value.trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
-      if(!name){ box.querySelector("#nf-err").textContent = "Dá um nome à pasta."; return; }
-      if(!picked.length){ box.querySelector("#nf-err").textContent = "Escolhe pelo menos um ficheiro."; return; }
-      var dest = kind === "entregas" ? destForEntrega(picked) : "cloudinary";
-      var fallback = dest === "ffmpeglab" ? "r2" : "";
-      var dias = parseInt(box.querySelector("#nf-dias").value, 10) || 0;
-      var folder = kind + "/" + name;
-      var ok = box.querySelector("#nf-ok"); ok.disabled = true;
-      var prog = box.querySelector("#nf-prog");
-      uploadFiles(picked, folder, dest, function(n, total){ prog.textContent = "a enviar " + n + " / " + total + "…"; }, fallback).then(function(res){
-        close();
-        toast(res.ok + " enviados · pasta \"" + name + "\" criada" + (res.fail ? " · " + res.fail + " falharam" : ""));
-        logNote("criou a pasta \"" + folder + "\" (" + cloudLabel(dest) + ")");
-        if(dias) api("POST","limpezas",{ folder: folder, cloud: dest, dias: dias });
-        LIB_CACHE = null; libraryView();
+  Promise.all([loadConfig(), col("projetos")]).then(function(res){
+    var cfg = res[0], projetos = res[1];
+    modal(function(box, close){
+      box.innerHTML =
+        '<h4>Nova pasta</h4>'
+        + '<p>Uma pasta na nuvem precisa de pelo menos um ficheiro. Escolhe o nome, onde guardar e os primeiros ficheiros.</p>'
+        + '<div class="field"><label>Nome da pasta</label><input id="nf-name" placeholder="ex. fasano-institucional"></div>'
+        + '<label style="margin-top:12px">Onde guardar</label><div class="radio-row" id="nf-kind">'
+        +   '<label data-k="entregas">Entrega (ficheiros grandes)</label><label data-k="portfolio">Portfólio / imagens</label>'
+        + '</div>'
+        + mediaTagFieldsHTML()
+        + '<button type="button" class="np-fromlib" id="nf-pick">' + ICO_PLUS + ' Escolher ficheiros</button>'
+        + '<div id="nf-count" style="font-size:12.5px;color:var(--dim);margin-top:6px"></div>'
+        + '<div class="field" style="margin-top:12px"><label>Apagar sozinho depois de quantos dias (opcional)</label><input id="nf-dias" type="number" min="1" max="365" placeholder="deixa vazio para nunca apagar"></div>'
+        + '<div class="err" id="nf-err"></div>'
+        + '<div id="nf-prog" style="font-size:12.5px;color:var(--dim);margin-top:8px"></div>'
+        + '<div class="mrow"><button class="btn ghost" id="nf-x">Cancelar</button><button class="btn gold" id="nf-ok">Criar pasta</button></div>';
+      var kind = "entregas", picked = [];
+      var fields = wireMediaTagFields(box, cfg, projetos, "", "");
+      box.querySelectorAll("#nf-kind label").forEach(function(l){
+        l.onclick = function(){ kind = l.dataset.k; box.querySelectorAll("#nf-kind label").forEach(function(x){ x.classList.toggle("on", x === l); }); };
       });
-    };
-    box.querySelector("#nf-name").focus();
-  }, { cls: "lg" });
-}
-function startFolderUpload(files, nameHint){
-  // 1 pergunta: nome + tipo
-  modal(function(box, close){
-    box.innerHTML =
-      '<h4>Enviar ' + files.length + ' ficheiro' + (files.length===1?"":"s") + '</h4>'
-      + '<div class="field"><label>Nome da pasta</label><input id="fu-name" value="' + esc(nameHint || "") + '" placeholder="ex. everton-institucional"></div>'
-      + '<label style="margin-top:12px">Para que é</label><div class="radio-row" id="fu-kind">'
-      +   '<label data-k="entregas">Entrega</label><label data-k="selecao">Seleção</label><label data-k="portfolio">Portfólio</label>'
-      + '</div>'
-      + '<div class="field" style="margin-top:12px"><label>Apagar sozinho depois de quantos dias (opcional)</label><input id="fu-dias" type="number" min="1" max="365" placeholder="deixa vazio para nunca apagar"></div>'
-      + '<div class="err" id="fu-err"></div>'
-      + '<div id="fu-prog" style="font-size:12.5px;color:var(--dim);margin-top:10px"></div>'
-      + '<div class="mrow"><button class="btn ghost" id="fu-cancel">Cancelar</button><button class="btn gold" id="fu-ok">Enviar</button></div>';
-    var kind = "entregas";
-    box.querySelectorAll("#fu-kind label").forEach(function(l){
-      l.onclick = function(){ kind = l.dataset.k; box.querySelectorAll("#fu-kind label").forEach(function(x){ x.classList.toggle("on", x === l); }); };
-    });
-    box.querySelector("#fu-kind label").classList.add("on");
-    box.querySelector("#fu-cancel").onclick = function(){ close(); };
-    box.querySelector("#fu-ok").onclick = function(){
-      var name = box.querySelector("#fu-name").value.trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
-      if(!name){ box.querySelector("#fu-err").textContent = "Dá um nome à pasta."; return; }
-      var dest = kind === "entregas" ? destForEntrega(files) : "cloudinary";
-      var fallback = dest === "ffmpeglab" ? "r2" : "";
-      var dias = parseInt(box.querySelector("#fu-dias").value, 10) || 0;
-      var folder = kind + "/" + name;
-      var ok = box.querySelector("#fu-ok"); ok.disabled = true;
-      var prog = box.querySelector("#fu-prog");
-      uploadFiles(files, folder, dest, function(n, total){ prog.textContent = "a enviar " + n + " / " + total + "…"; }, fallback)
-        .then(function(res){
-          prog.textContent = "";
+      box.querySelector("#nf-kind label").classList.add("on");
+      var inp = el("input"); inp.type = "file"; inp.multiple = true; inp.style.display = "none"; box.appendChild(inp);
+      box.querySelector("#nf-pick").onclick = function(){ inp.click(); };
+      inp.onchange = function(){ picked = [].slice.call(inp.files); box.querySelector("#nf-count").textContent = picked.length ? (picked.length + " ficheiro" + (picked.length===1?"":"s") + " selecionado" + (picked.length===1?"":"s")) : ""; };
+      box.querySelector("#nf-x").onclick = function(){ close(); };
+      box.querySelector("#nf-ok").onclick = function(){
+        var name = box.querySelector("#nf-name").value.trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+        if(!name){ box.querySelector("#nf-err").textContent = "Dá um nome à pasta."; return; }
+        if(!picked.length){ box.querySelector("#nf-err").textContent = "Escolhe pelo menos um ficheiro."; return; }
+        var dest = kind === "entregas" ? destForEntrega(picked) : "cloudinary";
+        var fallback = dest === "ffmpeglab" ? "r2" : "";
+        var dias = parseInt(box.querySelector("#nf-dias").value, 10) || 0;
+        var folder = kind + "/" + name;
+        var tag = fields.getTag(), projeto = fields.getProjeto(), projetoTitulo = fields.getProjetoTitulo();
+        var ok = box.querySelector("#nf-ok"); ok.disabled = true;
+        var prog = box.querySelector("#nf-prog");
+        uploadFiles(picked, folder, dest, function(n, total){ prog.textContent = "a enviar " + n + " / " + total + "…"; }, fallback).then(function(res){
           close();
-          toast(res.ok + " enviados" + (res.fail ? " · " + res.fail + " falharam" : ""));
-          logNote("enviou " + res.ok + " ficheiro(s) para \"" + folder + "\" (" + cloudLabel(dest) + ")");
+          toast(res.ok + " enviados · pasta \"" + name + "\" criada" + (res.fail ? " · " + res.fail + " falharam" : ""));
+          logNote("criou a pasta \"" + folder + "\" (" + cloudLabel(dest) + ")");
+          if(tag || projeto) api("PUT","media/tag",{ folder: folder, tag: tag, projeto: projeto, projetoTitulo: projetoTitulo });
           if(dias) api("POST","limpezas",{ folder: folder, cloud: dest, dias: dias });
           LIB_CACHE = null; libraryView();
         });
-    };
-    box.querySelector("#fu-name").focus();
-  }, { cls: "lg" });
+      };
+      box.querySelector("#nf-name").focus();
+    }, { cls: "lg" });
+  });
+}
+function startFolderUpload(files, nameHint){
+  // 1 pergunta: nome + tipo
+  Promise.all([loadConfig(), col("projetos")]).then(function(res){
+    var cfg = res[0], projetos = res[1];
+    modal(function(box, close){
+      box.innerHTML =
+        '<h4>Enviar ' + files.length + ' ficheiro' + (files.length===1?"":"s") + '</h4>'
+        + '<div class="field"><label>Nome da pasta</label><input id="fu-name" value="' + esc(nameHint || "") + '" placeholder="ex. everton-institucional"></div>'
+        + '<label style="margin-top:12px">Onde guardar</label><div class="radio-row" id="fu-kind">'
+        +   '<label data-k="entregas">Entrega (ficheiros grandes)</label><label data-k="portfolio">Portfólio / imagens</label>'
+        + '</div>'
+        + mediaTagFieldsHTML()
+        + '<div class="field" style="margin-top:12px"><label>Apagar sozinho depois de quantos dias (opcional)</label><input id="fu-dias" type="number" min="1" max="365" placeholder="deixa vazio para nunca apagar"></div>'
+        + '<div class="err" id="fu-err"></div>'
+        + '<div id="fu-prog" style="font-size:12.5px;color:var(--dim);margin-top:10px"></div>'
+        + '<div class="mrow"><button class="btn ghost" id="fu-cancel">Cancelar</button><button class="btn gold" id="fu-ok">Enviar</button></div>';
+      var kind = "entregas";
+      var fields = wireMediaTagFields(box, cfg, projetos, "", "");
+      box.querySelectorAll("#fu-kind label").forEach(function(l){
+        l.onclick = function(){ kind = l.dataset.k; box.querySelectorAll("#fu-kind label").forEach(function(x){ x.classList.toggle("on", x === l); }); };
+      });
+      box.querySelector("#fu-kind label").classList.add("on");
+      box.querySelector("#fu-cancel").onclick = function(){ close(); };
+      box.querySelector("#fu-ok").onclick = function(){
+        var name = box.querySelector("#fu-name").value.trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+        if(!name){ box.querySelector("#fu-err").textContent = "Dá um nome à pasta."; return; }
+        var dest = kind === "entregas" ? destForEntrega(files) : "cloudinary";
+        var fallback = dest === "ffmpeglab" ? "r2" : "";
+        var dias = parseInt(box.querySelector("#fu-dias").value, 10) || 0;
+        var folder = kind + "/" + name;
+        var tag = fields.getTag(), projeto = fields.getProjeto(), projetoTitulo = fields.getProjetoTitulo();
+        var ok = box.querySelector("#fu-ok"); ok.disabled = true;
+        var prog = box.querySelector("#fu-prog");
+        uploadFiles(files, folder, dest, function(n, total){ prog.textContent = "a enviar " + n + " / " + total + "…"; }, fallback)
+          .then(function(res){
+            prog.textContent = "";
+            close();
+            toast(res.ok + " enviados" + (res.fail ? " · " + res.fail + " falharam" : ""));
+            logNote("enviou " + res.ok + " ficheiro(s) para \"" + folder + "\" (" + cloudLabel(dest) + ")");
+            if(tag || projeto) api("PUT","media/tag",{ folder: folder, tag: tag, projeto: projeto, projetoTitulo: projetoTitulo });
+            if(dias) api("POST","limpezas",{ folder: folder, cloud: dest, dias: dias });
+            LIB_CACHE = null; libraryView();
+          });
+      };
+      box.querySelector("#fu-name").focus();
+    }, { cls: "lg" });
+  });
 }
 /* integração com o FFmpegLab em PAUSA — ver "13. FFmpegLab (storage extra) — em pausa"
    no README.md do repo para o porquê e o que já foi tentado. Tudo o resto (upload-url,
