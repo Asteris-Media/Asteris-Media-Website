@@ -1744,7 +1744,8 @@ function wireChat(){
     colPut("chat", newId(), { autor: ME, texto: txt, ts: Date.now(), _log: "escreveu no chat da equipa" }).then(refresh);
   });
   refresh();
-  setInterval(refresh, 15000);
+  setInterval(refresh, 4000);
+  window.addEventListener("focus", refresh);
 }
 
 /* ============================ pesquisa global ============================ */

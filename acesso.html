@@ -34,19 +34,8 @@ body::after{content:"";position:fixed;inset:0;z-index:-1;background:linear-gradi
 h1{font-family:var(--serif);font-weight:300;font-size:clamp(1.7rem,4vw,2.3rem);line-height:1.15;margin-bottom:8px}
 .sub{font-size:12px;font-weight:300;color:var(--white-dim);margin-bottom:34px;max-width:34ch;margin-left:auto;margin-right:auto}
 
-/* escolha */
-.choices{display:flex;flex-direction:column;gap:10px}
-.choice{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--panel);border:1px solid var(--gold-soft);color:var(--white);padding:18px 18px;cursor:pointer;transition:border-color .2s,transform .12s,background .2s;font-family:var(--sans)}
-.choice:hover{border-color:var(--gold);transform:translateX(3px)}
-.choice .ic{color:var(--gold);width:24px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-.choice .ic svg{width:19px;height:19px}
-.choice .tx{display:flex;flex-direction:column;gap:2px}
-.choice .tx b{font-weight:500;font-size:13px;letter-spacing:.02em}
-.choice .tx span{font-size:10.5px;font-weight:300;color:var(--white-dim)}
-
 /* campo de codigo */
 .gate{margin-top:6px}
-.gate .label{font-size:9px;font-weight:600;letter-spacing:.26em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
 .gate form{display:flex;flex-direction:column;gap:10px}
 .gate input{background:#0C0C0B;border:1px solid var(--gold-soft);color:var(--white);font-family:var(--serif);font-size:1.6rem;letter-spacing:.35em;text-align:center;text-transform:uppercase;padding:16px 12px;width:100%}
 .gate input::placeholder{color:var(--white-faint);letter-spacing:.35em}
@@ -54,8 +43,6 @@ h1{font-family:var(--serif);font-weight:300;font-size:clamp(1.7rem,4vw,2.3rem);l
 .gate button.go{background:var(--gold);color:var(--black);border:none;padding:14px;font-family:var(--sans);font-size:9px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;cursor:pointer;transition:opacity .2s}
 .gate button.go:hover{opacity:.88}
 .err{color:var(--neg);font-size:11px;margin-top:10px;min-height:1.2em}
-.gate-back{margin-top:14px;background:none;border:none;color:var(--white-dim);font-family:var(--sans);font-size:9px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;padding:8px 10px}
-.gate-back:hover{color:var(--gold)}
 
 .foot{margin-top:40px;font-size:8.5px;letter-spacing:.06em;color:var(--white-faint)}
 .foot a{color:var(--white-dim);text-decoration:none;border-bottom:1px solid var(--gold-soft)}
@@ -70,9 +57,6 @@ h1{font-family:var(--serif);font-weight:300;font-size:clamp(1.7rem,4vw,2.3rem);l
   .mark{height:28px;margin-bottom:14px}
   h1{font-size:1.55rem}
   .sub{margin-bottom:18px}
-  .choices{gap:8px}
-  .choice{padding:13px 15px}
-  .choice .tx span{font-size:10px}
   .foot{margin-top:18px}
   .site-footer{padding:14px var(--pad);justify-content:center;text-align:center}
   .home-link{top:14px;left:14px}
@@ -91,37 +75,15 @@ h1{font-family:var(--serif);font-weight:300;font-size:clamp(1.7rem,4vw,2.3rem);l
   <img class="mark" src="assets/logos/asteris.png" alt="Asteris">
   <div class="brand">Asteris</div>
 
-  <div id="menu">
-    <h1 data-i18n="AC-H1">Área de acesso</h1>
-    <p class="sub" data-i18n="AC-SUB">Escolhe o que vieste fazer e insere o teu código.</p>
-    <div class="choices">
-      <button class="choice" data-k="selecao">
-        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
-        <span class="tx"><b data-i18n="AC-SELECAO-T">Seleção de material</b><span data-i18n="AC-SELECAO-D">Escolher as fotos e vídeos da versão final</span></span>
-      </button>
-      <button class="choice" data-k="entrega">
-        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg></span>
-        <span class="tx"><b data-i18n="AC-ENTREGA-T">Entrega de trabalho</b><span data-i18n="AC-ENTREGA-D">Descarregar o material concluído</span></span>
-      </button>
-      <button class="choice" data-k="portfolio">
-        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg></span>
-        <span class="tx"><b data-i18n="AC-PORTFOLIO-T">Portfólio</b><span data-i18n="AC-PORTFOLIO-D">Galeria privada partilhada contigo</span></span>
-      </button>
-      <button class="choice" data-k="proposta">
-        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v5h5"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg></span>
-        <span class="tx"><b data-i18n="AC-PROPOSTA-T">Proposta</b><span data-i18n="AC-PROPOSTA-D">Ver a proposta que preparámos para ti</span></span>
-      </button>
-    </div>
-  </div>
+  <h1 data-i18n="AC-H1">Área de acesso</h1>
+  <p class="sub" data-i18n="AC-SUB">Insere o código de acesso que recebeste.</p>
 
-  <div id="gate" class="gate" hidden>
-    <div class="label" id="gate-label"></div>
+  <div id="gate" class="gate">
     <form id="gate-form">
       <input id="code" name="code" inputmode="text" autocomplete="off" autocapitalize="characters"
              spellcheck="false" maxlength="16" placeholder="CÓDIGO" data-i18n-ph="AC-INPUT" data-i18n-aria="AC-INPUT-ARIA" aria-label="Código de acesso">
       <button class="go" type="submit" data-i18n="AC-ENTRAR">Entrar</button>
     </form>
-    <button class="gate-back" type="button" id="gate-back" data-i18n="AC-VOLTAR">&#8592; Voltar</button>
     <div class="err" id="err" role="alert"></div>
   </div>
 
@@ -141,43 +103,24 @@ h1{font-family:var(--serif);font-weight:300;font-size:clamp(1.7rem,4vw,2.3rem);l
 </footer>
 
 <script>
-function gateLabel(k){ return I18N.t("AC-LBL-" + String(k || "").toUpperCase()) || I18N.t("AC-LBL-FALLBACK"); }
 var $ = function(s){ return document.querySelector(s); };
-var menu = $("#menu"), gate = $("#gate"), input = $("#code"), err = $("#err");
-var homeLink = $(".home-link");
+var input = $("#code"), err = $("#err");
 
-function toMenu(){
-  gate.hidden = true; menu.hidden = false; err.textContent = ""; input.value = "";
-  homeLink.hidden = false;
-}
-document.querySelectorAll(".choice").forEach(function(b){
-  b.addEventListener("click", function(){
-    gate.dataset.k = b.dataset.k;
-    $("#gate-label").textContent = gateLabel(b.dataset.k);
-    menu.hidden = true; gate.hidden = false;
-    homeLink.hidden = true;   // no menu de código o "voltar" fica por baixo do Entrar
-    input.focus();
-  });
-});
-$("#gate-back").addEventListener("click", toMenu);
+input.focus();
 
 $("#gate-form").addEventListener("submit", function(e){
   e.preventDefault();
   err.textContent = "";
   var code = input.value.trim().replace(/[^a-z0-9_-]/gi, "");
   if(code.length < 4){ err.textContent = I18N.t("AC-ERR-INCOMPLETO"); return; }
-  // o código é que manda: abre /<codigo>, o portal deteta se é seleção, entrega ou portfólio
+  // o código é o único identificador: abre /<codigo>, o portal deteta se é
+  // seleção, entrega, portfólio ou proposta a partir dos dados da pasta
   window.location.href = "/" + encodeURIComponent(code);
 });
 
 // atalho: acesso.html?c=CODIGO entra directo
 var pre = new URLSearchParams(location.search).get("c");
 if(pre){ input.value = pre; }
-
-// ao trocar de língua com o ecrã do código aberto, atualiza o rótulo
-I18N.onChange(function(){
-  if(!gate.hidden && gate.dataset.k) $("#gate-label").textContent = gateLabel(gate.dataset.k);
-});
 </script>
 </body>
 </html>
